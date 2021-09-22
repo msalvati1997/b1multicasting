@@ -31,9 +31,9 @@ func main() {
 		for scanner.Scan() {
 			log.Println("Input : ")
 			text := scanner.Bytes()
-			err := connections.Multicast(multicasterId, basic.NewMessage(text))
+			err := connections.XMulticast(multicasterId, basic.NewMessage(text))
 			if err != nil {
-				log.Println((err))
+				log.Println(err)
 			}
 		}
 	}

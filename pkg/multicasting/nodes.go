@@ -1,24 +1,12 @@
 package multicasting
 
 import (
-	"b1multicasting/pkg/basic"
 	client "b1multicasting/pkg/basic/client"
 	"log"
 )
 
 type Conns struct {
 	conns []*client.GrpcClient
-}
-
-func (c *Conns) Multicast(id string, message basic.Message) error {
-
-	for i := 0; i < len(c.conns); i++ {
-		err := c.conns[i].Send(id, message)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func Connections(ports []string, delay int) (*Conns, error) {
