@@ -22,19 +22,19 @@ type GrpcClient struct {
 
 //method to connect to grpcServer
 func Connect(address string, delay uint) (*GrpcClient, error) {
-	log.Println("Server address ", address)
+	log.Println("Connecting with server ", address)
 	cc, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
-			log.Println(err.Error())
-			return nil, err
-		}
-		log.Println("connection state ====> ", cc.GetState(), "connected client ", cc.Target())
+		log.Println(err.Error())
+		return nil, err
+	}
+	log.Println("connection state ====> ", cc.GetState(), "connected client ", cc.Target())
 
-		cl := new(Client)
-		cl.Client = proto.NewEndToEndServiceClient(cc)
-		cl.Connection = cc
-		cl.address = address
-		cl.delay = delay
+	cl := new(Client)
+	cl.Client = proto.NewEndToEndServiceClient(cc)
+	cl.Connection = cc
+	cl.address = address
+	cl.delay = delay
 
 	return &GrpcClient{cl}, nil
 }
@@ -52,9 +52,9 @@ func (c *GrpcClient) Send(id string, message basic.Message) error {
 	}
 	_, err := c.client.Client.SendMessage(context.Background(),
 		&proto.RequestMessage{
-		Id: id,
-		MessageHeader: message.MessageHeader,
-		Payload: message.Payload})
+			Id:            id,
+			MessageHeader: message.MessageHeader,
+			Payload:       message.Payload})
 	if err != nil {
 		log.Println(err.Error())
 		return err
