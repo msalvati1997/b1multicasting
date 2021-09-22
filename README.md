@@ -1,6 +1,6 @@
 # B1_multicasting
-##SDCC's PROJECT
-###Traccia progetto
+## SDCC's PROJECT
+### Traccia progetto
 Lo scopo del progetto e realizzare nel linguaggio di programmazione Go un’applicazione distribuita che 
 implementi gli algoritmi di multicast totalmente ordinato e causalmente ordinato.
 
@@ -19,9 +19,9 @@ processi che si aggiungono al gruppo od escono dal gruppo durante la comunicazio
 3. multicast causalmente ordinato implementato in modo decentralizzato tramite l’uso di clock
    logici vettoriali.
 
-###Svolgimento 
+### Svolgimento 
 
 
 
 
-##Martina Salvati 
+## Martina Salvati 
