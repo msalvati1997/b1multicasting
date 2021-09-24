@@ -3,6 +3,7 @@ package basic
 import (
 	"b1multicasting/pkg/basic"
 	"b1multicasting/pkg/basic/proto"
+	"b1multicasting/pkg/multicasting"
 	"context"
 	"google.golang.org/grpc"
 	"log"
@@ -40,7 +41,7 @@ func Connect(address string, delay uint) (*GrpcClient, error) {
 }
 
 //method to send message to GrpcServer
-func (c *GrpcClient) Send(id string, message basic.Message) error {
+func (c *GrpcClient) Send(id string, message basic.Message, ch *chan bool) error {
 
 	if c.client == nil {
 		panic("Closed Connection")
@@ -55,9 +56,13 @@ func (c *GrpcClient) Send(id string, message basic.Message) error {
 			Id:            id,
 			MessageHeader: message.MessageHeader,
 			Payload:       message.Payload})
+
 	if err != nil {
 		log.Println(err.Error())
+		*ch <- false
 		return err
+	} else {
+		*ch <- true
 	}
 	return err
 }
@@ -69,5 +74,14 @@ func (c *GrpcClient) Close() error {
 		return err
 	}
 	log.Println("Connection closed")
+	return nil
+}
+
+func (c *GrpcClient) GetTarget() interface{} {
+	return c.client.Connection.Target()
+}
+
+func (c *GrpcClient) SendSeq(g string, m multicasting.SeqMessage, ch *chan bool) error {
+
 	return nil
 }

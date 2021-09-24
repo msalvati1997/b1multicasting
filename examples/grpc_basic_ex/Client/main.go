@@ -2,8 +2,8 @@ package main
 
 import (
 	"b1multicasting/pkg/basic"
-	"bufio"
 	client "b1multicasting/pkg/basic/client"
+	"bufio"
 	"log"
 	"os"
 )
@@ -18,15 +18,17 @@ func main() {
 	if err != nil {
 		log.Println("Error in connecting to the server")
 	}
-    for {
+	for {
 		log.Println("Input : ")
 		scanner := bufio.NewScanner(os.Stdin)
 		for scanner.Scan() {
 			log.Println("Input : ")
 			text := scanner.Bytes()
-		err := conn.Send(Id, basic.NewMessage(text))
-		if (err!=nil) {
-			log.Println(err.Error())
+			ch := make(chan bool, 1)
+			err := conn.Send(Id, basic.NewMessage(text), &ch)
+			if err != nil {
+				log.Println(err.Error())
+			}
 		}
-	} }
+	}
 }

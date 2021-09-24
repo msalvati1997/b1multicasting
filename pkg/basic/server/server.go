@@ -1,7 +1,9 @@
 package basic
 
 import (
+	"b1multicasting/pkg/basic"
 	"b1multicasting/pkg/basic/proto"
+	"b1multicasting/pkg/utils"
 	"context"
 	"fmt"
 	"google.golang.org/grpc"
@@ -25,17 +27,20 @@ func (s *Server) SendMessage(ctx context.Context, in *proto.RequestMessage) (*pr
 	source, _ := peer.FromContext(ctx)
 	id := in.GetId()
 	log.Println("Request from :{user_ip :", source.Addr, ",id : ", id, "} ")
-	log.Println("Processing new message : ", string(in.Payload))
-	//XDeliver..
-
+	//start deliverying..
+	log.Println("Processing message..")
+	node := utils.DelivererNode{NodeId: id}
+	node.BDeliver(basic.NewMessage(in.Payload))
+	log.Println("Message processed")
 	return &proto.ResponseMessage{}, nil
 }
 
 func RunServer(programAddress string, grpcServices ...func(grpc.ServiceRegistrar) error) error {
 	//listening over the port
 	net, err := getNetListener(programAddress)
-	if err == nil {
-		log.Println("Succed to listen : ", programAddress)
+	if err != nil {
+		log.Println("Error in listening at port", programAddress)
+		return err
 	}
 	//start new grpc server
 	s := grpc.NewServer()

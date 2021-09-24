@@ -2,11 +2,12 @@ package basic
 
 type Message struct {
 	MessageHeader map[string]string
-	Payload  []byte
+	Payload       []byte
 }
+
 func NewMessage(bytes []byte) Message {
 	return Message{
 		make(map[string]string),
-		bytes ,
+		bytes,
 	}
 }

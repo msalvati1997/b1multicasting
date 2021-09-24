@@ -1,9 +1,9 @@
 package main
 
 import (
+	server "b1multicasting/pkg/basic/server"
 	_ "flag"
 	"log"
-	server "b1multicasting/pkg/basic/server"
 )
 
 func main() {
