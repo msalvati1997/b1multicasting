@@ -13,7 +13,6 @@ import (
 func (c *Conns) BMulticast(g string, m basic.Message) error {
 
 	ch := make(chan bool, len(c.conns))
-	//da aggiungere la garanzia che i messaggi siano arrivati a destinazione tramite un pool di threads e utilizzo canali
 	for i := 0; i < len(c.conns); i++ {
 		i := i
 		go func() {
@@ -22,7 +21,7 @@ func (c *Conns) BMulticast(g string, m basic.Message) error {
 				return
 			}
 		}()
-		//inserisco la risposta nel canale gestito dalla pool
+
 	}
 	//check if the message correctly arrived to the nodes
 	for i := 0; i < len(c.conns); i++ {
