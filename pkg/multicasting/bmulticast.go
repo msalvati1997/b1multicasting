@@ -11,7 +11,6 @@ import (
 
 //(1)To B-multicast(g, m): for each process p of the group g , send(p, m)
 func (c *Conns) BMulticast(g string, m basic.Message) error {
-
 	ch := make(chan bool, len(c.conns))
 	for i := 0; i < len(c.conns); i++ {
 		i := i
@@ -30,7 +29,7 @@ func (c *Conns) BMulticast(g string, m basic.Message) error {
 			log.Println("Message not arrived to nodes ", c.conns[i].GetTarget())
 			//prova a rinviarlo
 		} else {
-			log.Println("Message correctly sent to ", c.conns[i].GetTarget())
+			//log.Println("Message correctly sent to ", c.conns[i].GetTarget())
 		}
 	}
 	return nil

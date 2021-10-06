@@ -3,10 +3,10 @@ package basic
 import (
 	"b1multicasting/pkg/basic"
 	"b1multicasting/pkg/basic/proto"
-	"b1multicasting/pkg/multicasting"
 	"context"
 	"google.golang.org/grpc"
 	"log"
+	"math/rand"
 	"time"
 )
 
@@ -46,16 +46,13 @@ func (c *GrpcClient) Send(id string, message basic.Message, ch *chan bool) error
 	if c.client == nil {
 		panic("Closed Connection")
 	}
-	//delay..
-	if c.client.delay > 0 {
-		delayDuration := time.Duration(c.client.delay)
-		time.Sleep(delayDuration * time.Millisecond)
-	}
+	WaitDelay(rand.Intn(int(c.client.delay)))
 	_, err := c.client.Client.SendMessage(context.Background(),
 		&proto.RequestMessage{
 			Id:            id,
 			MessageHeader: message.MessageHeader,
-			Payload:       message.Payload})
+			Payload:       message.Payload,
+		})
 
 	if err != nil {
 		log.Println(err.Error())
@@ -65,6 +62,11 @@ func (c *GrpcClient) Send(id string, message basic.Message, ch *chan bool) error
 		*ch <- true
 	}
 	return err
+}
+
+func WaitDelay(seconds int) {
+	time.Sleep(time.Duration(seconds) * time.Second)
+	//	log.Println("Delaying send operation... ", seconds, " seconds ..")
 }
 
 //close connection
@@ -79,9 +81,4 @@ func (c *GrpcClient) Close() error {
 
 func (c *GrpcClient) GetTarget() interface{} {
 	return c.client.Connection.Target()
-}
-
-func (c *GrpcClient) SendSeq(g string, m multicasting.SeqMessage, ch *chan bool) error {
-
-	return nil
 }

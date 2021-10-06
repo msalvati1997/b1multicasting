@@ -25,7 +25,7 @@ func main() {
 			log.Println("Input : ")
 			text := scanner.Bytes()
 			ch := make(chan bool, 1)
-			err := conn.Send(Id, basic.NewMessage(text), &ch)
+			err := conn.Send(Id, basic.NewMessage(make(map[string]string), text), &ch)
 			if err != nil {
 				log.Println(err.Error())
 			}

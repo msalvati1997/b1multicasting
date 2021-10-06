@@ -1,13 +1,16 @@
 package main
 
 import (
+	"b1multicasting/internal/utils"
 	"b1multicasting/pkg/basic"
 	server "b1multicasting/pkg/basic/server"
 	"b1multicasting/pkg/multicasting"
+	utils2 "b1multicasting/pkg/utils"
 	"bufio"
 	"flag"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -17,6 +20,7 @@ func main() {
 	membersPort := flag.String("membersPort", ":8081,:8082", "ports of the member of the multicast group")
 	multicasterId := flag.String("multicastId", "MulticasterId", "id of the multicaster id")
 	delay := flag.Int("delay", 0, "delay of sending operation")
+	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
 	flag.Parse()
 	go func() {
 		err := server.RunServer(*port, server.RegisterService)
@@ -28,21 +32,28 @@ func main() {
 	//effettuo la connessione degli altri nodi come clients
 	member := strings.Split(*membersPort, ",")
 	member = append(member, *port)
-	connections, err := multicasting.Connections(member, *delay)
-	if err != nil {
-		log.Println("Error in connecting Clients ", err.Error())
-	}
+	Connections, _ := multicasting.Connections(member, *delay)
+	myport, _ := strconv.Atoi(strings.Split(*port, ":")[1])
+	VectorId := myport
+	numberOfThreads := 10
+	utils2.GoPool.Initialize(numberOfThreads, Connections)
+
 	log.Println("Input : ")
-	for {
-		scanner := bufio.NewScanner(os.Stdin)
-		for scanner.Scan() {
-			text := scanner.Bytes()
-			msg := basic.NewMessage(make(map[string]string), text)
-			err := connections.BMulticast(*multicasterId, msg)
-			if err != nil {
-				log.Println(err)
-			}
-			log.Println("Input : ")
-		}
+	scanner := bufio.NewScanner(os.Stdin)
+	go utils2.TODDeliverThread()
+
+	for scanner.Scan() {
+		text := scanner.Bytes()
+		msg := basic.NewMessage(make(map[string]string), text)
+		id := utils.GenerateUID()
+		msg.MessageHeader["ProcessId"] = strings.Split(*port, ":")[1]
+		msg.MessageHeader["i"] = id
+		msg.MessageHeader["type"] = "TOD"
+		msg.MessageHeader["ProcessId"] = strconv.Itoa(VectorId)
+		msg.MessageHeader["GroupId"] = *multicasterId
+		utils2.GoPool.Mu.Lock()
+		utils2.GoPool.MessageCh <- msg
+		utils2.GoPool.Mu.Unlock()
+		log.Println("Input : ")
 	}
 }
