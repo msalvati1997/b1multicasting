@@ -1,11 +1,13 @@
 package utils
 
 import (
+	"sync"
 	"sync/atomic"
 )
 
 var (
-	Clock LogicalClock
+	Clock   LogicalClock
+	MuClock sync.Mutex
 )
 
 func init() {

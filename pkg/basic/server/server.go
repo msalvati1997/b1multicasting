@@ -26,28 +26,27 @@ func RegisterService(s grpc.ServiceRegistrar) (err error) {
 func (s *Server) SendMessage(ctx context.Context, in *proto.RequestMessage) (*proto.ResponseMessage, error) {
 	source, _ := peer.FromContext(ctx)
 	id := in.GetId()
-	log.Println("Request from :{user_ip :", source.Addr, ",id : ", id, "} ")
+	log.Println("Request from :{user_ip :", source.Addr, ",auth : ", source.AuthInfo, "} ")
 	log.Println("Received message : payload: ", string(in.Payload), " header ", in.MessageHeader)
 	//start deliverying..
-	//if in.MessageHeader["type"]=="TOC" && in.MessageHeader["seq"]=="true" {
+	if in.MessageHeader["type"] == "TOC" && in.MessageHeader["seq"] == "true" {
+		in.MessageHeader["delnode"] = id
+		node := utils.DelivererNode{NodeId: id}
+		node.BDeliverSeq(basic.NewMessage(in.MessageHeader, in.Payload))
+	}
+	//if in.MessageHeader["type"] == "TOC" && in.MessageHeader["member"] == "false" && in.MessageHeader["seq"] == "true" {
 	//	in.MessageHeader["delnode"] = id
 	//	node := utils.DelivererNode{NodeId: id}
 	//	msg := basic.NewMessage(in.MessageHeader, in.Payload)
 	//	node.BDeliverSeq(msg)
 	//}
-	if in.MessageHeader["type"] == "TOC" && in.MessageHeader["member"] == "false" && in.MessageHeader["seq"] == "true" {
-		in.MessageHeader["delnode"] = id
-		node := utils.DelivererNode{NodeId: id}
-		msg := basic.NewMessage(in.MessageHeader, in.Payload)
-		node.BDeliverSeq(msg)
-	}
-	if in.MessageHeader["type"] == "TOC" && in.MessageHeader["member"] == "true" && in.MessageHeader["seq"] == "false" {
-		in.MessageHeader["delnode"] = id
-		node := utils.DelivererNode{NodeId: id}
-		msg := basic.NewMessage(in.MessageHeader, in.Payload)
-		node.BDeliverMember(msg)
-	}
-	if in.MessageHeader["type"] == "Basic" {
+	//if in.MessageHeader["type"] == "TOC" && in.MessageHeader["member"] == "true" && in.MessageHeader["seq"] == "false" {
+	//	in.MessageHeader["delnode"] = id
+	//	node := utils.DelivererNode{NodeId: id}
+	//	msg := basic.NewMessage(in.MessageHeader, in.Payload)
+	//	node.BDeliverMember(msg)
+	//}
+	if in.MessageHeader["type"] == "B" {
 		node := utils.DelivererNode{NodeId: id}
 		node.BDeliver(basic.NewMessage(in.MessageHeader, in.Payload))
 	}
@@ -72,7 +71,11 @@ func (s *Server) SendMessage(ctx context.Context, in *proto.RequestMessage) (*pr
 		msg := basic.NewMessage(in.MessageHeader, in.Payload)
 		node := utils.DelivererNode{NodeId: id}
 		msg.MessageHeader["delnode"] = id
-		node.BDeliverCO(msg)
+		n, _ := strconv.Atoi(id)
+		myn, _ := strconv.Atoi(in.MessageHeader["ProcessId"])
+		if n != myn { //il processo ha già deliverato il messaggio che ha inviato in multicast
+			node.BDeliverCO(msg)
+		}
 	}
 	return &proto.ResponseMessage{}, nil
 }

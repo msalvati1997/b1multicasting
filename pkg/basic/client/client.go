@@ -7,22 +7,23 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"math/rand"
+	"sync"
 	"time"
 )
 
 type Client struct {
 	Client     proto.EndToEndServiceClient
 	Connection *grpc.ClientConn
-	delay      uint //millisecond
-	address    string
+	Delay      int //millisecond
+	Address    string
 }
 
 type GrpcClient struct {
-	client *Client
+	Client *Client
 }
 
 //method to connect to grpcServer
-func Connect(address string, delay uint) (*GrpcClient, error) {
+func Connect(address string, delay int) (*GrpcClient, error) {
 	log.Println("Connecting with server ", address)
 	cc, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
@@ -34,26 +35,33 @@ func Connect(address string, delay uint) (*GrpcClient, error) {
 	cl := new(Client)
 	cl.Client = proto.NewEndToEndServiceClient(cc)
 	cl.Connection = cc
-	cl.address = address
-	cl.delay = delay
+	cl.Address = address
+	cl.Delay = delay
 
 	return &GrpcClient{cl}, nil
 }
 
 //method to send message to GrpcServer
 func (c *GrpcClient) Send(id string, message basic.Message, ch *chan bool) error {
+	var w sync.WaitGroup
 
-	if c.client == nil {
+	if c.Client == nil {
 		panic("Closed Connection")
 	}
-	WaitDelay(rand.Intn(int(c.client.delay)))
-	_, err := c.client.Client.SendMessage(context.Background(),
+	if c.Client.Delay > 0 {
+		max := c.Client.Delay * 1000
+		min := 10
+		v := rand.Intn(max-min) + min
+		w.Add(1)
+		WaitDelay(v, &w)
+	}
+	defer w.Wait()
+	_, err := c.Client.Client.SendMessage(context.Background(),
 		&proto.RequestMessage{
-			Id:            id,
+			Id:            c.GetTarget(),
 			MessageHeader: message.MessageHeader,
 			Payload:       message.Payload,
 		})
-
 	if err != nil {
 		log.Println(err.Error())
 		*ch <- false
@@ -64,14 +72,15 @@ func (c *GrpcClient) Send(id string, message basic.Message, ch *chan bool) error
 	return err
 }
 
-func WaitDelay(seconds int) {
-	time.Sleep(time.Duration(seconds) * time.Second)
-	//	log.Println("Delaying send operation... ", seconds, " seconds ..")
+func WaitDelay(tm int, wg *sync.WaitGroup) {
+	//log.Println("Delaying send operation of", tm)
+	time.Sleep(time.Duration(tm) * time.Millisecond)
+	defer wg.Done()
 }
 
 //close connection
 func (c *GrpcClient) Close() error {
-	err := c.client.Connection.Close()
+	err := c.Client.Connection.Close()
 	if err != nil {
 		return err
 	}
@@ -79,6 +88,6 @@ func (c *GrpcClient) Close() error {
 	return nil
 }
 
-func (c *GrpcClient) GetTarget() interface{} {
-	return c.client.Connection.Target()
+func (c *GrpcClient) GetTarget() string {
+	return c.Client.Connection.Target()
 }

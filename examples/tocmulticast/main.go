@@ -57,10 +57,9 @@ func main() {
 	multicasting.Seq.Conns = *Connections
 	multicasting.Seq.B = seq
 	multicasting.Seq.SeqPort = sequencerPort
-
 	numberOfThreads := 10
 	utils2.GoPool.Initialize(numberOfThreads, Connections)
-	go utils2.TOCDeliverThread()
+	go utils2.TOCDeliver()
 	for {
 		scanner := bufio.NewScanner(os.Stdin)
 		for scanner.Scan() {

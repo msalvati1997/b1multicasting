@@ -40,7 +40,7 @@ func main() {
 
 	log.Println("Input : ")
 	scanner := bufio.NewScanner(os.Stdin)
-	go utils2.TODDeliverThread()
+	go utils2.TODDeliver()
 
 	for scanner.Scan() {
 		text := scanner.Bytes()
@@ -48,12 +48,11 @@ func main() {
 		id := utils.GenerateUID()
 		msg.MessageHeader["ProcessId"] = strings.Split(*port, ":")[1]
 		msg.MessageHeader["i"] = id
+		msg.MessageHeader["s"] = strconv.FormatUint(utils.Clock.Tock(), 10)
 		msg.MessageHeader["type"] = "TOD"
 		msg.MessageHeader["ProcessId"] = strconv.Itoa(VectorId)
 		msg.MessageHeader["GroupId"] = *multicasterId
-		utils2.GoPool.Mu.Lock()
 		utils2.GoPool.MessageCh <- msg
-		utils2.GoPool.Mu.Unlock()
 		log.Println("Input : ")
 	}
 }

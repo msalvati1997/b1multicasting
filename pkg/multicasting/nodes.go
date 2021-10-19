@@ -6,7 +6,7 @@ import (
 )
 
 type Conns struct {
-	conns []*client.GrpcClient
+	Conns []*client.GrpcClient
 }
 
 var (
@@ -14,11 +14,11 @@ var (
 )
 
 func GetNumbersOfClients() int {
-	return len(Cnn.conns)
+	return len(Cnn.Conns)
 }
 
 func init() {
-	Cnn.conns = make([]*client.GrpcClient, 0, 100)
+	Cnn.Conns = make([]*client.GrpcClient, 0, 100)
 }
 
 func Connections(ports []string, delay int) (*Conns, error) {
@@ -26,25 +26,25 @@ func Connections(ports []string, delay int) (*Conns, error) {
 	clients := make([]*client.GrpcClient, len(ports))
 	for i := 0; i < len(ports); i++ {
 		log.Println("Connecting with", ports[i])
-		conn, err := client.Connect(ports[i], uint(delay))
+		conn, err := client.Connect(ports[i], delay)
 		if err != nil {
 			log.Println("Error in connecting Clients ", err.Error())
 			return nil, err
 		}
 		clients[i] = conn
 	}
-	Cnn.conns = clients
+	Cnn.Conns = clients
 	return &Conns{clients}, nil
 }
 
 func GetConns() []*client.GrpcClient {
-	return Cnn.conns
+	return Cnn.Conns
 }
 
 func (c *Conns) GetGrpcClient(target string) (*client.GrpcClient, error) {
-	for i := 0; i < len(c.conns); i++ {
-		if c.conns[i].GetTarget() == target {
-			return c.conns[i], nil
+	for i := 0; i < len(c.Conns); i++ {
+		if c.Conns[i].GetTarget() == target {
+			return c.Conns[i], nil
 		}
 	}
 	return &client.GrpcClient{}, nil

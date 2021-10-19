@@ -3,6 +3,7 @@ package multicasting
 import (
 	"b1multicasting/pkg/basic"
 	"log"
+	"sync"
 )
 
 //IMPLEMENTING THE BMULTICAST ALGORITHM
@@ -11,25 +12,28 @@ import (
 
 //(1)To B-multicast(g, m): for each process p of the group g , send(p, m)
 func (c *Conns) BMulticast(g string, m basic.Message) error {
-	ch := make(chan bool, len(c.conns))
-	for i := 0; i < len(c.conns); i++ {
-		i := i
-		go func() {
-			err := c.conns[i].Send(g, m, &ch) //one to one send operation
+	ch := make(chan bool, len(c.Conns))
+	var wg sync.WaitGroup
+	wg.Add(len(c.Conns))
+	for i := 0; i < len(c.Conns); i++ {
+		index := i
+		go func(w *sync.WaitGroup) {
+			err := c.Conns[index].Send(g, m, &ch) //one to one send operation
 			if err != nil {
 				return
 			}
-		}()
-
+			wg.Done()
+		}(&wg)
 	}
+	defer wg.Wait()
 	//check if the message correctly arrived to the nodes
-	for i := 0; i < len(c.conns); i++ {
+	for i := 0; i < len(c.Conns); i++ {
 		r := <-ch //lettura del canale
 		if r != true {
-			log.Println("Message not arrived to nodes ", c.conns[i].GetTarget())
+			log.Println("Message not arrived to nodes ", c.Conns[i].GetTarget())
 			//prova a rinviarlo
 		} else {
-			//log.Println("Message correctly sent to ", c.conns[i].GetTarget())
+			//log.Println("Message correctly sent to ", c.Conns[i].GetTarget())
 		}
 	}
 	return nil

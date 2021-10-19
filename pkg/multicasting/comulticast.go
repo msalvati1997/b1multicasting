@@ -4,24 +4,18 @@ import (
 	"b1multicasting/internal/utils"
 	"b1multicasting/pkg/basic"
 	"log"
-	"strconv"
 	"sync"
 )
 
 //implementing the CO algorithm
 func (c *Conns) COMulticast(g string, m basic.Message) error {
 	var wg sync.WaitGroup
-	ch := make(chan bool, len(c.conns))
-	utils.Vectorclock.TickV(utils.Myid) //increased the i-th clock of the vector
-	for p := 0; p < len(c.conns); p++ {
-		m.MessageHeader[strconv.Itoa(p)] = strconv.FormatUint(utils.Vectorclock.TockV(p), 10)
-	}
-	for i := 0; i < len(c.conns); i++ {
-		wg.Add(1)
+	ch := make(chan bool, len(c.Conns))
+	wg.Add(len(c.Conns))
+	for i := 0; i < len(c.Conns); i++ {
 		index := i
 		go func() {
-			m.MessageHeader["type"] = "CO"
-			err := c.conns[index].Send(g, m, &ch) //one to one send operation
+			err := c.Conns[index].Send(g, m, &ch) //one to one send operation
 			if err != nil {
 				return
 			}
@@ -30,13 +24,13 @@ func (c *Conns) COMulticast(g string, m basic.Message) error {
 	}
 	defer wg.Wait()
 	//check if the message correctly arrived to the nodes
-	for i := 0; i < len(c.conns); i++ {
+	for i := 0; i < len(c.Conns); i++ {
 		r := <-ch //lettura del canale
 		if r != true {
-			log.Println("Message not arrived to nodes ", c.conns[i].GetTarget())
+			log.Println("Message not arrived to nodes ", c.Conns[i].GetTarget())
 			//prova a rinviarlo
 		} else {
-			//log.Println("Message correctly sent to ", c.conns[i].GetTarget())
+			log.Println("Message correctly sent to ", c.Conns[i].GetTarget())
 		}
 	}
 	return nil

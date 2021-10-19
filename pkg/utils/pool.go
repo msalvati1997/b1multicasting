@@ -42,7 +42,7 @@ func ProcessMessage(msgChan chan basic.Message) {
 			}
 			if data.MessageHeader["type"] == "TOC" {
 				//err := multicasting.Seq.TOCMulticast(data.MessageHeader["GroupId"], data)
-				err := multicasting.Seq.TOCMulticast2(data.MessageHeader["GroupId"], data)
+				err := multicasting.Seq.TOCMulticast(data.MessageHeader["GroupId"], data)
 				if err != nil {
 					go func() {
 						time.Sleep(time.Second * 5)

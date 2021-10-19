@@ -16,7 +16,7 @@ type DelivererNode struct {
 
 type Delivery struct {
 	Deliverer DelivererNode
-	Status    bool //lo stato della consegna passa a true quando è stato consegnato
+	Status    bool
 	M         basic.Message
 }
 
@@ -27,9 +27,6 @@ type Deliverers struct {
 
 var (
 	Del Deliverers
-)
-var (
-	DelChan chan bool
 )
 
 func init() {
@@ -53,12 +50,11 @@ func (node *DelivererNode) BDeliver(message basic.Message) {
 //Sequencer algorithm
 //On B-deliver(<m,i>) : Bmulticast(g,<"order",i,sg>) , Sg=sg+1
 func (node *DelivererNode) BDeliverSeq(message basic.Message) {
-
+	log.Println("Sending from sequencer the message with order. Payload : ", string(message.Payload))
 	message.MessageHeader["s"] = strconv.Itoa(multicasting.Seq.Sg)
 	message.MessageHeader["order"] = "true"
 	message.MessageHeader["type"] = "TOC2"
-	AppendMessageComplete(message, message.MessageHeader["i"], multicasting.Seq.Sg)
-	msg := basic.NewMessage(message.MessageHeader, []byte(""))
+	msg := basic.NewMessage(message.MessageHeader, message.Payload)
 	err := multicasting.Seq.Conns.BMulticast(multicasting.Seq.MulticastId, msg)
 	multicasting.Seq.Sg = multicasting.Seq.Sg + 1 //update Sg = Sg+1
 	if err != nil {
@@ -87,14 +83,15 @@ func (node *DelivererNode) BDeliverTOD(message basic.Message) {
 	defer Del.M.Unlock()
 	id, _ := message.MessageHeader["i"]
 	cl, _ := strconv.Atoi(message.MessageHeader["s"])
+	utils.MuClock.Lock()
 	max := math.Max(float64(utils.Clock.Tock()), float64(uint64(cl)))
 	utils.Clock.Leap(uint64(max))
 	utils.Clock.Tick()
+	utils.MuClock.Unlock()
 	AppendMessageComplete(message, id, cl)
 	//Il processo ricevente invia in multicast un messaggio di Ack
 	m := make(map[string]string)
 	m["type"] = "ACK"
-	m["minTimestampt"] = strconv.Itoa(GetMinClockToDeliver())
 	m["i"] = message.MessageHeader["i"]
 	m["s"] = strconv.Itoa(cl)
 	//PrintACKQueue()
@@ -110,7 +107,6 @@ func (node *DelivererNode) BDeliverTOD(message basic.Message) {
 
 func (node *DelivererNode) BDeliverCO(msg basic.Message) {
 	itsvector := utils.NewVectorClock(multicasting.GetNumbersOfClients())
-	log.Println(msg.MessageHeader)
 	for i := 0; i < multicasting.GetNumbersOfClients(); i++ {
 		p := msg.MessageHeader[strconv.Itoa(i)]
 		d, _ := strconv.Atoi(p)
@@ -120,12 +116,22 @@ func (node *DelivererNode) BDeliverCO(msg basic.Message) {
 	AppendMessageToCOQueue(msg, itsvector)
 }
 
-func (node *DelivererNode) TOCDeliver(message basic.Message) {
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go InsertOrder(message, message.MessageHeader["s"], &wg)
-	defer wg.Wait()
-	//InsertSeq(message.MessageHeade1r["i"], seq, &wg)
+func (node *DelivererNode) TOCDeliver(msg basic.Message) {
+	log.Println("TOCDELIVER of message ", string(msg.Payload), "with seq ", msg.MessageHeader["s"])
+	Q.Mu.Lock()
+	seq := msg.MessageHeader["s"]
+	s, _ := strconv.Atoi(seq)
+	Q.Q = append(Q.Q, multicasting.SeqMessage{
+		Msg:  msg,
+		I:    msg.MessageHeader["i"],
+		Nseq: s,
+	})
+	Q.Mu.Unlock()
+	//var wg sync.WaitGroup
+	//	wg.Add(1)
+	//go InsertOrder(message, message.MessageHeader["s"], &wg)
+	//defer wg.Wait()
+	//InsertSeq(message.MessageHeader["i"], seq, &wg)
 }
 
 //check if Vj[k]<=Vi[k] (k!=i) (second condition of deliver..)
@@ -133,7 +139,7 @@ func CheckOtherVectors(vectorclock utils.VectorClock, itsvector utils.VectorCloc
 	b := false
 	for k := 0; k < multicasting.GetNumbersOfClients(); k++ {
 		if k != i {
-			if vectorclock.TockV(k) <= itsvector.TockV(k) {
+			if itsvector.TockV(k) <= vectorclock.TockV(k) {
 				b = true
 			}
 		}
@@ -141,49 +147,59 @@ func CheckOtherVectors(vectorclock utils.VectorClock, itsvector utils.VectorCloc
 	return b
 }
 
-func TODDeliverThread() {
-
+func TODDeliver() {
 	for {
 		if len(Q.Q) > 0 {
 			SortingQueue()
 			SortingACKQueue()
-			var wg sync.WaitGroup
+			Q.Mu.Lock()
 			id := Q.Q[0].Msg.MessageHeader["i"]
 			position, _ := GetMessagePosition(id)
 			delnode := Q.Q[0].Msg.MessageHeader["delnode"]
 			node := DelivererNode{NodeId: delnode}
 			msg := Q.Q[0].Msg
-			if (position == 0 && IsInACKQueue(id) == multicasting.GetNumbersOfClients()) || CheckOtherClocks(id) { //è in testa alla coda e tutti gli ack relativi a quel messaggio sono stati ricevuti
+			Q.Mu.Unlock()
+			if (position == 0 && IsInACKQueue(id) == multicasting.GetNumbersOfClients()) && CheckOtherClocks(id) { //è in testa alla coda e tutti gli ack relativi a quel messaggio sono stati ricevuti
+				Q.Mu.Lock()
+				Del.M.Lock()
+				ACKQueue.Mu.Lock()
 				Del.DelivererNodes = append(Del.DelivererNodes, &Delivery{
 					Deliverer: node,
 					Status:    true,
 					M:         msg,
 				})
-				log.Println("Message correctly DELIVERED ", string((Del.DelivererNodes[len(Del.DelivererNodes)-1].M).Payload))
+				PrintQueue()
+				var wg sync.WaitGroup
 				//removing from hold back queue
-				go func() {
+				go func(w *sync.WaitGroup) {
 					wg.Add(1)
-					err := DeleteMessage(id, &wg)
-					if err != nil {
+					for i := 0; i < len(Q.Q); i++ {
+						if Q.Q[i].I == id {
+							Q.Q = append(Q.Q[:i], Q.Q[i+1:]...)
+						}
 					}
-					wg.Wait()
-				}()
-				DeleteAckFromId(id)
-			} else {
+					DeleteAckFromId(id)
+					defer w.Done()
+				}(&wg)
+				wg.Wait()
+				log.Println("Message correctly DELIVERED ", string((Del.DelivererNodes[len(Del.DelivererNodes)-1].M).Payload))
+				Q.Mu.Unlock()
+				Del.M.Unlock()
+				ACKQueue.Mu.Unlock()
 			}
 		}
 	}
 }
 
-func CODeliverThread() {
+func CODeliver() {
 	for {
-		if len(COqueue) > 0 {
+		if len(COqueue.Q) > 0 {
 			PrintCOQueue()
-			msg := COqueue[0].Msg
-			itsvector := COqueue[0].Vector
+			msg := COqueue.Q[0].Msg
+			itsvector := COqueue.Q[0].Vector
 			id := msg.MessageHeader["MyId"]
 			pid, _ := strconv.Atoi(id)
-			delnode := COqueue[0].Msg.MessageHeader["delnode"]
+			delnode := COqueue.Q[0].Msg.MessageHeader["delnode"]
 			node := DelivererNode{NodeId: delnode}
 			//wait until Vj[j]=Vi[j]+1 and Vj[k]<=Vi[k] (k!=i)
 			if (utils.Vectorclock.TockV(pid)+1 == itsvector.TockV(pid) && CheckOtherVectors(utils.Vectorclock, itsvector, pid)) || utils.Myid == pid {
@@ -196,14 +212,13 @@ func CODeliverThread() {
 				//removing from hold back queue
 				//COqueue = append(COqueue[:0], COqueue[1:]...)
 				RemoveMessageFromQueue(msg, utils.Vectorclock)
-				//update the tick  (max??..)
 				if pid != utils.Myid {
 					utils.Vectorclock.TickV(pid)
 				}
 				log.Println("My vector after update")
 				utils.PrintVector(utils.Vectorclock)
 			} else {
-				COqueue = append(COqueue, COqueue[0])
+				COqueue.Q = append(COqueue.Q, COqueue.Q[0])
 				RemoveMessageFromQueue(msg, utils.Vectorclock)
 			}
 		}
@@ -212,36 +227,39 @@ func CODeliverThread() {
 
 //On B-deliver(m_order=<'order',i'>) wait until <m,i> in holdbackqueue and S=rg
 //TO-Deliver m , Rg=S+1
-func TOCDeliverThread() {
+func TOCDeliver() {
 	for {
 		if len(Q.Q) > 0 {
 			for i := 0; i < len(Q.Q); i++ {
 				seq := Q.Q[i].Nseq
-				if seq != -99 {
+				if seq == multicasting.Rg {
+					Q.Mu.Lock()
+					Del.M.Lock()
+					id := Q.Q[i].Msg.MessageHeader["i"]
+					delnode := Q.Q[i].Msg.MessageHeader["delnode"]
+					node := DelivererNode{NodeId: delnode}
+					msg := Q.Q[i].Msg
+					Del.DelivererNodes = append(Del.DelivererNodes, &Delivery{
+						Deliverer: node,
+						Status:    true,
+						M:         msg,
+					})
+					log.Println("Message correctly DELIVERED ", string((Del.DelivererNodes[len(Del.DelivererNodes)-1].M).Payload))
+					//removing from hold back queue
 					var wg sync.WaitGroup
-					PrintQueue()
-					if seq == multicasting.Rg {
-						id := Q.Q[i].Msg.MessageHeader["i"]
-						delnode := Q.Q[i].Msg.MessageHeader["delnode"]
-						node := DelivererNode{NodeId: delnode}
-						msg := Q.Q[i].Msg
-						Del.DelivererNodes = append(Del.DelivererNodes, &Delivery{
-							Deliverer: node,
-							Status:    true,
-							M:         msg,
-						})
-						log.Println("Message correctly DELIVERED ", string((Del.DelivererNodes[len(Del.DelivererNodes)-1].M).Payload))
-						//removing from hold back queue
-						go func() {
-							wg.Add(1)
-							err := DeleteMessage(id, &wg)
-							if err != nil {
+					go func(w *sync.WaitGroup) {
+						wg.Add(1)
+						for p := 0; p < len(Q.Q); p++ {
+							if Q.Q[p].I == id {
+								Q.Q = append(Q.Q[:p], Q.Q[p+1:]...)
 							}
-							wg.Wait()
-						}()
-						multicasting.UpdateRg(seq)
-						log.Println(multicasting.Rg)
-					}
+						}
+						defer w.Done()
+					}(&wg)
+					wg.Wait()
+					multicasting.UpdateRg(seq)
+					Q.Mu.Unlock()
+					Del.M.Unlock()
 				}
 			}
 		}

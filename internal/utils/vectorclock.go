@@ -3,6 +3,7 @@ package utils
 import (
 	"log"
 	"strconv"
+	"sync"
 )
 
 type VectorClock interface {
@@ -17,7 +18,8 @@ type VectorClock interface {
 }
 
 var (
-	Vectorclock VectorClock
+	Vectorclock   VectorClock
+	MuVectorClock sync.Mutex
 )
 
 var (

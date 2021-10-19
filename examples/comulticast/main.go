@@ -56,7 +56,7 @@ func main() {
 	utils2.GoPool.Initialize(numberOfThreads, Connections)
 	//VectorId := myport
 	scanner := bufio.NewScanner(os.Stdin)
-	go utils2.CODeliverThread()
+	go utils2.CODeliver()
 
 	for scanner.Scan() {
 		text := scanner.Bytes()
@@ -67,9 +67,19 @@ func main() {
 		msg.MessageHeader["type"] = "CO"
 		msg.MessageHeader["GroupId"] = *multicasterId
 		msg.MessageHeader["MyId"] = strconv.Itoa(utils.Myid)
-		utils2.GoPool.Mu.Lock()
+		utils.Vectorclock.TickV(utils.Myid)
+		msg.MessageHeader["s"] = strconv.FormatUint(utils.Vectorclock.TockV(utils.Myid), 10)
+		for p := 0; p < len(Connections.Conns); p++ {
+			msg.MessageHeader[strconv.Itoa(p)] = strconv.FormatUint(utils.Vectorclock.TockV(p), 10)
+		}
 		utils2.GoPool.MessageCh <- msg
-		utils2.GoPool.Mu.Unlock()
+		node := utils2.DelivererNode{NodeId: msg.MessageHeader["ProcessId"]}
+		utils2.Del.DelivererNodes = append(utils2.Del.DelivererNodes, &utils2.Delivery{
+			Deliverer: node,
+			Status:    true,
+			M:         msg,
+		})
+		log.Println("Message correctly DELIVERED ", string((utils2.Del.DelivererNodes[len(utils2.Del.DelivererNodes)-1].M).Payload))
 		log.Println("Input : ")
 	}
 }
