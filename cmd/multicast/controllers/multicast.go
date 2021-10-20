@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	beego "github.com/beego/beego/v2/server/web"
-	app "github.com/msalvati1997/b1multicasting/internal/utils"
+	"github.com/msalvati1997/b1multicasting/internal/app"
 	"github.com/msalvati1997/b1multicasting/pkg/basic"
 	"github.com/msalvati1997/b1multicasting/pkg/registry/proto"
 	_ "github.com/msalvati1997/b1multicasting/pkg/registry/server"

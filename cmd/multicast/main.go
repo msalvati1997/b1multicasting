@@ -4,6 +4,7 @@ import (
 	"flag"
 	_ "flag"
 	"fmt"
+	app2 "github.com/msalvati1997/b1multicasting/internal/app"
 	"github.com/msalvati1997/b1multicasting/internal/utils"
 	serverservice "github.com/msalvati1997/b1multicasting/pkg/basic/server"
 	serverregistry "github.com/msalvati1997/b1multicasting/pkg/registry/server"
@@ -54,7 +55,7 @@ func main() {
 	}(&wg)
 	if *application {
 		go func() {
-			err := utils.Run(*grpcPort, *restPort, *registry_addr, *numThreads, *delay, *verb)
+			err := app2.Run(*grpcPort, *restPort, *registry_addr, *numThreads, *delay, *verb)
 			if err != nil {
 				return
 			}
