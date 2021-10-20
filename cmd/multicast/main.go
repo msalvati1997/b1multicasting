@@ -4,10 +4,13 @@ import (
 	"flag"
 	_ "flag"
 	"fmt"
-	app2 "github.com/msalvati1997/b1multicasting/internal/app"
+	beego "github.com/beego/beego/v2/server/web"
+	"github.com/msalvati1997/b1multicasting/internal/app"
 	"github.com/msalvati1997/b1multicasting/internal/utils"
 	serverservice "github.com/msalvati1997/b1multicasting/pkg/basic/server"
+	registry "github.com/msalvati1997/b1multicasting/pkg/registry/client"
 	serverregistry "github.com/msalvati1997/b1multicasting/pkg/registry/server"
+	utils2 "github.com/msalvati1997/b1multicasting/pkg/utils"
 	_ "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"log"
@@ -30,13 +33,13 @@ func main() {
 	numThreads := flag.Uint("NUM_THREADS", uint(nt), "number of threads used to multicast messages")
 	verb := flag.String("VERBOSE", verbose, "Turn verbose mode on or off.")
 	registry_addr := flag.String("REGISTRY_ADDR", ":90", "service registry adress")
-	registry := flag.Bool("REGISTRY", rg, "start multicast registry")
+	reg := flag.Bool("REGISTRY", rg, "start multicast registry")
 	application := flag.Bool("APP", app, "start multicast application")
 
 	flag.Parse()
 	services := make([]func(registrar grpc.ServiceRegistrar) error, 0)
 
-	if *registry {
+	if *reg {
 		services = append(services, serverregistry.Registration)
 	}
 	if *application {
@@ -55,7 +58,7 @@ func main() {
 	}(&wg)
 	if *application {
 		go func() {
-			err := app2.Run(*grpcPort, *restPort, *registry_addr, *numThreads, *delay, *verb)
+			err := Run(*grpcPort, *restPort, *registry_addr, *numThreads, *delay, *verb)
 			if err != nil {
 				return
 			}
@@ -72,4 +75,32 @@ func main() {
 	select {
 	case <-wgChan:
 	}
+}
+
+// Run initializes and executes the Rest HTTP server
+func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uint, verbose string) error {
+	var err error
+	app.GrpcPort = grpcP
+	app.RegistryClient, err = registry.Connect(registryAddr)
+	if err != nil {
+		return err
+	}
+	beego.BConfig.AppName = "MulticastApp"
+	if verbose == "ON" {
+		beego.BConfig.Log = beego.LogConfig{AccessLogs: true}
+		beego.BConfig.Log.AccessLogs = true
+	}
+	beego.BConfig.RunMode = "dev"
+	beego.BConfig.Listen.HTTPPort = int(restPort)
+	beego.BConfig.WebConfig.DirectoryIndex = true
+	beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
+	beego.BConfig.CopyRequestBody = true
+
+	utils2.GoPool.Initialize(int(numThreads))
+	//	go utils2.TODDeliver()
+	//	go utils2.CODeliver()
+	//	go utils2.TOCDeliver()
+	log.Println("Run on port ", restPort)
+	beego.Run(fmt.Sprintf(":%d", restPort))
+	return nil
 }
