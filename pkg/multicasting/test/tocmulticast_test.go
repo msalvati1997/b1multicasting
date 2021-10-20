@@ -1,10 +1,10 @@
 package test
 
 import (
-	_ "b1multicasting/internal/utils"
-	"b1multicasting/pkg/basic"
-	client "b1multicasting/pkg/basic/client"
-	"b1multicasting/pkg/multicasting"
+	_ "github.com/msalvati1997/b1multicasting/internal/utils"
+	"github.com/msalvati1997/b1multicasting/pkg/basic"
+	client "github.com/msalvati1997/b1multicasting/pkg/basic/client"
+	"github.com/msalvati1997/b1multicasting/pkg/multicasting"
 	"log"
 	_ "math/rand"
 	"sync"

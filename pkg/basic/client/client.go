@@ -1,9 +1,9 @@
 package basic
 
 import (
-	"b1multicasting/pkg/basic"
-	"b1multicasting/pkg/basic/proto"
 	"context"
+	"github.com/msalvati1997/b1multicasting/pkg/basic"
+	"github.com/msalvati1997/b1multicasting/pkg/basic/proto"
 	"google.golang.org/grpc"
 	"log"
 	"math/rand"

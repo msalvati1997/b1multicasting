@@ -1,10 +1,10 @@
 package test
 
 import (
-	"b1multicasting/internal/utils"
-	"b1multicasting/pkg/basic"
 	"errors"
 	"fmt"
+	"github.com/msalvati1997/b1multicasting/internal/utils"
+	"github.com/msalvati1997/b1multicasting/pkg/basic"
 	"github.com/stretchr/testify/assert"
 	"log"
 	"math/rand"

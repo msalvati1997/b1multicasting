@@ -1,13 +1,13 @@
 package test
 
 import (
-	utils2 "b1multicasting/internal/utils"
-	"b1multicasting/pkg/basic"
-	client "b1multicasting/pkg/basic/client"
-	pb "b1multicasting/pkg/basic/proto"
-	"b1multicasting/pkg/multicasting"
-	"b1multicasting/pkg/utils"
 	"context"
+	utils2 "github.com/msalvati1997/b1multicasting/internal/utils"
+	"github.com/msalvati1997/b1multicasting/pkg/basic"
+	client "github.com/msalvati1997/b1multicasting/pkg/basic/client"
+	pb "github.com/msalvati1997/b1multicasting/pkg/basic/proto"
+	"github.com/msalvati1997/b1multicasting/pkg/multicasting"
+	"github.com/msalvati1997/b1multicasting/pkg/utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
 	"log"

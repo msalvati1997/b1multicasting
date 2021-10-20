@@ -1,15 +1,15 @@
 package controllers
 
 import (
-	"b1multicasting/internal/myapi"
-	"b1multicasting/pkg/basic"
-	"b1multicasting/pkg/registry/proto"
-	_ "b1multicasting/pkg/registry/server"
-	utils2 "b1multicasting/pkg/utils"
 	"context"
 	"encoding/json"
 	"errors"
 	beego "github.com/beego/beego/v2/server/web"
+	"github.com/msalvati1997/b1multicasting/internal/myapi"
+	"github.com/msalvati1997/b1multicasting/pkg/basic"
+	"github.com/msalvati1997/b1multicasting/pkg/registry/proto"
+	_ "github.com/msalvati1997/b1multicasting/pkg/registry/server"
+	utils2 "github.com/msalvati1997/b1multicasting/pkg/utils"
 	"github.com/prometheus/common/log"
 	"time"
 )

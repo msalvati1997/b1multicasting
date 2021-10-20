@@ -7,6 +7,7 @@ import (
 	registry "github.com/msalvati1997/b1multicasting/pkg/registry/client"
 	"github.com/msalvati1997/b1multicasting/pkg/registry/proto"
 	utils2 "github.com/msalvati1997/b1multicasting/pkg/utils"
+	"log"
 	"sync"
 )
 
@@ -49,6 +50,7 @@ func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uin
 	if err != nil {
 		return err
 	}
+
 	beego.BConfig.AppName = "MulticastApp"
 	if verbose == "ON" {
 		beego.BConfig.Log = beego.LogConfig{AccessLogs: true}
@@ -65,6 +67,8 @@ func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uin
 	//	go utils2.TODDeliver()
 	//	go utils2.CODeliver()
 	//	go utils2.TOCDeliver()
+	log.Println("Run on port ", restPort)
 	beego.Run(fmt.Sprintf(":%d", restPort))
+
 	return nil
 }

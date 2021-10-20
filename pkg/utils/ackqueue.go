@@ -134,6 +134,15 @@ func GetPositionAck_(AC *ACKQ, id string) (int, error) {
 	return -1, errors.New("The element is not in the ACKQueue")
 }
 
+func GetPositionQueue_(queue *Queue, id string) (int, error) {
+	for i := 0; i < len(queue.Q); i++ {
+		if queue.Q[i].I == id {
+			return i, nil
+		}
+	}
+	return -1, errors.New("The element is not in the Queue")
+}
+
 func SortingACKQueue() {
 
 	sort.SliceStable(ACKQueue.Q, func(i, j int) bool {

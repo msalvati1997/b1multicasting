@@ -1,10 +1,10 @@
 package basic
 
 import (
-	"b1multicasting/pkg/basic"
-	"b1multicasting/pkg/basic/proto"
-	"b1multicasting/pkg/utils"
 	"context"
+	"github.com/msalvati1997/b1multicasting/pkg/basic"
+	"github.com/msalvati1997/b1multicasting/pkg/basic/proto"
+	"github.com/msalvati1997/b1multicasting/pkg/utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/peer"
 	"log"

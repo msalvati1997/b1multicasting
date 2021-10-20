@@ -1,9 +1,9 @@
 package test
 
 import (
-	"b1multicasting/internal/utils"
-	"b1multicasting/pkg/basic"
-	utils2 "b1multicasting/pkg/utils"
+	"github.com/msalvati1997/b1multicasting/internal/utils"
+	"github.com/msalvati1997/b1multicasting/pkg/basic"
+	utils2 "github.com/msalvati1997/b1multicasting/pkg/utils"
 	"sync"
 )
 

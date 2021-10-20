@@ -34,7 +34,7 @@ func main() {
 	application := flag.Bool("APP", app, "start multicast application")
 
 	flag.Parse()
-
+	log.Println("start")
 	services := make([]func(registrar grpc.ServiceRegistrar) error, 0)
 
 	if *registry {
