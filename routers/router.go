@@ -2,7 +2,7 @@ package routers
 
 import (
 	beego "github.com/beego/beego/v2/server/web"
-	"github.com/msalvati1997/b1multicasting/cmd/multicast/controllers"
+	"github.com/msalvati1997/b1multicasting/controllers"
 	"log"
 )
 
