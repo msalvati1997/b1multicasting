@@ -44,8 +44,7 @@ func main() {
 	}
 	log.Println("start")
 	var wg sync.WaitGroup
-	wg.Add(1)
-
+	wg.Add(2)
 	go func(w *sync.WaitGroup) {
 		err := serverservice.RunServer(fmt.Sprintf(":%d", *grpcPort), services...)
 		if err != nil {
@@ -54,16 +53,14 @@ func main() {
 		}
 		w.Done()
 	}(&wg)
-
 	if *application {
-		wg.Add(1)
-		go func(w *sync.WaitGroup) {
+		go func() {
 			err := multicastApp.Run(*grpcPort, *restPort, *registry_addr, *numThreads, *delay, *verb)
 			if err != nil {
 				return
 			}
-			w.Done()
-		}(&wg)
+			wg.Done()
+		}()
 	}
 	wgChan := make(chan bool)
 

@@ -18,6 +18,10 @@ var (
 	GrpcPort        uint
 )
 
+func init() {
+	MulticastGroups = make(map[string]*MulticastGroup)
+}
+
 // MulticastGroup manages the metadata associated with a group in which the node is registered
 type MulticastGroup struct {
 	ClientId  string
