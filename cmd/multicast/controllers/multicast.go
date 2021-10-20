@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	beego "github.com/beego/beego/v2/server/web"
-	"github.com/msalvati1997/b1multicasting/cmd"
+	app "github.com/msalvati1997/b1multicasting/internal/utils"
 	"github.com/msalvati1997/b1multicasting/pkg/basic"
 	"github.com/msalvati1997/b1multicasting/pkg/registry/proto"
 	_ "github.com/msalvati1997/b1multicasting/pkg/registry/server"
@@ -38,10 +38,10 @@ func (c *MulticastController) PutMessage() {
 	msg.MessageHeader["multicastId"] = multicastId
 	json.Unmarshal(c.Ctx.Input.RequestBody, &msg.Payload)
 
-	cmd.GMu.RLock()
-	defer cmd.GMu.RUnlock()
+	app.GMu.RLock()
+	defer app.GMu.RUnlock()
 
-	group, ok := cmd.MulticastGroups[multicastId]
+	group, ok := app.MulticastGroups[multicastId]
 	if !ok {
 		c.Data["json"] = map[string]string{"Error": "GroupNotFound"}
 		err := c.ServeJSON()
@@ -71,10 +71,10 @@ func (c *MulticastController) GetMessage() {
 func (c *RegistryController) CreateGroup() {
 
 	multicastId := c.Ctx.Input.Param("multicastId")
-	cmd.GMu.RLock()
-	defer cmd.GMu.RUnlock()
+	app.GMu.RLock()
+	defer app.GMu.RUnlock()
 
-	group, ok := cmd.MulticastGroups[multicastId]
+	group, ok := app.MulticastGroups[multicastId]
 
 	if ok {
 		c.Data["json"] = map[string]string{"Error": "group already exist"}
@@ -85,9 +85,9 @@ func (c *RegistryController) CreateGroup() {
 		return
 	}
 
-	register, err := cmd.RegistryClient.Register(context.Background(), &proto.Rinfo{
+	register, err := app.RegistryClient.Register(context.Background(), &proto.Rinfo{
 		MulticastId: multicastId,
-		ClientPort:  uint32(cmd.GrpcPort),
+		ClientPort:  uint32(app.GrpcPort),
 	})
 	if err != nil {
 		c.Data["json"] = map[string]string{"Error": "Error in creating group"}
@@ -97,19 +97,19 @@ func (c *RegistryController) CreateGroup() {
 		}
 	}
 
-	members := make(map[string]cmd.Member, 0)
+	members := make(map[string]app.Member, 0)
 
 	for memberId, member := range register.GroupInfo.Members {
-		members[memberId] = cmd.Member{
+		members[memberId] = app.Member{
 			MemberId: member.Id,
 			Address:  member.Address,
 			Ready:    member.Ready,
 		}
 	}
 
-	group = &cmd.MulticastGroup{
+	group = &app.MulticastGroup{
 		ClientId: register.ClientId,
-		Group: &cmd.MulticastInfo{
+		Group: &app.MulticastInfo{
 			MulticastId:      register.GroupInfo.MulticastId,
 			ReceivedMessages: 0,
 			Status:           proto.Status_name[int32(register.GroupInfo.Status)],
@@ -118,7 +118,7 @@ func (c *RegistryController) CreateGroup() {
 		Messages: make([]basic.Message, 0),
 	}
 
-	cmd.MulticastGroups[register.GroupInfo.MulticastId] = group
+	app.MulticastGroups[register.GroupInfo.MulticastId] = group
 	go c.InitGroup(register.GroupInfo, group, len(register.GroupInfo.Members) == 1)
 	c.Data["stato"] = "ok"
 	err = c.ServeJSON()
@@ -127,7 +127,7 @@ func (c *RegistryController) CreateGroup() {
 	}
 }
 
-func (c *RegistryController) InitGroup(info *proto.MGroup, group *cmd.MulticastGroup, b bool) {
+func (c *RegistryController) InitGroup(info *proto.MGroup, group *app.MulticastGroup, b bool) {
 
 	// Waiting that the group is ready
 	updateMulticastGroup(info, group)
@@ -140,7 +140,7 @@ func (c *RegistryController) InitGroup(info *proto.MGroup, group *cmd.MulticastG
 		return
 	}
 	// Communicating to the registry that the node is ready
-	groupInfo, err = cmd.RegistryClient.Ready(context.Background(), &proto.RequestData{
+	groupInfo, err = app.RegistryClient.Ready(context.Background(), &proto.RequestData{
 		MulticastId: group.Group.MulticastId,
 		MId:         group.ClientId,
 	})
@@ -172,10 +172,10 @@ func (c *RegistryController) StartGroup() {
 
 	multicastId := c.Ctx.Input.Param("multicastId")
 
-	cmd.GMu.RLock()
-	defer cmd.GMu.RUnlock()
+	app.GMu.RLock()
+	defer app.GMu.RUnlock()
 
-	group, ok := cmd.MulticastGroups[multicastId]
+	group, ok := app.MulticastGroups[multicastId]
 
 	if !ok {
 
@@ -185,7 +185,7 @@ func (c *RegistryController) StartGroup() {
 	group.GroupMu.RLock()
 	defer group.GroupMu.RUnlock()
 
-	_, err := cmd.RegistryClient.StartGroup(context.Background(), &proto.RequestData{
+	_, err := app.RegistryClient.StartGroup(context.Background(), &proto.RequestData{
 		MulticastId: group.Group.MulticastId, MId: group.ClientId})
 	if err != nil {
 		c.Data["json"] = "Error " + err.Error()
@@ -199,7 +199,7 @@ func (c *RegistryController) StartGroup() {
 }
 
 // updateMulticastGroup updates local group infos with ones received from the registry
-func updateMulticastGroup(groupInfo *proto.MGroup, multicastGroup *cmd.MulticastGroup) {
+func updateMulticastGroup(groupInfo *proto.MGroup, multicastGroup *app.MulticastGroup) {
 	multicastGroup.GroupMu.Lock()
 	defer multicastGroup.GroupMu.Unlock()
 
@@ -209,7 +209,7 @@ func updateMulticastGroup(groupInfo *proto.MGroup, multicastGroup *cmd.Multicast
 		m, ok := multicastGroup.Group.Members[clientId]
 
 		if !ok {
-			m = cmd.Member{
+			m = app.Member{
 				MemberId: member.Id,
 				Address:  member.Address,
 				Ready:    member.Ready,
@@ -227,12 +227,12 @@ func updateMulticastGroup(groupInfo *proto.MGroup, multicastGroup *cmd.Multicast
 }
 
 // waitStatusChange waits until the status of the group in the registry changes
-func waitStatusChange(groupInfo *proto.MGroup, multicastGroup *cmd.MulticastGroup, status proto.Status) (*proto.MGroup, error) {
+func waitStatusChange(groupInfo *proto.MGroup, multicastGroup *app.MulticastGroup, status proto.Status) (*proto.MGroup, error) {
 	var err error
 
 	for groupInfo.Status == status {
 		time.Sleep(time.Second * 5)
-		groupInfo, err = cmd.RegistryClient.GetStatus(context.Background(), &proto.MulticastId{MulticastId: groupInfo.MulticastId})
+		groupInfo, err = app.RegistryClient.GetStatus(context.Background(), &proto.MulticastId{MulticastId: groupInfo.MulticastId})
 		if err != nil {
 			return nil, err
 		}
