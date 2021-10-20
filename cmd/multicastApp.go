@@ -1,4 +1,4 @@
-package myapi
+package cmd
 
 import (
 	"fmt"
@@ -54,12 +54,10 @@ func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uin
 	if err != nil {
 		return err
 	}
-
 	beego.BConfig.AppName = "MulticastApp"
 	if verbose == "ON" {
 		beego.BConfig.Log = beego.LogConfig{AccessLogs: true}
 		beego.BConfig.Log.AccessLogs = true
-		beego.BConfig.Log.Outputs["console"] = ""
 	}
 	beego.BConfig.RunMode = "dev"
 	beego.BConfig.Listen.HTTPPort = int(restPort)
@@ -73,6 +71,5 @@ func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uin
 	//	go utils2.TOCDeliver()
 	log.Println("Run on port ", restPort)
 	beego.Run(fmt.Sprintf(":%d", restPort))
-
 	return nil
 }

@@ -4,7 +4,7 @@ import (
 	"flag"
 	_ "flag"
 	"fmt"
-	multicastApp "github.com/msalvati1997/b1multicasting/internal/myapi"
+	multicastApp "github.com/msalvati1997/b1multicasting/cmd"
 	"github.com/msalvati1997/b1multicasting/internal/utils"
 	serverservice "github.com/msalvati1997/b1multicasting/pkg/basic/server"
 	serverregistry "github.com/msalvati1997/b1multicasting/pkg/registry/server"
