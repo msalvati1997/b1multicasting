@@ -12,7 +12,6 @@ import (
 )
 
 func main() {
-	//effettuo il run del server in una go-routines
 	port := flag.String("port", ":8080", "port number of the server")
 	membersPort := flag.String("membersPort", ":8081,:8082", "ports of the member of the multicast group")
 	multicasterId := flag.String("multicastId", "MulticasterId", "id of the multicaster id")

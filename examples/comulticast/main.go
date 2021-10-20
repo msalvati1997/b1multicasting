@@ -16,7 +16,6 @@ import (
 )
 
 func main() {
-	//effettuo il run del server in una go-routines
 	port := flag.String("port", ":8080", "port number of the server")
 	membersPort := flag.String("membersPort", ":8081,:8082", "ports of the member of the multicast group")
 	multicasterId := flag.String("multicastId", "MulticasterId", "id of the multicaster id")
@@ -30,11 +29,13 @@ func main() {
 			return
 		}
 	}()
-	//effettuo la connessione degli altri nodi come clients
 	member := strings.Split(*membersPort, ",")
 	member = append(member, *port)
 	myport, _ := strconv.Atoi(strings.Split(*port, ":")[1])
-	Connections, _ := multicasting.Connections(member, *delay)
+	_, err := multicasting.Connections(member, *delay)
+	if err != nil {
+		return
+	}
 	IndexProcesses := make([]int, 0, len(member))
 	for i := 0; i < len(member); i++ {
 		m := strings.Split(member[i], ":")[1]
@@ -53,7 +54,7 @@ func main() {
 	log.Println("Input : ")
 	utils.Vectorclock = utils.NewVectorClock(len(member))
 	numberOfThreads := 10
-	utils2.GoPool.Initialize(numberOfThreads, Connections)
+	utils2.GoPool.Initialize(numberOfThreads)
 	//VectorId := myport
 	scanner := bufio.NewScanner(os.Stdin)
 	go utils2.CODeliver()
@@ -66,20 +67,7 @@ func main() {
 		msg.MessageHeader["i"] = id
 		msg.MessageHeader["type"] = "CO"
 		msg.MessageHeader["GroupId"] = *multicasterId
-		msg.MessageHeader["MyId"] = strconv.Itoa(utils.Myid)
-		utils.Vectorclock.TickV(utils.Myid)
-		msg.MessageHeader["s"] = strconv.FormatUint(utils.Vectorclock.TockV(utils.Myid), 10)
-		for p := 0; p < len(Connections.Conns); p++ {
-			msg.MessageHeader[strconv.Itoa(p)] = strconv.FormatUint(utils.Vectorclock.TockV(p), 10)
-		}
 		utils2.GoPool.MessageCh <- msg
-		node := utils2.DelivererNode{NodeId: msg.MessageHeader["ProcessId"]}
-		utils2.Del.DelivererNodes = append(utils2.Del.DelivererNodes, &utils2.Delivery{
-			Deliverer: node,
-			Status:    true,
-			M:         msg,
-		})
-		log.Println("Message correctly DELIVERED ", string((utils2.Del.DelivererNodes[len(utils2.Del.DelivererNodes)-1].M).Payload))
 		log.Println("Input : ")
 	}
 }

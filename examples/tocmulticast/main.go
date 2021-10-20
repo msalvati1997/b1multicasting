@@ -14,7 +14,6 @@ import (
 )
 
 func main() {
-	//effettuo il run del server in una go-routines
 	port := flag.String("port", ":8080", "port number of the server")
 	membersPort := flag.String("membersPort", ":8081,:8082", "ports of the member of the multicast group")
 	multicasterId := flag.String("multicastId", "MulticasterId", "id of the multicaster id")
@@ -58,7 +57,7 @@ func main() {
 	multicasting.Seq.B = seq
 	multicasting.Seq.SeqPort = sequencerPort
 	numberOfThreads := 10
-	utils2.GoPool.Initialize(numberOfThreads, Connections)
+	utils2.GoPool.Initialize(numberOfThreads)
 	go utils2.TOCDeliver()
 	for {
 		scanner := bufio.NewScanner(os.Stdin)

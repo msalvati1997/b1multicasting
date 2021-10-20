@@ -11,6 +11,7 @@ import (
 func (c *Conns) COMulticast(g string, m basic.Message) error {
 	var wg sync.WaitGroup
 	ch := make(chan bool, len(c.Conns))
+
 	wg.Add(len(c.Conns))
 	for i := 0; i < len(c.Conns); i++ {
 		index := i
@@ -30,7 +31,7 @@ func (c *Conns) COMulticast(g string, m basic.Message) error {
 			log.Println("Message not arrived to nodes ", c.Conns[i].GetTarget())
 			//prova a rinviarlo
 		} else {
-			log.Println("Message correctly sent to ", c.Conns[i].GetTarget())
+			//log.Println("Message correctly sent to ", c.Conns[i].GetTarget())
 		}
 	}
 	return nil

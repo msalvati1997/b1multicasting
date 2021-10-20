@@ -1,0 +1,47 @@
+version: '3'
+
+services:
+  registry:
+    build:
+      context: .
+    container_name: registry
+    environment:
+      - REGISTRY=true
+  m1:
+    build:
+      context: .
+    container_name: m1
+    environment:
+      - "REGISTRY_ADDR=registry:90"
+      - APP=TRUE
+      - VERBOSE=ON
+      - NUM_THREADS=2
+      - DELAY=2
+    ports:
+      - 8080:80
+
+  m2:
+    build:
+      context: .
+    container_name: m2
+    environment:
+      - "REGISTRY_ADDR=registry:90"
+      - APP=TRUE
+      - VERBOSE=ON
+      - NUM_THREADS=2
+      - DELAY=1
+    ports:
+      - 8081:80
+
+  m3:
+    build:
+      context: .
+    container_name: m3
+    environment:
+      - "REGISTRY_ADDR=registry:90"
+      - APP=TRUE
+      - VERBOSE=ON
+      - NUM_THREADS=2
+      - DELAY=2
+    ports:
+      - 8082:80

@@ -15,7 +15,6 @@ import (
 )
 
 func main() {
-	//effettuo il run del server in una go-routines
 	port := flag.String("port", ":8080", "port number of the server")
 	membersPort := flag.String("membersPort", ":8081,:8082", "ports of the member of the multicast group")
 	multicasterId := flag.String("multicastId", "MulticasterId", "id of the multicaster id")
@@ -32,11 +31,14 @@ func main() {
 	//effettuo la connessione degli altri nodi come clients
 	member := strings.Split(*membersPort, ",")
 	member = append(member, *port)
-	Connections, _ := multicasting.Connections(member, *delay)
+	_, err := multicasting.Connections(member, *delay)
+	if err != nil {
+		return
+	}
 	myport, _ := strconv.Atoi(strings.Split(*port, ":")[1])
 	VectorId := myport
 	numberOfThreads := 10
-	utils2.GoPool.Initialize(numberOfThreads, Connections)
+	utils2.GoPool.Initialize(numberOfThreads)
 
 	log.Println("Input : ")
 	scanner := bufio.NewScanner(os.Stdin)
@@ -46,7 +48,7 @@ func main() {
 		text := scanner.Bytes()
 		msg := basic.NewMessage(make(map[string]string), text)
 		id := utils.GenerateUID()
-		msg.MessageHeader["ProcessId"] = strings.Split(*port, ":")[1]
+		//msg.MessageHeader["ProcessId"] = strings.Split(*port, ":")[1]
 		msg.MessageHeader["i"] = id
 		msg.MessageHeader["s"] = strconv.FormatUint(utils.Clock.Tock(), 10)
 		msg.MessageHeader["type"] = "TOD"

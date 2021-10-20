@@ -6,11 +6,10 @@ option go_package = "./proto";
 
 service Registry {
   rpc register (Rinfo) returns (Ranswer) {}
-  rpc getStatus (MulticastId) returns (MGroup) {}
   rpc startGroup (RequestData) returns (MGroup) {}
-  rpc closeGroup (RequestData) returns (MGroup) {}
   rpc ready (RequestData) returns (MGroup) {}
-  rpc list (Empty) returns (stream MGroup) {}
+  rpc closeGroup (RequestData) returns (MGroup) {}
+  rpc getStatus (MulticastId) returns (MGroup) {}
 }
 
 message Rinfo {

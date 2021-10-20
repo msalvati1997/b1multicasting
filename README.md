@@ -1,27 +1,26 @@
 # B1_multicasting
-## SDCC's PROJECT
-### Traccia progetto
-Lo scopo del progetto e realizzare nel linguaggio di programmazione Go un’applicazione distribuita che 
-implementi gli algoritmi di multicast totalmente ordinato e causalmente ordinato.
+###***Martina Salvati***
+##MULTICAST APPLICATION
+Three different implementation of multicast
+###Building
+Run ```make``` to build the application's container image.
+###Algorithm's type
+Adding -t=TYPE_OF_ALGORITHM flag will set the type of algorithm with which the application can exchange message.
+The possible type of algorithm : 
+- TOC : totally ordered centralized with sequencer
+- TOD : totally ordered distributed with scalar clock
+- CO  : casually ordered with vector clock 
+###Delayed Messages
+Adding the -delay=MAX_DELAY flag will turn on delayed message mode. The maximum delay can be set in MAX_DELAY. In this mode, messages are occasionally delayed by a random amount of time. The nondeterminism provided by this randomization helps stress the underlying algorithm.
+###Verbose Mode
+Adding the -v (--verbose) flag will turn on verbose mode, which will print logging information to standard error. This information includes details about all messages sent and received, as well as round timeout information.
+###Testing
+The project comes with a automated test suite located under the test directory. Each test configures a set of processes with different numbers of messages to send.
+To run all tests, run the command ```make test```.
 
 
-L’applicazione deve soddisfare i requisiti elencati di seguito.
+Each test creates a subprocess for all processes in the system and then reads in the messages that the subprocesses deliver. 
 
-- Un servizio di registrazione dei processi che partecipano al gruppo di comunicazione multicast. Si
-assuma che la membership sia statica durante l’esecuzione dell’applicazione, quindi non vi sono
-processi che si aggiungono al gruppo od escono dal gruppo durante la comunicazione.
-
-- Il supporto dei seguenti algoritmi di multicast:
-
-1. multicast totalmente ordinato implementato in modo centralizzato tramite un sequencer; 
-2. multicast totalmente ordinato implementato in modo decentralizzato tramite l’uso di clock logici
-   scalari;
-3. multicast causalmente ordinato implementato in modo decentralizzato tramite l’uso di clock
-   logici vettoriali.
-
-### Svolgimento 
-
-
-
-
-## Martina Salvati 
+- In case of TOC/TOD :
+The tests then verify that the correct number of messages were delivered, and that all processes delivered the same messages in the same order.
+- In case of CO : The tests then verify that the correct number of messages were delivered, and that all processes delivered the same message respecting the casual order.
