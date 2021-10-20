@@ -1,7 +1,7 @@
 package multicasting
 
 import (
-	client "b1multicasting/pkg/basic/client"
+	client "github.com/msalvati1997/b1multicasting/pkg/basic/client"
 	"log"
 )
 

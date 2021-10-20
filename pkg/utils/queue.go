@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"b1multicasting/pkg/basic"
-	"b1multicasting/pkg/multicasting"
 	"errors"
+	"github.com/msalvati1997/b1multicasting/pkg/basic"
+	"github.com/msalvati1997/b1multicasting/pkg/multicasting"
 	"log"
 	"sort"
 	"strconv"

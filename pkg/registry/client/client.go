@@ -1,7 +1,7 @@
 package client
 
 import (
-	"b1multicasting/pkg/registry/proto"
+	"github.com/msalvati1997/b1multicasting/pkg/registry/proto"
 	"google.golang.org/grpc"
 )
 

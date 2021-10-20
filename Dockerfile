@@ -1,6 +1,6 @@
 FROM golang
 
-WORKDIR /go/src/
+WORKDIR /go/src/multicast
 COPY . .
 
 

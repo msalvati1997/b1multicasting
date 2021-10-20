@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"b1multicasting/pkg/basic"
-	"b1multicasting/pkg/multicasting"
 	"errors"
+	"github.com/msalvati1997/b1multicasting/pkg/basic"
+	"github.com/msalvati1997/b1multicasting/pkg/multicasting"
 	"log"
 	"sort"
 	"sync"
@@ -132,15 +132,6 @@ func GetPositionAck_(AC *ACKQ, id string) (int, error) {
 		}
 	}
 	return -1, errors.New("The element is not in the ACKQueue")
-}
-
-func GetPositionQueue_(queue *Queue, id string) (int, error) {
-	for i := 0; i < len(queue.Q); i++ {
-		if queue.Q[i].I == id {
-			return i, nil
-		}
-	}
-	return -1, errors.New("The element is not in the Queue")
 }
 
 func SortingACKQueue() {

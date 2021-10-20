@@ -1,12 +1,12 @@
 package myapi
 
 import (
-	"b1multicasting/pkg/basic"
-	registry "b1multicasting/pkg/registry/client"
-	"b1multicasting/pkg/registry/proto"
-	utils2 "b1multicasting/pkg/utils"
 	"fmt"
 	beego "github.com/beego/beego/v2/server/web"
+	"github.com/msalvati1997/b1multicasting/pkg/basic"
+	registry "github.com/msalvati1997/b1multicasting/pkg/registry/client"
+	"github.com/msalvati1997/b1multicasting/pkg/registry/proto"
+	utils2 "github.com/msalvati1997/b1multicasting/pkg/utils"
 	"sync"
 )
 

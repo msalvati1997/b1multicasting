@@ -1,4 +1,4 @@
-module b1multicasting
+module github.com/msalvati1997/b1multicasting
 
 go 1.15
 

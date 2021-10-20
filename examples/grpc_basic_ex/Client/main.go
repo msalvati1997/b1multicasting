@@ -1,9 +1,9 @@
 package main
 
 import (
-	"b1multicasting/pkg/basic"
-	client "b1multicasting/pkg/basic/client"
 	"bufio"
+	"github.com/msalvati1997/b1multicasting/pkg/basic"
+	client "github.com/msalvati1997/b1multicasting/pkg/basic/client"
 	"log"
 	"os"
 )
@@ -14,7 +14,7 @@ func main() {
 	Id := "myId"
 	delay := 1 //delay for sending operations
 
-	conn, err := client.Connect(serverAddr, uint(delay))
+	conn, err := client.Connect(serverAddr, delay)
 	if err != nil {
 		log.Println("Error in connecting to the server")
 	}

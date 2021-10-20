@@ -1,9 +1,9 @@
 package server
 
 import (
-	"b1multicasting/pkg/registry/proto"
 	"context"
 	"fmt"
+	"github.com/msalvati1997/b1multicasting/pkg/registry/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/peer"

@@ -1,8 +1,8 @@
 package multicasting
 
 import (
-	utils "b1multicasting/internal/utils"
-	"b1multicasting/pkg/basic"
+	utils "github.com/msalvati1997/b1multicasting/internal/utils"
+	"github.com/msalvati1997/b1multicasting/pkg/basic"
 	"log"
 	"sync"
 )

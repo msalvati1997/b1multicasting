@@ -1,8 +1,8 @@
 package main
 
 import (
-	server "b1multicasting/pkg/basic/server"
 	_ "flag"
+	server "github.com/msalvati1997/b1multicasting/pkg/basic/server"
 	"log"
 )
 

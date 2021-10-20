@@ -1,11 +1,11 @@
 package main
 
 import (
-	"b1multicasting/pkg/basic"
-	server "b1multicasting/pkg/basic/server"
-	"b1multicasting/pkg/multicasting"
 	"bufio"
 	"flag"
+	"github.com/msalvati1997/b1multicasting/pkg/basic"
+	server "github.com/msalvati1997/b1multicasting/pkg/basic/server"
+	"github.com/msalvati1997/b1multicasting/pkg/multicasting"
 	"log"
 	"os"
 	"strings"

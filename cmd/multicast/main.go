@@ -1,13 +1,13 @@
 package main
 
 import (
-	multicastApp "b1multicasting/internal/myapi"
-	"b1multicasting/internal/utils"
-	serverservice "b1multicasting/pkg/basic/server"
-	serverregistry "b1multicasting/pkg/registry/server"
 	"flag"
 	_ "flag"
 	"fmt"
+	multicastApp "github.com/msalvati1997/b1multicasting/internal/myapi"
+	"github.com/msalvati1997/b1multicasting/internal/utils"
+	serverservice "github.com/msalvati1997/b1multicasting/pkg/basic/server"
+	serverregistry "github.com/msalvati1997/b1multicasting/pkg/registry/server"
 	_ "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"log"
