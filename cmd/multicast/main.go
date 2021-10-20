@@ -34,7 +34,6 @@ func main() {
 	application := flag.Bool("APP", app, "start multicast application")
 
 	flag.Parse()
-	log.Println("start")
 	services := make([]func(registrar grpc.ServiceRegistrar) error, 0)
 
 	if *registry {
@@ -43,9 +42,10 @@ func main() {
 	if *application {
 		services = append(services, serverservice.RegisterService)
 	}
-
+	log.Println("start")
 	var wg sync.WaitGroup
 	wg.Add(1)
+
 	go func(w *sync.WaitGroup) {
 		err := serverservice.RunServer(fmt.Sprintf(":%d", *grpcPort), services...)
 		if err != nil {
@@ -57,12 +57,22 @@ func main() {
 
 	if *application {
 		wg.Add(1)
-		go func() {
+		go func(w *sync.WaitGroup) {
 			err := multicastApp.Run(*grpcPort, *restPort, *registry_addr, *numThreads, *delay, *verb)
 			if err != nil {
 				return
 			}
-			wg.Done()
-		}()
+			w.Done()
+		}(&wg)
+	}
+	wgChan := make(chan bool)
+
+	go func() {
+		wg.Wait()
+		wgChan <- true
+	}()
+
+	select {
+	case <-wgChan:
 	}
 }
