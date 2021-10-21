@@ -147,7 +147,7 @@ func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uin
 	newRouter.HandleFunc("/groups", GetGroups).Methods("GET")
 	newRouter.HandleFunc("/groups", CreateGroup).Methods("POST")
 	//utils2.GoPool.Initialize(int(numThreads))
-	newRouter.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
+	newRouter.PathPrefix("/docs").Handler(httpSwagger.WrapHandler)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", restPort), newRouter))
 	return nil
 }
