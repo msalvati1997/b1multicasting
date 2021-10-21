@@ -1,4 +1,4 @@
-basePath: /
+basePath: /docs
 definitions:
   main.Member:
     properties:
@@ -50,12 +50,7 @@ host: localhost
 info:
   contact:
     email: salvatimartina97@gmail.com
-    name: API Support
   description: This is a sample service for managing groups multicast
-  license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-  termsOfService: http://swagger.io/terms/
   title: Orders API
   version: "1.0"
 paths:

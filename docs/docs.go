@@ -17,14 +17,8 @@ var doc = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
         "contact": {
-            "name": "API Support",
             "email": "salvatimartina97@gmail.com"
-        },
-        "license": {
-            "name": "Apache 2.0",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
         },
         "version": "{{.Version}}"
     },
@@ -164,7 +158,7 @@ type swaggerInfo struct {
 var SwaggerInfo = swaggerInfo{
 	Version:     "1.0",
 	Host:        "localhost",
-	BasePath:    "/",
+	BasePath:    "/docs",
 	Schemes:     []string{},
 	Title:       "Orders API",
 	Description: "This is a sample service for managing groups multicast",

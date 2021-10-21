@@ -129,13 +129,9 @@ func main() {
 // @title Orders API
 // @version 1.0
 // @description This is a sample service for managing groups multicast
-// @termsOfService http://swagger.io/terms/
-// @contact.name API Support
 // @contact.email salvatimartina97@gmail.com
-// @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 // @host localhost
-// @BasePath /
+// @BasePath /docs
 func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uint, verbose string) error {
 	var err error
 	GrpcPort = grpcP
@@ -147,7 +143,7 @@ func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uin
 	newRouter.HandleFunc("/groups", GetGroups).Methods("GET")
 	newRouter.HandleFunc("/groups", CreateGroup).Methods("POST")
 	//utils2.GoPool.Initialize(int(numThreads))
-	newRouter.PathPrefix("/docs").Handler(httpSwagger.WrapHandler)
+	newRouter.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", restPort), newRouter))
 	return nil
 }
