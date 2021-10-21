@@ -24,6 +24,7 @@ import (
 
 var grpcL net.Listener
 var httpL net.Listener
+var tcpm cmux.CMux
 
 func main() {
 
@@ -54,6 +55,26 @@ func main() {
 		services = append(services, basic.RegisterService)
 	}
 	log.Println("start")
+	// Create a listener at the desired port.
+	l, err := net.Listen("tcp", fmt.Sprintf(":%d", restPort))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer func(l net.Listener) {
+		err := l.Close()
+		if err != nil {
+
+		}
+	}(l)
+	// Create a cmux object.
+	tcpm = cmux.New(l)
+	// Declare the match for different services required.
+	// Match connections in order:
+	// First grpc, then HTTP, and otherwise Go RPC/TCP.
+	grpcL = tcpm.Match(cmux.HTTP2HeaderField("content-type", "application/grpc"))
+	httpL = tcpm.Match(cmux.HTTP1Fast())
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func(w *sync.WaitGroup) {
@@ -102,31 +123,12 @@ func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uin
 		return err
 	}
 
-	// Create a listener at the desired port.
-	l, err := net.Listen("tcp", fmt.Sprintf(":%d", restPort))
-	defer func(l net.Listener) {
-		err := l.Close()
-		if err != nil {
-
-		}
-	}(l)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Create a cmux object.
-	tcpm := cmux.New(l)
-	// Declare the match for different services required.
-	// Match connections in order:
-	// First grpc, then HTTP, and otherwise Go RPC/TCP.
-	grpcL = tcpm.Match(cmux.HTTP2HeaderField("content-type", "application/grpc"))
-	httpL = tcpm.Match(cmux.HTTP1Fast())
 	newRouter := mux.NewRouter()
 	newRouter.HandleFunc("/groups", api.GetGroups).Methods("GET")
 	newRouter.HandleFunc("/groups", api.CreateGroup).Methods("PUT")
 	newRouter.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
-	err = http.Serve(l, newRouter)
+
+	err = http.Serve(httpL, newRouter)
 	if err != nil {
 		return err
 	}
