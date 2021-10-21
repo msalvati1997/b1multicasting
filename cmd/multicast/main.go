@@ -48,12 +48,6 @@ func main() {
 		services = append(services, serverservice.RegisterService)
 	}
 	log.Println("start")
-	connect, err := clientregistry.Connect(*registry_addr)
-	if err != nil {
-		log.Println("error", err)
-		return
-	}
-	api.RegistryClient = connect
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func(w *sync.WaitGroup) {
@@ -98,8 +92,11 @@ func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uin
 	if err != nil {
 		return err
 	}
-
-	api.RegistryClient, err = clientregistry.Connect(registryAddr)
+	connect, err := clientregistry.Connect(registryAddr)
+	if err != nil {
+		log.Println("error", err)
+	}
+	api.RegistryClient = connect
 
 	newRouter := mux.NewRouter()
 	newRouter.HandleFunc("/groups", api.GetGroups).Methods("GET")
