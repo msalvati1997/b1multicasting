@@ -75,7 +75,7 @@ type MulticastId struct {
 // @Tags groups
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} MulticastGroups
+// @Success 200 {object} MulticastGroup
 // @Router /groups [get]
 func GetGroups(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -88,7 +88,7 @@ func GetGroups(w http.ResponseWriter, r *http.Request) {
 // @Tags groups
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} MulticastGroups
+// @Success 200 {object} MulticastGroup
 // @Router /groups [post]
 func CreateGroup(w http.ResponseWriter, r *http.Request) {
 	var multicastId MulticastId
@@ -113,6 +113,8 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Println("Problem in regitering member to group")
+	} else {
+		log.Println("ok in registering")
 	}
 	members := make(map[string]Member, 0)
 
