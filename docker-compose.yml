@@ -18,7 +18,7 @@ services:
       - NUM_THREADS=2
       - DELAY=2
     ports:
-      - 8080:80
+      - "8080:80"
 
   m2:
     build:
@@ -31,7 +31,7 @@ services:
       - NUM_THREADS=2
       - DELAY=1
     ports:
-      - 8081:80
+      - "8081:80"
 
   m3:
     build:
@@ -44,4 +44,4 @@ services:
       - NUM_THREADS=2
       - DELAY=2
     ports:
-      - 8082:80
+      - "8082:80"
