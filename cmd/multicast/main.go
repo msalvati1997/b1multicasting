@@ -131,7 +131,7 @@ func main() {
 // @description This is a sample service for managing groups multicast
 // @termsOfService http://swagger.io/terms/
 // @contact.name API Support
-// @contact.email soberkoder@gmail.com
+// @contact.email salvatimartina97@gmail.com
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 // @host localhost
@@ -146,8 +146,6 @@ func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uin
 	newRouter := mux.NewRouter()
 	newRouter.HandleFunc("/groups", GetGroups).Methods("GET")
 	newRouter.HandleFunc("/groups", CreateGroup).Methods("POST")
-
-	//newRouter.HandleFunc("/group", CreateGroup).Methods("POST")
 	//utils2.GoPool.Initialize(int(numThreads))
 	newRouter.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", restPort), newRouter))
