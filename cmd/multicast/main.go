@@ -9,6 +9,7 @@ import (
 	"github.com/msalvati1997/b1multicasting/internal/utils"
 	_ "github.com/msalvati1997/b1multicasting/pkg/basic"
 	serverservice "github.com/msalvati1997/b1multicasting/pkg/basic/server"
+	clientregistry "github.com/msalvati1997/b1multicasting/pkg/registry/client"
 	serverregistry "github.com/msalvati1997/b1multicasting/pkg/registry/server"
 	_ "github.com/sirupsen/logrus"
 	"github.com/swaggo/http-swagger"
@@ -91,6 +92,9 @@ func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uin
 	if err != nil {
 		return err
 	}
+
+	api.RegistryClient, err = clientregistry.Connect(registryAddr)
+
 	newRouter := mux.NewRouter()
 	newRouter.HandleFunc("/groups", api.GetGroups).Methods("GET")
 	newRouter.HandleFunc("/groups", api.CreateGroup).Methods("POST")
