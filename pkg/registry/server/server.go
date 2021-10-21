@@ -26,6 +26,10 @@ type Mgroup struct {
 	groupInfo *proto.MGroup
 }
 
+func init() {
+	groups = make(map[string]*Mgroup)
+}
+
 // Registration registers the calling node to a multicast group
 func (s *server) Register(ctx context.Context, in *proto.Rinfo) (*proto.Ranswer, error) {
 

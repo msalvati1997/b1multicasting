@@ -45,6 +45,20 @@ type MulticastInfo struct {
 	Members          map[string]Member `json:"members"`
 }
 
+// ErrorResponse defines an error response returned upon any request failure.
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
+// ErrorResponse defines an error response returned upon any request failure.
+func writeErrorResponse(w http.ResponseWriter, status int, err error) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+
+	bz, _ := json.Marshal(ErrorResponse{Error: err.Error()})
+	_, _ = w.Write(bz)
+}
+
 type Member struct {
 	MemberId string `json:"member_id"`
 	Address  string `json:"address"`
@@ -61,7 +75,7 @@ type MulticastId struct {
 // @Tags groups
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} MulticastGroup
+// @Success 200 {object} MulticastGroups
 // @Router /groups [get]
 func GetGroups(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -74,14 +88,14 @@ func GetGroups(w http.ResponseWriter, r *http.Request) {
 // @Tags groups
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} MulticastGroup
+// @Success 200 {object} MulticastGroups
 // @Router /groups [post]
 func CreateGroup(w http.ResponseWriter, r *http.Request) {
 	var multicastId MulticastId
 	json.NewDecoder(r.Body).Decode(&multicastId)
 	groupsName = append(groupsName, multicastId)
+	log.Println("Start creating group with ", multicastId.MulticastId)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(multicastId)
 	GMu.RLock()
 	defer GMu.RUnlock()
 
@@ -89,6 +103,8 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 
 	if ok {
 		log.Println("The group already exist")
+	} else {
+		log.Println("The group doesn't exist before")
 	}
 
 	register, err := RegistryClient.Register(context.Background(), &proto.Rinfo{
@@ -124,6 +140,8 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 	log.Println("Group created")
 
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(MulticastGroups)
+
 }
 
 func InitGroup(info *proto.MGroup, group *MulticastGroup, b bool) {

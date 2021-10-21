@@ -95,6 +95,7 @@ func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uin
 	newRouter.HandleFunc("/groups", api.GetGroups).Methods("GET")
 	newRouter.HandleFunc("/groups", api.CreateGroup).Methods("POST")
 	//utils2.GoPool.Initialize(int(numThreads))
+	// mount swagger API documentation
 	newRouter.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", restPort), newRouter))
 	return nil
