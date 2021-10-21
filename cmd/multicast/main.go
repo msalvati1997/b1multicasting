@@ -56,8 +56,7 @@ func main() {
 	}
 	log.Println("start")
 	// Create a listener at the desired port.
-	l, err := net.Listen("tcp", fmt.Sprintf(":%d", restPort))
-
+	l, err := net.Listen("tcp", fmt.Sprintf(":%d", *restPort))
 	if err != nil {
 		log.Fatal(err)
 	}
