@@ -118,7 +118,7 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 		ClientPort:  uint32(GrpcPort),
 	})
 	if err != nil {
-		log.Println("Problem in regitering member to group")
+		log.Println("Problem in regitering member to group", err.Error())
 	} else {
 		log.Println("ok in registering")
 	}

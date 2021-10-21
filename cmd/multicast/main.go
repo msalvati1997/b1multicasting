@@ -8,9 +8,9 @@ import (
 	"github.com/msalvati1997/b1multicasting/api"
 	"github.com/msalvati1997/b1multicasting/internal/utils"
 	_ "github.com/msalvati1997/b1multicasting/pkg/basic"
-	serverservice "github.com/msalvati1997/b1multicasting/pkg/basic/server"
+	basic "github.com/msalvati1997/b1multicasting/pkg/basic/server"
 	clientregistry "github.com/msalvati1997/b1multicasting/pkg/registry/client"
-	serverregistry "github.com/msalvati1997/b1multicasting/pkg/registry/server"
+	registry "github.com/msalvati1997/b1multicasting/pkg/registry/server"
 	_ "github.com/sirupsen/logrus"
 	"github.com/swaggo/http-swagger"
 	"google.golang.org/grpc"
@@ -42,16 +42,16 @@ func main() {
 	services := make([]func(registrar grpc.ServiceRegistrar) error, 0)
 
 	if *reg {
-		services = append(services, serverregistry.Registration)
+		services = append(services, registry.Registration)
 	}
 	if *application {
-		services = append(services, serverservice.RegisterService)
+		services = append(services, basic.RegisterService)
 	}
 	log.Println("start")
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func(w *sync.WaitGroup) {
-		err := serverservice.RunServer(fmt.Sprintf(":%d", *grpcPort), services...)
+		err := utils.StartServer(fmt.Sprintf(":%d", *grpcPort), services...)
 		if err != nil {
 			log.Println("Error in connecting server", err.Error())
 			return
