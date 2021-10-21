@@ -1,6 +1,6 @@
-basePath: /docs
+basePath: /api
 definitions:
-  main.Member:
+  api.Member:
     properties:
       address:
         type: string
@@ -9,7 +9,7 @@ definitions:
       ready:
         type: boolean
     type: object
-  main.Message:
+  api.Message:
     properties:
       MessageHeader:
         additionalProperties:
@@ -20,22 +20,22 @@ definitions:
           type: integer
         type: array
     type: object
-  main.MulticastGroup:
+  api.MulticastGroup:
     properties:
       client_id:
         type: string
       group:
-        $ref: '#/definitions/main.MulticastInfo'
+        $ref: '#/definitions/api.MulticastInfo'
       messages:
         items:
-          $ref: '#/definitions/main.Message'
+          $ref: '#/definitions/api.Message'
         type: array
     type: object
-  main.MulticastInfo:
+  api.MulticastInfo:
     properties:
       members:
         additionalProperties:
-          $ref: '#/definitions/main.Member'
+          $ref: '#/definitions/api.Member'
         type: object
       multicast_id:
         type: string
@@ -65,7 +65,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.MulticastGroup'
+            $ref: '#/definitions/api.MulticastGroup'
       summary: Get details of all groups
       tags:
       - groups
@@ -79,7 +79,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/main.MulticastGroup'
+            $ref: '#/definitions/api.MulticastGroup'
       summary: Create a group from an id
       tags:
       - groups

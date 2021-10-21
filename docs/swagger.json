@@ -9,7 +9,7 @@
         "version": "1.0"
     },
     "host": "localhost",
-    "basePath": "/docs",
+    "basePath": "/api",
     "paths": {
         "/groups": {
             "get": {
@@ -28,7 +28,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/main.MulticastGroup"
+                            "$ref": "#/definitions/api.MulticastGroup"
                         }
                     }
                 }
@@ -49,7 +49,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/main.MulticastGroup"
+                            "$ref": "#/definitions/api.MulticastGroup"
                         }
                     }
                 }
@@ -57,7 +57,7 @@
         }
     },
     "definitions": {
-        "main.Member": {
+        "api.Member": {
             "type": "object",
             "properties": {
                 "address": {
@@ -71,7 +71,7 @@
                 }
             }
         },
-        "main.Message": {
+        "api.Message": {
             "type": "object",
             "properties": {
                 "MessageHeader": {
@@ -88,30 +88,30 @@
                 }
             }
         },
-        "main.MulticastGroup": {
+        "api.MulticastGroup": {
             "type": "object",
             "properties": {
                 "client_id": {
                     "type": "string"
                 },
                 "group": {
-                    "$ref": "#/definitions/main.MulticastInfo"
+                    "$ref": "#/definitions/api.MulticastInfo"
                 },
                 "messages": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/main.Message"
+                        "$ref": "#/definitions/api.Message"
                     }
                 }
             }
         },
-        "main.MulticastInfo": {
+        "api.MulticastInfo": {
             "type": "object",
             "properties": {
                 "members": {
                     "type": "object",
                     "additionalProperties": {
-                        "$ref": "#/definitions/main.Member"
+                        "$ref": "#/definitions/api.Member"
                     }
                 },
                 "multicast_id": {

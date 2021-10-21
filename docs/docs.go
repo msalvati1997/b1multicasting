@@ -42,7 +42,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/main.MulticastGroup"
+                            "$ref": "#/definitions/api.MulticastGroup"
                         }
                     }
                 }
@@ -63,7 +63,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/main.MulticastGroup"
+                            "$ref": "#/definitions/api.MulticastGroup"
                         }
                     }
                 }
@@ -71,7 +71,7 @@ var doc = `{
         }
     },
     "definitions": {
-        "main.Member": {
+        "api.Member": {
             "type": "object",
             "properties": {
                 "address": {
@@ -85,7 +85,7 @@ var doc = `{
                 }
             }
         },
-        "main.Message": {
+        "api.Message": {
             "type": "object",
             "properties": {
                 "MessageHeader": {
@@ -102,30 +102,30 @@ var doc = `{
                 }
             }
         },
-        "main.MulticastGroup": {
+        "api.MulticastGroup": {
             "type": "object",
             "properties": {
                 "client_id": {
                     "type": "string"
                 },
                 "group": {
-                    "$ref": "#/definitions/main.MulticastInfo"
+                    "$ref": "#/definitions/api.MulticastInfo"
                 },
                 "messages": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/main.Message"
+                        "$ref": "#/definitions/api.Message"
                     }
                 }
             }
         },
-        "main.MulticastInfo": {
+        "api.MulticastInfo": {
             "type": "object",
             "properties": {
                 "members": {
                     "type": "object",
                     "additionalProperties": {
-                        "$ref": "#/definitions/main.Member"
+                        "$ref": "#/definitions/api.Member"
                     }
                 },
                 "multicast_id": {
@@ -158,7 +158,7 @@ type swaggerInfo struct {
 var SwaggerInfo = swaggerInfo{
 	Version:     "1.0",
 	Host:        "localhost",
-	BasePath:    "/docs",
+	BasePath:    "/api",
 	Schemes:     []string{},
 	Title:       "Orders API",
 	Description: "This is a sample service for managing groups multicast",
