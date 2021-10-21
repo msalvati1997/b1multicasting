@@ -90,17 +90,12 @@ func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uin
 		beego.BConfig.Log = beego.LogConfig{AccessLogs: true}
 		beego.BConfig.Log.AccessLogs = true
 	}
+
 	beego.BConfig.RunMode = "dev"
-	beego.BConfig.Listen.HTTPPort = int(restPort)
 	beego.BConfig.WebConfig.DirectoryIndex = true
 	beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
-	beego.BConfig.CopyRequestBody = true
-
+	beego.BConfig.Listen.HTTPPort = int(restPort)
 	utils2.GoPool.Initialize(int(numThreads))
-	//	go utils2.TODDeliver()
-	//	go utils2.CODeliver()
-	//	go utils2.TOCDeliver()
-	log.Println("Run on port ", restPort)
-	beego.Run(fmt.Sprintf(":%d", restPort))
+	beego.Run()
 	return nil
 }

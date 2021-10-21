@@ -22,14 +22,6 @@ type MulticastController struct {
 	beego.Controller
 }
 
-func (c *RegistryController) GetAllGroups() {
-
-}
-
-func (c *MulticastController) GetGroups() {
-
-}
-
 func (c *MulticastController) PutMessage() {
 	var msg basic.Message
 	multicastId := c.Ctx.Input.Param("multicastId")
@@ -61,10 +53,6 @@ func (c *MulticastController) PutMessage() {
 		}
 	}
 	utils2.GoPool.MessageCh <- msg
-}
-
-func (c *MulticastController) GetMessage() {
-
 }
 
 // CreateGroup initializes a new multicast group.
