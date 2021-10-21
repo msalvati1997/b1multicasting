@@ -88,16 +88,14 @@ func main() {
 func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uint, verbose string) error {
 	var err error
 	api.GrpcPort = grpcP
-	connect, err := clientregistry.Connect(registryAddr)
+	api.RegistryClient, err = clientregistry.Connect(registryAddr)
 	if err != nil {
 		log.Println("error", err)
 		return err
 	}
-	api.RegistryClient = connect
-
 	newRouter := mux.NewRouter()
 	newRouter.HandleFunc("/groups", api.GetGroups).Methods("GET")
-	newRouter.HandleFunc("/groups", api.CreateGroup).Methods("POST")
+	newRouter.HandleFunc("/groups", api.CreateGroup).Methods("PUT")
 	//utils2.GoPool.Initialize(int(numThreads))
 	// mount swagger API documentation
 	newRouter.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)

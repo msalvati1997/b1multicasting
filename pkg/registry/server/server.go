@@ -55,7 +55,7 @@ func (s *server) Register(ctx context.Context, in *proto.Rinfo) (*proto.Ranswer,
 			return nil, status.Errorf(codes.AlreadyExists, "Already Registered")
 		}
 	} else {
-		log.Println("Creating multicast group..")
+		log.Println("Start registering ..")
 		// Creating the group
 		multicastGroup = &Mgroup{groupInfo: &proto.MGroup{
 			MulticastId: multicastId,
