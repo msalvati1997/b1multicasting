@@ -9,8 +9,8 @@ import (
 	"github.com/msalvati1997/b1multicasting/internal/utils"
 	_ "github.com/msalvati1997/b1multicasting/pkg/basic"
 	basic "github.com/msalvati1997/b1multicasting/pkg/basic/server"
-	clientregistry "github.com/msalvati1997/b1multicasting/pkg/registry/client"
-	registry "github.com/msalvati1997/b1multicasting/pkg/registry/server"
+	clientregistry "github.com/msalvati1997/b1multicasting/pkg/reg/client"
+	registry "github.com/msalvati1997/b1multicasting/pkg/reg/server"
 	_ "github.com/sirupsen/logrus"
 	"github.com/swaggo/http-swagger"
 	"google.golang.org/grpc"
@@ -49,7 +49,7 @@ func main() {
 	}
 	log.Println("start")
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(1)
 	go func(w *sync.WaitGroup) {
 		err := utils.StartServer(fmt.Sprintf(":%d", *grpcPort), services...)
 		if err != nil {
@@ -58,6 +58,8 @@ func main() {
 		}
 		w.Done()
 	}(&wg)
+
+	wg.Add(1)
 	if *application {
 		go func() {
 			err := Run(*grpcPort, *restPort, *registry_addr, *numThreads, *delay, *verb)

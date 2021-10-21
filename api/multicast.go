@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/msalvati1997/b1multicasting/pkg/registry/proto"
+	"github.com/msalvati1997/b1multicasting/pkg/reg/proto"
 	"log"
 	"net/http"
 	"sync"
