@@ -122,10 +122,13 @@ func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uin
 	newRouter.HandleFunc("/groups", api.CreateGroup).Methods("PUT")
 	newRouter.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
-	err = http.Serve(httpL, newRouter)
-	if err != nil {
-		return err
-	}
+	go func() {
+		err := http.Serve(httpL, newRouter)
+		log.Println("http server started.")
+		if err != nil {
+
+		}
+	}()
 
 	//log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", restPort), newRouter))
 	// Start cmux serving.
