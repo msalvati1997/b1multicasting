@@ -82,7 +82,7 @@ func (s *server) Register(ctx context.Context, in *proto.Rinfo) (*proto.Ranswer,
 // Start enables multicast in the group.
 // All processes belonging to the group can initializes the necessary structure and
 // then they must communicate they are ready using Ready function.
-func (s *server) Start(ctx context.Context, in *proto.RequestData) (*proto.MGroup, error) {
+func (s *server) startGroup(ctx context.Context, in *proto.RequestData) (*proto.MGroup, error) {
 	_, ok := peer.FromContext(ctx)
 	if !ok {
 		return nil, status.Errorf(codes.InvalidArgument, "Missing source address")

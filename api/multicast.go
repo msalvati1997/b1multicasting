@@ -79,7 +79,10 @@ type MulticastId struct {
 // @Router /groups [get]
 func GetGroups(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(MulticastGroups)
+	err := json.NewEncoder(w).Encode(MulticastGroups)
+	if err != nil {
+		return
+	}
 }
 
 // CreateGroup godoc
@@ -97,7 +100,7 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	groupsName = append(groupsName, multicastId)
-	log.Println("Start creating group with ", multicastId.MulticastId)
+	log.Println("Start creating group with ", multicastId.MulticastId, " at grpcPort", uint32(GrpcPort))
 	w.Header().Set("Content-Type", "application/json")
 	GMu.RLock()
 	defer GMu.RUnlock()
