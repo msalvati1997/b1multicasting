@@ -33,7 +33,6 @@ func init() {
 
 // Registration registers the calling node to a multicast group
 func (s *server) Register(ctx context.Context, in *proto.Rinfo) (*proto.Ranswer, error) {
-
 	source, ok := peer.FromContext(ctx)
 	if !ok {
 		return nil, status.Errorf(codes.InvalidArgument, "Missing source address")
@@ -41,6 +40,7 @@ func (s *server) Register(ctx context.Context, in *proto.Rinfo) (*proto.Ranswer,
 	src := source.Addr.String()
 	srcAddr := src[:strings.LastIndexByte(src, ':')]
 	srcAddr = fmt.Sprintf("%s:%d", srcAddr, in.ClientPort)
+	log.Println("Registration of the group ", in.MulticastId, "with client", srcAddr)
 	multicastId := in.MulticastId
 	Mugroups.Lock()
 	defer Mugroups.Unlock()

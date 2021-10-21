@@ -31,7 +31,7 @@ func main() {
 
 	delay := flag.Uint("DELAY", uint(d), "delay for sending operations (ms)")
 	grpcPort := flag.Uint("GRPC_PORT", uint(gPort), "port number of the grpc server")
-	restPort := flag.Uint("REST_PORT", uint(rPort), "port number of the grpc server")
+	restPort := flag.Uint("REST_PORT", uint(rPort), "port number of the rest server")
 	numThreads := flag.Uint("NUM_THREADS", uint(nt), "number of threads used to multicast messages")
 	verb := flag.String("VERBOSE", verbose, "Turn verbose mode on or off.")
 	registry_addr := flag.String("REGISTRY_ADDR", ":90", "service registry adress")
