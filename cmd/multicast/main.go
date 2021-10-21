@@ -88,7 +88,7 @@ func main() {
 func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uint, verbose string) error {
 	var err error
 	api.GrpcPort = grpcP
-	api.RegistryClient, err = clientregistry.Connect(registryAddr)
+	api.Registryclient, err = clientregistry.Connect(registryAddr)
 	if err != nil {
 		log.Println("error", err)
 		return err

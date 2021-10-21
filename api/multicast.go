@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	RegistryClient  proto.RegistryClient
+	Registryclient  proto.RegistryClient
 	GMu             sync.RWMutex
 	MulticastGroups map[string]*MulticastGroup
 	GrpcPort        uint
@@ -113,7 +113,7 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 		log.Println("The group doesn't exist before")
 	}
 
-	register, err := RegistryClient.Register(context.Background(), &proto.Rinfo{
+	register, err := Registryclient.Register(context.Background(), &proto.Rinfo{
 		MulticastId: multicastId.MulticastId,
 		ClientPort:  uint32(GrpcPort),
 	})
@@ -161,7 +161,7 @@ func InitGroup(info *proto.MGroup, group *MulticastGroup, b bool) {
 	groupInfo, _ := StatusChange(info, group, proto.Status_OPENING)
 
 	// Communicating to the registry that the node is ready
-	groupInfo, _ = RegistryClient.Ready(context.Background(), &proto.RequestData{
+	groupInfo, _ = Registryclient.Ready(context.Background(), &proto.RequestData{
 		MulticastId: group.Group.MulticastId,
 		MId:         group.ClientId,
 	})
@@ -177,7 +177,7 @@ func StatusChange(groupInfo *proto.MGroup, multicastGroup *MulticastGroup, statu
 
 	for groupInfo.Status == status {
 		time.Sleep(time.Second * 5)
-		groupInfo, err = RegistryClient.GetStatus(context.Background(), &proto.MulticastId{MulticastId: groupInfo.MulticastId})
+		groupInfo, err = Registryclient.GetStatus(context.Background(), &proto.MulticastId{MulticastId: groupInfo.MulticastId})
 		if err != nil {
 			return nil, err
 		}
