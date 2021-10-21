@@ -48,6 +48,12 @@ func main() {
 		services = append(services, serverservice.RegisterService)
 	}
 	log.Println("start")
+	connect, err := clientregistry.Connect(*registry_addr)
+	if err != nil {
+		log.Println("error", err)
+		return
+	}
+	api.RegistryClient = connect
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func(w *sync.WaitGroup) {
