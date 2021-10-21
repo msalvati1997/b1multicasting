@@ -59,22 +59,7 @@ info:
   title: Orders API
   version: "1.0"
 paths:
-  /MulticastGroup:
-    post:
-      consumes:
-      - application/json
-      description: Create a group from an id
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/main.MulticastGroup'
-      summary: Create a group from an id
-      tags:
-      - groups
-  /MulticastGroups:
+  /groups:
     get:
       consumes:
       - application/json
@@ -87,6 +72,20 @@ paths:
           schema:
             $ref: '#/definitions/main.MulticastGroup'
       summary: Get details of all groups
+      tags:
+      - groups
+    post:
+      consumes:
+      - application/json
+      description: Create a group from an id
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.MulticastGroup'
+      summary: Create a group from an id
       tags:
       - groups
 swagger: "2.0"

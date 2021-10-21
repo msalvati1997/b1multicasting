@@ -161,7 +161,7 @@ func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uin
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} MulticastGroup
-// @Router /MulticastGroups [get]
+// @Router /groups [get]
 func GetGroups(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(MulticastGroups)
@@ -174,7 +174,7 @@ func GetGroups(w http.ResponseWriter, r *http.Request) {
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} MulticastGroup
-// @Router /MulticastGroup [post]
+// @Router /groups [post]
 func CreateGroup(w http.ResponseWriter, r *http.Request) {
 	var multicastId MulticastId
 	json.NewDecoder(r.Body).Decode(&multicastId)

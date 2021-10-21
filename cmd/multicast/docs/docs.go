@@ -31,30 +31,7 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/MulticastGroup": {
-            "post": {
-                "description": "Create a group from an id",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "groups"
-                ],
-                "summary": "Create a group from an id",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/main.MulticastGroup"
-                        }
-                    }
-                }
-            }
-        },
-        "/MulticastGroups": {
+        "/groups": {
             "get": {
                 "description": "Get details of all groups",
                 "consumes": [
@@ -67,6 +44,27 @@ var doc = `{
                     "groups"
                 ],
                 "summary": "Get details of all groups",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.MulticastGroup"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a group from an id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Create a group from an id",
                 "responses": {
                     "200": {
                         "description": "OK",
