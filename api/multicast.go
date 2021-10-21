@@ -89,10 +89,13 @@ func GetGroups(w http.ResponseWriter, r *http.Request) {
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} MulticastGroup
-// @Router /groups [post]
+// @Router /groups [put]
 func CreateGroup(w http.ResponseWriter, r *http.Request) {
 	var multicastId MulticastId
-	json.NewDecoder(r.Body).Decode(&multicastId)
+	err := json.NewDecoder(r.Body).Decode(&multicastId)
+	if err != nil {
+		return
+	}
 	groupsName = append(groupsName, multicastId)
 	log.Println("Start creating group with ", multicastId.MulticastId)
 	w.Header().Set("Content-Type", "application/json")
@@ -142,7 +145,10 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 	log.Println("Group created")
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(MulticastGroups)
+	err = json.NewEncoder(w).Encode(MulticastGroups)
+	if err != nil {
+		return
+	}
 
 }
 
