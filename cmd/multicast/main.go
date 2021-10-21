@@ -133,10 +133,12 @@ func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uin
 	}
 	//log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", restPort), newRouter))
 	// Start cmux serving.
-	if err := tcpm.Serve(); !strings.Contains(err.Error(),
+	if err = tcpm.Serve(); !strings.Contains(err.Error(),
 		"use of closed network connection") {
 		log.Fatal(err)
 	}
+	log.Println("Server listening on ", restPort)
+
 	return err
 }
 
@@ -148,7 +150,6 @@ func StartServer(programAddress string, grpcServices ...func(grpc.ServiceRegistr
 		if err != nil {
 			return err
 		}
-
 	}
 
 	if err := s.Serve(grpcL); err != nil {
