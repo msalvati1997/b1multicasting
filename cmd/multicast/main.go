@@ -67,14 +67,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	defer func(l net.Listener) {
-		err := l.Close()
-
-		if err != nil {
-
-		}
-	}(l)
 	// Create a cmux object.
 	tcpm = cmux.New(l)
 	// Declare the match for different services required.
