@@ -88,13 +88,10 @@ func main() {
 func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uint, verbose string) error {
 	var err error
 	api.GrpcPort = grpcP
-
-	if err != nil {
-		return err
-	}
 	connect, err := clientregistry.Connect(registryAddr)
 	if err != nil {
 		log.Println("error", err)
+		return err
 	}
 	api.RegistryClient = connect
 
@@ -105,5 +102,5 @@ func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uin
 	// mount swagger API documentation
 	newRouter.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", restPort), newRouter))
-	return nil
+	return err
 }

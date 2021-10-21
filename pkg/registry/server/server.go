@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
+	"log"
 	"strings"
 	"sync"
 )
@@ -54,6 +55,7 @@ func (s *server) Register(ctx context.Context, in *proto.Rinfo) (*proto.Ranswer,
 			return nil, status.Errorf(codes.AlreadyExists, "Already Registered")
 		}
 	} else {
+		log.Println("Creating multicast group..")
 		// Creating the group
 		multicastGroup = &Mgroup{groupInfo: &proto.MGroup{
 			MulticastId: multicastId,
