@@ -11,6 +11,7 @@ import (
 	basic "github.com/msalvati1997/b1multicasting/pkg/basic/server"
 	clientregistry "github.com/msalvati1997/b1multicasting/pkg/reg/client"
 	registry "github.com/msalvati1997/b1multicasting/pkg/reg/server"
+
 	_ "github.com/sirupsen/logrus"
 	"github.com/soheilhy/cmux"
 	"github.com/swaggo/http-swagger"
@@ -116,12 +117,6 @@ func main() {
 func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uint, verbose string) error {
 	var err error
 	api.GrpcPort = grpcP
-	api.Registryclient, err = clientregistry.Connect(registryAddr)
-	if err != nil {
-		log.Println("error", err)
-		return err
-	}
-
 	newRouter := mux.NewRouter()
 	newRouter.HandleFunc("/groups", api.GetGroups).Methods("GET")
 	newRouter.HandleFunc("/groups", api.CreateGroup).Methods("PUT")
@@ -131,6 +126,7 @@ func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uin
 	if err != nil {
 		return err
 	}
+
 	//log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", restPort), newRouter))
 	// Start cmux serving.
 	if err = tcpm.Serve(); !strings.Contains(err.Error(),
@@ -138,7 +134,11 @@ func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uin
 		log.Fatal(err)
 	}
 	log.Println("Server listening on ", restPort)
-
+	api.Registryclient, err = clientregistry.Connect(registryAddr)
+	if err != nil {
+		log.Println("error", err)
+		return err
+	}
 	return err
 }
 
