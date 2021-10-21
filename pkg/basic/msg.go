@@ -3,8 +3,8 @@ package basic
 import "strconv"
 
 type Message struct {
-	MessageHeader map[string]string
-	Payload       []byte
+	MessageHeader map[string]string `json:"MessageHeader"`
+	Payload       []byte            `json:"Payload"`
 }
 
 func NewMessage(header map[string]string, bytes []byte) Message {

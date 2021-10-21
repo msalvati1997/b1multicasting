@@ -8,21 +8,63 @@ import (
 	_ "flag"
 	"fmt"
 	"github.com/gorilla/mux"
-	"github.com/msalvati1997/b1multicasting/internal/app"
 	"github.com/msalvati1997/b1multicasting/internal/utils"
-	"github.com/msalvati1997/b1multicasting/pkg/basic"
+	_ "github.com/msalvati1997/b1multicasting/pkg/basic"
 	serverservice "github.com/msalvati1997/b1multicasting/pkg/basic/server"
 	"github.com/msalvati1997/b1multicasting/pkg/registry/proto"
 	serverregistry "github.com/msalvati1997/b1multicasting/pkg/registry/server"
-	utils2 "github.com/msalvati1997/b1multicasting/pkg/utils"
 	_ "github.com/sirupsen/logrus"
+	"github.com/swaggo/http-swagger"
 	"google.golang.org/grpc"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"sync"
 	"time"
 )
+
+var (
+	RegistryClient  proto.RegistryClient
+	GMu             sync.RWMutex
+	MulticastGroups map[string]*MulticastGroup
+	GrpcPort        uint
+	groupsName      []MulticastId
+)
+
+func init() {
+	MulticastGroups = make(map[string]*MulticastGroup)
+}
+
+// MulticastGroup manages the metadata associated with a group in which the node is registered
+type MulticastGroup struct {
+	ClientId  string `json:"client_id"`
+	Group     *MulticastInfo
+	GroupMu   sync.RWMutex `json:"-"`
+	Messages  []Message
+	MessageMu sync.RWMutex `json:"-"`
+}
+
+type Message struct {
+	MessageHeader map[string]string `json:"MessageHeader"`
+	Payload       []byte            `json:"Payload"`
+}
+
+type MulticastInfo struct {
+	MulticastId      string            `json:"multicast_id"`
+	MulticastType    string            `json:"multicast_type"`
+	ReceivedMessages int               `json:"received_messages"`
+	Status           string            `json:"status"`
+	Members          map[string]Member `json:"members"`
+}
+
+type Member struct {
+	MemberId string `json:"member_id"`
+	Address  string `json:"address"`
+	Ready    bool   `json:"ready"`
+}
+
+type MulticastId struct {
+	MulticastId string `json:"multicast_id"`
+}
 
 func main() {
 
@@ -84,114 +126,128 @@ func main() {
 	}
 }
 
-// Run initializes and executes the Rest HTTP server
+// @title Orders API
+// @version 1.0
+// @description This is a sample service for managing groups multicast
+// @termsOfService http://swagger.io/terms/
+// @contact.name API Support
+// @contact.email soberkoder@gmail.com
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+// @host localhost
+// @BasePath /
 func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uint, verbose string) error {
 	var err error
-	app.GrpcPort = grpcP
+	GrpcPort = grpcP
 
 	if err != nil {
 		return err
 	}
 	newRouter := mux.NewRouter()
-	newRouter.HandleFunc("/CreateGroup", CreateGroup).Methods("POST")
-	utils2.GoPool.Initialize(int(numThreads))
+	newRouter.HandleFunc("/groups", GetGroups).Methods("GET")
+	newRouter.HandleFunc("/groups", CreateGroup).Methods("POST")
+
+	//newRouter.HandleFunc("/group", CreateGroup).Methods("POST")
+	//utils2.GoPool.Initialize(int(numThreads))
+	newRouter.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", restPort), newRouter))
 	return nil
 }
 
-func CreateGroup(w http.ResponseWriter, r *http.Request) {
-	reqbody, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		fmt.Println("please provide valid data to create", err)
-	}
-	var multicastId string
-	json.Unmarshal(reqbody, &multicastId)
-	app.GMu.RLock()
-	defer app.GMu.RUnlock()
+// GetGroups godoc
+// @Summary Get details of all groups
+// @Description Get details of all groups
+// @Tags groups
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} MulticastGroup
+// @Router /MulticastGroups [get]
+func GetGroups(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(MulticastGroups)
+}
 
-	group, ok := app.MulticastGroups[multicastId]
+// CreateGroup godoc
+// @Summary Create a group from an id
+// @Description Create a group from an id
+// @Tags groups
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} MulticastGroup
+// @Router /MulticastGroup [post]
+func CreateGroup(w http.ResponseWriter, r *http.Request) {
+	var multicastId MulticastId
+	json.NewDecoder(r.Body).Decode(&multicastId)
+	groupsName = append(groupsName, multicastId)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(multicastId)
+	GMu.RLock()
+	defer GMu.RUnlock()
+
+	group, ok := MulticastGroups[multicastId.MulticastId]
 
 	if ok {
-
+		log.Println("The group already exist")
 	}
 
-	register, err := app.RegistryClient.Register(context.Background(), &proto.Rinfo{
-		MulticastId: multicastId,
-		ClientPort:  uint32(app.GrpcPort),
+	register, err := RegistryClient.Register(context.Background(), &proto.Rinfo{
+		MulticastId: multicastId.MulticastId,
+		ClientPort:  uint32(GrpcPort),
 	})
 	if err != nil {
-
+		log.Println("Problem in regitering member to group")
 	}
-	members := make(map[string]app.Member, 0)
+	members := make(map[string]Member, 0)
 
 	for memberId, member := range register.GroupInfo.Members {
-		members[memberId] = app.Member{
+		members[memberId] = Member{
 			MemberId: member.Id,
 			Address:  member.Address,
 			Ready:    member.Ready,
 		}
 	}
 
-	group = &app.MulticastGroup{
+	group = &MulticastGroup{
 		ClientId: register.ClientId,
-		Group: &app.MulticastInfo{
+		Group: &MulticastInfo{
 			MulticastId:      register.GroupInfo.MulticastId,
 			ReceivedMessages: 0,
 			Status:           proto.Status_name[int32(register.GroupInfo.Status)],
 			Members:          members,
 		},
-		Messages: make([]basic.Message, 0),
+		Messages: make([]Message, 0),
 	}
 
-	app.MulticastGroups[register.GroupInfo.MulticastId] = group
+	MulticastGroups[register.GroupInfo.MulticastId] = group
 	go InitGroup(register.GroupInfo, group, len(register.GroupInfo.Members) == 1)
 	log.Println("Group created")
+
 	w.WriteHeader(http.StatusCreated)
 }
 
-func InitGroup(info *proto.MGroup, group *app.MulticastGroup, b bool) {
+func InitGroup(info *proto.MGroup, group *MulticastGroup, b bool) {
 	// Waiting that the group is ready
 	update(info, group)
-	groupInfo, err := StatusChange(info, group, proto.Status_OPENING)
+	groupInfo, _ := StatusChange(info, group, proto.Status_OPENING)
 
-	if err != nil {
-		group.GroupMu.Lock()
-		group.Group.Error = err
-		group.GroupMu.Unlock()
-		return
-	}
 	// Communicating to the registry that the node is ready
-	groupInfo, err = app.RegistryClient.Ready(context.Background(), &proto.RequestData{
+	groupInfo, _ = RegistryClient.Ready(context.Background(), &proto.RequestData{
 		MulticastId: group.Group.MulticastId,
 		MId:         group.ClientId,
 	})
 
-	if err != nil {
-		group.GroupMu.Lock()
-		group.Group.Error = err
-		group.GroupMu.Unlock()
-		return
-	}
-
 	// Waiting tha all other nodes are ready
 	update(groupInfo, group)
-	groupInfo, err = StatusChange(groupInfo, group, proto.Status_STARTING)
-
-	if err != nil {
-		group.GroupMu.Lock()
-		group.Group.Error = err
-		group.GroupMu.Unlock()
-		return
-	}
+	groupInfo, _ = StatusChange(groupInfo, group, proto.Status_STARTING)
 
 }
 
-func StatusChange(groupInfo *proto.MGroup, multicastGroup *app.MulticastGroup, status proto.Status) (*proto.MGroup, error) {
+func StatusChange(groupInfo *proto.MGroup, multicastGroup *MulticastGroup, status proto.Status) (*proto.MGroup, error) {
 	var err error
 
 	for groupInfo.Status == status {
 		time.Sleep(time.Second * 5)
-		groupInfo, err = app.RegistryClient.GetStatus(context.Background(), &proto.MulticastId{MulticastId: groupInfo.MulticastId})
+		groupInfo, err = RegistryClient.GetStatus(context.Background(), &proto.MulticastId{MulticastId: groupInfo.MulticastId})
 		if err != nil {
 			return nil, err
 		}
@@ -206,7 +262,7 @@ func StatusChange(groupInfo *proto.MGroup, multicastGroup *app.MulticastGroup, s
 	return groupInfo, nil
 }
 
-func update(groupInfo *proto.MGroup, multicastGroup *app.MulticastGroup) {
+func update(groupInfo *proto.MGroup, multicastGroup *MulticastGroup) {
 	multicastGroup.GroupMu.Lock()
 	defer multicastGroup.GroupMu.Unlock()
 
@@ -216,7 +272,7 @@ func update(groupInfo *proto.MGroup, multicastGroup *app.MulticastGroup) {
 		m, ok := multicastGroup.Group.Members[clientId]
 
 		if !ok {
-			m = app.Member{
+			m = Member{
 				MemberId: member.Id,
 				Address:  member.Address,
 				Ready:    member.Ready,

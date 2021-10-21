@@ -1,0 +1,140 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a sample service for managing groups multicast",
+        "title": "Orders API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "email": "soberkoder@gmail.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost",
+    "basePath": "/",
+    "paths": {
+        "/MulticastGroup": {
+            "post": {
+                "description": "Create a group from an id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Create a group from an id",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.MulticastGroup"
+                        }
+                    }
+                }
+            }
+        },
+        "/MulticastGroups": {
+            "get": {
+                "description": "Get details of all groups",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Get details of all groups",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.MulticastGroup"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "main.Member": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "member_id": {
+                    "type": "string"
+                },
+                "ready": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "main.Message": {
+            "type": "object",
+            "properties": {
+                "MessageHeader": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "Payload": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "main.MulticastGroup": {
+            "type": "object",
+            "properties": {
+                "client_id": {
+                    "type": "string"
+                },
+                "group": {
+                    "$ref": "#/definitions/main.MulticastInfo"
+                },
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/main.Message"
+                    }
+                }
+            }
+        },
+        "main.MulticastInfo": {
+            "type": "object",
+            "properties": {
+                "members": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/main.Member"
+                    }
+                },
+                "multicast_id": {
+                    "type": "string"
+                },
+                "multicast_type": {
+                    "type": "string"
+                },
+                "received_messages": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
