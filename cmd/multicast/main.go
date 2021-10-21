@@ -12,12 +12,18 @@ import (
 	clientregistry "github.com/msalvati1997/b1multicasting/pkg/reg/client"
 	registry "github.com/msalvati1997/b1multicasting/pkg/reg/server"
 	_ "github.com/sirupsen/logrus"
+	"github.com/soheilhy/cmux"
 	"github.com/swaggo/http-swagger"
 	"google.golang.org/grpc"
 	"log"
+	"net"
 	"net/http"
+	"strings"
 	"sync"
 )
+
+var grpcL net.Listener
+var httpL net.Listener
 
 func main() {
 
@@ -51,7 +57,7 @@ func main() {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func(w *sync.WaitGroup) {
-		err := utils.StartServer(fmt.Sprintf(":%d", *grpcPort), services...)
+		err := StartServer(fmt.Sprintf(":%d", *grpcPort), services...)
 		if err != nil {
 			log.Println("Error in connecting server", err.Error())
 			return
@@ -95,12 +101,58 @@ func Run(grpcP uint, restPort uint, registryAddr string, numThreads uint, dl uin
 		log.Println("error", err)
 		return err
 	}
+
+	// Create a listener at the desired port.
+	l, err := net.Listen("tcp", fmt.Sprintf(":%d", restPort))
+	defer func(l net.Listener) {
+		err := l.Close()
+		if err != nil {
+
+		}
+	}(l)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Create a cmux object.
+	tcpm := cmux.New(l)
+	// Declare the match for different services required.
+	// Match connections in order:
+	// First grpc, then HTTP, and otherwise Go RPC/TCP.
+	grpcL = tcpm.Match(cmux.HTTP2HeaderField("content-type", "application/grpc"))
+	httpL = tcpm.Match(cmux.HTTP1Fast())
 	newRouter := mux.NewRouter()
 	newRouter.HandleFunc("/groups", api.GetGroups).Methods("GET")
 	newRouter.HandleFunc("/groups", api.CreateGroup).Methods("PUT")
-	//utils2.GoPool.Initialize(int(numThreads))
-	// mount swagger API documentation
 	newRouter.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", restPort), newRouter))
+	err = http.Serve(l, newRouter)
+	if err != nil {
+		return err
+	}
+	//log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", restPort), newRouter))
+	// Start cmux serving.
+	if err := tcpm.Serve(); !strings.Contains(err.Error(),
+		"use of closed network connection") {
+		log.Fatal(err)
+	}
 	return err
+}
+
+func StartServer(programAddress string, grpcServices ...func(grpc.ServiceRegistrar) error) error {
+
+	s := grpc.NewServer()
+	for _, grpcService := range grpcServices {
+		err := grpcService(s)
+		if err != nil {
+			return err
+		}
+
+	}
+
+	if err := s.Serve(grpcL); err != nil {
+		return err
+	}
+
+	return nil
 }
