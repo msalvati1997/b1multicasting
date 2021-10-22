@@ -61,13 +61,13 @@ func main() {
 		}
 		wg.Done()
 	}()
+	handler.GrpcPort = *grpcPort
 	if *application {
 		wg.Add(1)
 		log.Println("Starting application")
-
 		e := echo.New()
 		api := e.Group("/api/v1", serverHeader)
-		api.POST("/groups/:multicastId", handler.CreateGroup)
+		api.POST("/groups/", handler.CreateGroup)
 		api.GET("/groups", handler.GetGroups)
 
 		go func() {
@@ -124,6 +124,6 @@ func StartServer(programAddress string, grpcServices ...func(grpc.ServiceRegistr
 	if err = s.Serve(lis); err != nil {
 		return err
 	}
-
+	log.Println("grpc server start")
 	return nil
 }
