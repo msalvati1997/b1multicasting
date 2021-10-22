@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	_ "context"
 	"flag"
 	_ "flag"
@@ -18,6 +19,9 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"sync"
 )
 
@@ -75,6 +79,9 @@ func main() {
 		log.Println("Starting application")
 		log.Println("http server started...")
 		err := router.Run(fmt.Sprintf(":%d", *restPort))
+		req, _ := http.NewRequestWithContext(context.Background(), "POST", "http://localhost:8080:/90/groups", strings.NewReader(`{"multicast_id": "m1","multicast_type": "BMULTICAST"}`))
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
 		if err != nil {
 			log.Println("Error in starting http server", err.Error())
 		}
