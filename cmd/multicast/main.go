@@ -25,7 +25,7 @@ import (
 
 var grpcL net.Listener
 
-// @title Orders API
+// @title MULTICAST API
 // @version 1.0
 // @description This is a sample service for managing groups multicast
 // @contact.email salvatimartina97@gmail.com

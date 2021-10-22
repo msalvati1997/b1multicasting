@@ -51,7 +51,7 @@ info:
   contact:
     email: salvatimartina97@gmail.com
   description: This is a sample service for managing groups multicast
-  title: Orders API
+  title: MULTICAST API
   version: "1.0"
 paths:
   /groups:
@@ -69,7 +69,7 @@ paths:
       summary: Get details of all groups
       tags:
       - groups
-    post:
+    put:
       consumes:
       - application/json
       description: Create a group from an id

@@ -47,7 +47,7 @@ var doc = `{
                     }
                 }
             },
-            "post": {
+            "put": {
                 "description": "Create a group from an id",
                 "consumes": [
                     "application/json"
@@ -160,7 +160,7 @@ var SwaggerInfo = swaggerInfo{
 	Host:        "localhost",
 	BasePath:    "/api",
 	Schemes:     []string{},
-	Title:       "Orders API",
+	Title:       "MULTICAST API",
 	Description: "This is a sample service for managing groups multicast",
 }
 

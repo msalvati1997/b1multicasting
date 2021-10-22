@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "description": "This is a sample service for managing groups multicast",
-        "title": "Orders API",
+        "title": "MULTICAST API",
         "contact": {
             "email": "salvatimartina97@gmail.com"
         },
@@ -33,7 +33,7 @@
                     }
                 }
             },
-            "post": {
+            "put": {
                 "description": "Create a group from an id",
                 "consumes": [
                     "application/json"
