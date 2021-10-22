@@ -59,9 +59,11 @@ func main() {
 		}
 		wg.Done()
 	}()
+
 	handler.GrpcPort = *grpcPort
 	if *application {
-		handler.Registryclient, err = clientregistry.Connect(*registry_addr)
+		handler.RegClient, err = clientregistry.Connect(*registry_addr)
+
 		router := gin.Default()
 		routerGroup := router.Group(*registry_addr)
 		routerGroup.GET("/groups", handler.GetGroups)
