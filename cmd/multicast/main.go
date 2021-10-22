@@ -19,6 +19,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 )
 
 var grpcL net.Listener
@@ -71,14 +72,20 @@ func main() {
 	// First grpc, then HTTP, and otherwise Go RPC/TCP.
 	grpcL = tcpm.Match(cmux.HTTP2HeaderField("content-type", "application/grpc"))
 	httpL := tcpm.Match(cmux.HTTP1Fast())
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	errCh := make(chan error)
 	go func() {
+		log.Println("Connecting grpc server..")
 		err := StartServer(services...)
 		if err != nil {
 			log.Println("Error in connecting server", err.Error())
 			return
 		}
+		wg.Done()
 	}()
 	if *application {
+		wg.Add(1)
 		api.GrpcPort = *grpcPort
 		newRouter := mux.NewRouter()
 		newRouter.HandleFunc("/groups", api.GetGroups).Methods("GET")
@@ -100,6 +107,21 @@ func main() {
 		if err != nil {
 			log.Println("error", err)
 		}
+		wg.Done()
+	}
+	wgChan := make(chan bool)
+
+	go func() {
+		wg.Wait()
+		wgChan <- true
+	}()
+
+	log.Println("App started")
+
+	select {
+	case err := <-errCh:
+		log.Println("error", err.Error())
+	case <-wgChan:
 	}
 }
 
