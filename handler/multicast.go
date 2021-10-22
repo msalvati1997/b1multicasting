@@ -1,14 +1,14 @@
-package api
+package handler
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/labstack/echo"
 	"github.com/msalvati1997/b1multicasting/pkg/reg/proto"
-	"google.golang.org/grpc/peer"
+	"github.com/swaggo/swag/testdata/alias_type/types"
 	"log"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 )
@@ -72,36 +72,15 @@ type MulticastReq struct {
 	MulticastType proto.MulticastType
 }
 
-// GetGroups godoc
-// @Summary Get details of all groups
-// @Description Get details of all groups
-// @Tags groups
-// @Accept  json
-// @Produce  json
-// @Success 200 {object} MulticastGroup
-// @Router /groups [get]
-func GetGroups(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(MulticastGroups)
-	if err != nil {
-		return
-	}
+func GetGroups(c echo.Context) error {
+	return c.JSON(http.StatusOK, MulticastGroups)
 }
 
-// CreateGroup godoc
-// @Summary Create a group from an id
-// @Description Create a group from an id
-// @Tags groups
-// @Accept  json
-// @Produce  json
-// @Success 200 {object} MulticastGroup
-// @Router /groups [put]
-func CreateGroup(w http.ResponseWriter, r *http.Request) {
+func CreateGroup(c echo.Context) error {
 	var multicastId MulticastReq
-	w.Header().Set("Content-Type", "application/json")
-	err := json.NewDecoder(r.Body).Decode(&multicastId)
+	err := json.NewDecoder(c.Request().Body).Decode(&multicastId)
 	if err != nil {
-		return
+		return err
 	}
 	groupsName = append(groupsName, multicastId)
 	log.Println("Start creating group with ", multicastId.MulticastId, " and multicast type ", multicastId.MulticastType, "at grpcPort", uint32(GrpcPort))
@@ -115,12 +94,6 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 	} else {
 		log.Println("The group doesn't exist before")
 	}
-	source, ok := peer.FromContext(context.Background())
-	log.Println("source peer ", source.Addr)
-	src := source.Addr.String()
-	srcAddr := src[:strings.LastIndexByte(src, ':')]
-	log.Println("Source adress ", srcAddr)
-	time.Sleep(100 * time.Millisecond)
 
 	register, err := Registryclient.Register(context.Background(), &proto.Rinfo{
 		MulticastId:   multicastId.MulticastId,
@@ -128,7 +101,8 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 		ClientPort:    uint32(GrpcPort),
 	})
 	if err != nil {
-		log.Println("Problem in registering src ", srcAddr, " to group \n", " err", err.Error())
+		log.Println("Problem in registering src to group \n", " err", err.Error())
+		return c.JSON(http.StatusNotAcceptable, types.StringAlias(err.Error()))
 	} else {
 		log.Println("ok in registering")
 	}
@@ -157,12 +131,7 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 	go InitGroup(register.GroupInfo, group, len(register.GroupInfo.Members) == 1)
 	log.Println("Group created")
 
-	w.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(w).Encode(MulticastGroups)
-	if err != nil {
-		return
-	}
-
+	return c.JSON(http.StatusCreated, group)
 }
 
 func InitGroup(info *proto.MGroup, group *MulticastGroup, b bool) {

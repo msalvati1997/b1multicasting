@@ -4,33 +4,22 @@ import (
 	"flag"
 	_ "flag"
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/msalvati1997/b1multicasting/api"
+	"github.com/labstack/echo"
+	"github.com/msalvati1997/b1multicasting/handler"
 	"github.com/msalvati1997/b1multicasting/internal/utils"
 	_ "github.com/msalvati1997/b1multicasting/pkg/basic"
 	basic "github.com/msalvati1997/b1multicasting/pkg/basic/server"
 	clientregistry "github.com/msalvati1997/b1multicasting/pkg/reg/client"
 	registry "github.com/msalvati1997/b1multicasting/pkg/reg/server"
 	_ "github.com/sirupsen/logrus"
-	"github.com/soheilhy/cmux"
-	httpSwagger "github.com/swaggo/http-swagger"
 	"google.golang.org/grpc"
 	"log"
 	"net"
-	"net/http"
-	"strings"
 	"sync"
-	"time"
 )
 
 var grpcL net.Listener
 
-// @title MULTICAST API
-// @version 1.0
-// @description This is a sample service for managing groups multicast
-// @contact.email salvatimartina97@gmail.com
-// @host localhost
-// @BasePath /api
 func main() {
 
 	//	d := utils.GetEnvIntWithDefault("DELAY", 0)
@@ -60,62 +49,38 @@ func main() {
 		services = append(services, basic.RegisterService)
 	}
 	log.Println("start")
-	// Create a listener at the desired port.
-	log.Println("Creating a listener at port ", fmt.Sprintf(":%d", *restPort))
-	l, err := net.Listen("tcp", fmt.Sprintf(":%d", *restPort))
-	if err != nil {
-		log.Fatal(err)
-	}
-	// Create a cmux object.
-	tcpm := cmux.New(l)
-	// Declare the match for different services required.
-	// Match connections in order:
-	// First grpc, then HTTP, and otherwise Go RPC/TCP.
-	grpcL = tcpm.Match(cmux.HTTP2HeaderField("content-type", "application/grpc"))
-	httpL := tcpm.Match(cmux.HTTP1Fast())
+
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
 		log.Println("Connecting grpc server..")
-		err := StartServer(services...)
+		err := StartServer(fmt.Sprintf(":%d", *grpcPort), services...)
 		if err != nil {
 			log.Println("Error in connecting server", err.Error())
 			return
 		}
-		time.Sleep(500 * time.Millisecond)
 		wg.Done()
 	}()
 	if *application {
 		wg.Add(1)
 		log.Println("Starting application")
-		api.GrpcPort = *grpcPort
-		newRouter := mux.NewRouter()
-		newRouter.HandleFunc("/groups", api.GetGroups).Methods("GET")
-		newRouter.HandleFunc("/groups", api.CreateGroup).Methods("PUT")
-		newRouter.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
-		http.Handle("/", newRouter)
+
+		e := echo.New()
+		api := e.Group("/api/v1", serverHeader)
+		api.POST("/groups/:multicastId", handler.CreateGroup)
+		api.GET("/groups", handler.GetGroups)
 
 		go func() {
 			log.Println("http server started...")
-			err := http.Serve(httpL, newRouter)
+			err := e.Start(fmt.Sprintf(":%d", restPort))
 			if err != nil {
 				log.Println("Error in starting http server", err.Error())
 			}
-			time.Sleep(500 * time.Millisecond)
 		}()
-		// Start cmux serving.
-		log.Println("Start cmux serving")
-
-		go func() {
-			if err = tcpm.Serve(); !strings.Contains(err.Error(),
-				"use of closed network connection") {
-				log.Fatal(err)
-			}
-			log.Println("Server listening on ", restPort)
-		}()
-		api.Registryclient, err = clientregistry.Connect(*registry_addr)
+		var err error
+		handler.Registryclient, err = clientregistry.Connect(*registry_addr)
 		if err != nil {
-			log.Println("error", err)
+			log.Println("Error in connect client to registry ", err.Error())
 		}
 		wg.Done()
 	}
@@ -133,18 +98,32 @@ func main() {
 	}
 
 }
+func serverHeader(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		c.Response().Header().Set("x-version", "Test/v1.0")
+		return next(c)
+	}
+}
 
-func StartServer(grpcServices ...func(grpc.ServiceRegistrar) error) error {
+func StartServer(programAddress string, grpcServices ...func(grpc.ServiceRegistrar) error) error {
+
+	lis, err := net.Listen("tcp", programAddress)
+	if err != nil {
+		return err
+	}
 
 	s := grpc.NewServer()
 	for _, grpcService := range grpcServices {
-		err := grpcService(s)
+		err = grpcService(s)
 		if err != nil {
 			return err
 		}
+
 	}
-	if err := s.Serve(grpcL); err != nil {
+
+	if err = s.Serve(lis); err != nil {
 		return err
 	}
+
 	return nil
 }

@@ -3,7 +3,8 @@ module github.com/msalvati1997/b1multicasting
 go 1.15
 
 require (
-	github.com/gorilla/mux v1.8.0
+	github.com/labstack/echo v3.3.10+incompatible
+	github.com/labstack/gommon v0.3.0 // indirect
 	github.com/sirupsen/logrus v1.8.1
 	github.com/soheilhy/cmux v0.1.5
 	github.com/stretchr/testify v1.7.0
