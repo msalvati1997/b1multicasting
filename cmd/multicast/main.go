@@ -4,6 +4,7 @@ import (
 	"flag"
 	_ "flag"
 	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/msalvati1997/b1multicasting/api"
 	"github.com/msalvati1997/b1multicasting/internal/utils"
 	_ "github.com/msalvati1997/b1multicasting/pkg/basic"
@@ -12,6 +13,7 @@ import (
 	registry "github.com/msalvati1997/b1multicasting/pkg/reg/server"
 	_ "github.com/sirupsen/logrus"
 	"github.com/soheilhy/cmux"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -34,7 +36,7 @@ func main() {
 	//	nt := utils.GetEnvIntWithDefault("NUM_THREADS", 1)
 	//verbose := utils.GetEnvStringWithDefault("VERBOSE", "ON")
 	rg := utils.GetEnvBoolWithDefault("REGISTRY", false)
-	app := utils.GetEnvBoolWithDefault("APP", true)
+	app := utils.GetEnvBoolWithDefault("APP", false)
 	gPort := utils.GetEnvIntWithDefault("GRPC_PORT", 90)
 	rPort := utils.GetEnvIntWithDefault("REST_PORT", 80)
 
@@ -85,15 +87,16 @@ func main() {
 		wg.Add(1)
 		log.Println("Starting application")
 		api.GrpcPort = *grpcPort
-		//newRouter := mux.NewRouter()
-		//newRouter.HandleFunc("/groups", api.GetGroups).Methods("GET")
-		//newRouter.HandleFunc("/groups", api.CreateGroup).Methods("PUT")
-		//newRouter.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
-		http.HandleFunc("/groups/", api.GetGroups)
-		http.HandleFunc("/groups/create", api.CreateGroup)
+		newRouter := mux.NewRouter()
+		newRouter.HandleFunc("/groups", api.GetGroups).Methods("GET")
+		newRouter.HandleFunc("/groups", api.CreateGroup).Methods("PUT")
+		newRouter.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
+		http.Handle("/", newRouter)
+		//http.HandleFunc("/groups/", api.GetGroups)
+		//http.HandleFunc("/groups/create", api.CreateGroup)
 		go func() {
 			log.Println("http server started...")
-			err := http.Serve(httpL, nil)
+			err := http.Serve(httpL, newRouter)
 			if err != nil {
 				log.Println("Error in starting http server", err.Error())
 			}
