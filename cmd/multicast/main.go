@@ -71,15 +71,11 @@ func main() {
 
 		wg.Add(1)
 		log.Println("Starting application")
-
-		go func() {
-			log.Println("http server started...")
-			err := router.Run(fmt.Sprintf(":%d", *restPort))
-			if err != nil {
-				log.Println("Error in starting http server", err.Error())
-			}
-		}()
-		var err error
+		log.Println("http server started...")
+		err := router.Run(fmt.Sprintf(":%d", *restPort))
+		if err != nil {
+			log.Println("Error in starting http server", err.Error())
+		}
 		if err != nil {
 			log.Println("Error in connect client to registry ", err.Error())
 		}
