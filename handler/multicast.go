@@ -4,9 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/labstack/echo"
+	"github.com/gin-gonic/gin"
 	"github.com/msalvati1997/b1multicasting/pkg/reg/proto"
-	"github.com/swaggo/swag/testdata/alias_type/types"
 	"log"
 	"net/http"
 	"sync"
@@ -72,15 +71,27 @@ type MulticastReq struct {
 	MulticastType proto.MulticastType
 }
 
-func GetGroups(c echo.Context) error {
-	return c.JSON(http.StatusOK, MulticastGroups)
+func GetGroups(g *gin.Context) {
+	g.JSON(200, MulticastGroups)
+
 }
 
-func CreateGroup(c echo.Context) error {
+// CreateGroup godoc
+// @Summary Create Multicast Group
+// @Description Create Multicast Group
+// @Tags groups
+// @Accept  json
+// @Produce  json
+// @Param post body MulticastReq
+// @Success 201 {object} MulticastGroups
+//     Responses:
+//       201: body:PositionResponseBody
+// @Router /groups [post]
+func CreateGroup(g *gin.Context) {
 	var multicastId MulticastReq
-	err := json.NewDecoder(c.Request().Body).Decode(&multicastId)
+	err := json.NewDecoder(g.Request.Body).Decode(&multicastId)
 	if err != nil {
-		return err
+		g.JSON(http.StatusBadRequest, "Error in body request")
 	}
 	groupsName = append(groupsName, multicastId)
 	log.Println("Start creating group with ", multicastId.MulticastId, " and multicast type ", multicastId.MulticastType, "at grpcPort", uint32(GrpcPort))
@@ -101,8 +112,7 @@ func CreateGroup(c echo.Context) error {
 		ClientPort:    uint32(GrpcPort),
 	})
 	if err != nil {
-		log.Println("Problem in registering src to group \n", " err", err.Error())
-		return c.JSON(http.StatusNotAcceptable, types.StringAlias(err.Error()))
+		g.JSON(http.StatusBadRequest, gin.H{"Message": "Problem in registering groups"})
 	} else {
 		log.Println("ok in registering")
 	}
@@ -130,8 +140,7 @@ func CreateGroup(c echo.Context) error {
 	MulticastGroups[register.GroupInfo.MulticastId] = group
 	go InitGroup(register.GroupInfo, group, len(register.GroupInfo.Members) == 1)
 	log.Println("Group created")
-
-	return c.JSON(http.StatusCreated, group)
+	g.JSON(http.StatusCreated, group)
 }
 
 func InitGroup(info *proto.MGroup, group *MulticastGroup, b bool) {

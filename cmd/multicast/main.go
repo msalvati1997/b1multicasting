@@ -4,16 +4,12 @@ import (
 	"flag"
 	_ "flag"
 	"fmt"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
-	"github.com/lambdaxs/go-server"
+	"github.com/gin-gonic/gin"
 	"github.com/msalvati1997/b1multicasting/handler"
 	"github.com/msalvati1997/b1multicasting/internal/utils"
 	_ "github.com/msalvati1997/b1multicasting/pkg/basic"
-	proto2 "github.com/msalvati1997/b1multicasting/pkg/basic/proto"
 	basic "github.com/msalvati1997/b1multicasting/pkg/basic/server"
 	clientregistry "github.com/msalvati1997/b1multicasting/pkg/reg/client"
-	"github.com/msalvati1997/b1multicasting/pkg/reg/proto"
 	registry "github.com/msalvati1997/b1multicasting/pkg/reg/server"
 	_ "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -21,8 +17,6 @@ import (
 	"net"
 	"sync"
 )
-
-var grpcL net.Listener
 
 func main() {
 
@@ -45,19 +39,12 @@ func main() {
 
 	flag.Parse()
 	services := make([]func(registrar grpc.ServiceRegistrar) error, 0)
-	server := go_server.New("server")
-
+	var err error
 	if *reg {
 		services = append(services, registry.Registration)
-		server.RegisterGRPCServer(func(srv *grpc.Server) {
-			proto.RegisterRegistryServer(srv, &registry.RegistryServer{})
-		})
 	}
 	if *application {
 		services = append(services, basic.RegisterService)
-		server.RegisterGRPCServer(func(srv *grpc.Server) {
-			proto2.RegisterEndToEndServiceServer(srv, &basic.Server{})
-		})
 	}
 	log.Println("start")
 
@@ -65,7 +52,7 @@ func main() {
 	wg.Add(1)
 	go func() {
 		log.Println("Connecting grpc server..")
-		err := StartServer(fmt.Sprintf(":%d", *grpcPort), services...)
+		err = StartServer(fmt.Sprintf(":%d", *grpcPort), services...)
 		if err != nil {
 			log.Println("Error in connecting server", err.Error())
 			return
@@ -74,17 +61,17 @@ func main() {
 	}()
 	handler.GrpcPort = *grpcPort
 	if *application {
+		router := gin.Default()
+		routerGroup := router.Group(*registry_addr)
+		routerGroup.GET("/groups", handler.GetGroups)
+		routerGroup.POST("/groups", handler.CreateGroup)
+
 		wg.Add(1)
 		log.Println("Starting application")
-		httpSrv := server.HttpServer()
-		e := echo.New()
-		e.Use(middleware.Logger())
-		e.Use(middleware.Recover())
-		httpSrv.POST("/groups/", handler.CreateGroup)
-		httpSrv.GET("/groups", handler.GetGroups)
+
 		go func() {
 			log.Println("http server started...")
-			err := e.Start(fmt.Sprintf(":%d", *restPort))
+			err := router.Run(fmt.Sprintf(":%d", *restPort))
 			if err != nil {
 				log.Println("Error in starting http server", err.Error())
 			}
@@ -96,7 +83,6 @@ func main() {
 		}
 		wg.Done()
 	}
-	server.Run()
 
 	wgChan := make(chan bool)
 
@@ -110,12 +96,6 @@ func main() {
 	case <-wgChan:
 	}
 
-}
-func serverHeader(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		c.Response().Header().Set("x-version", "Test/v1.0")
-		return next(c)
-	}
 }
 
 func StartServer(programAddress string, grpcServices ...func(grpc.ServiceRegistrar) error) error {
