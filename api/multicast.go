@@ -112,6 +112,7 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 	} else {
 		log.Println("The group doesn't exist before")
 	}
+
 	register, err := Registryclient.Register(r.Context(), &proto.Rinfo{
 		MulticastId: multicastId.MulticastId,
 		ClientPort:  uint32(GrpcPort),

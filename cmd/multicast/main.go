@@ -4,7 +4,6 @@ import (
 	"flag"
 	_ "flag"
 	"fmt"
-	"github.com/gorilla/mux"
 	"github.com/msalvati1997/b1multicasting/api"
 	"github.com/msalvati1997/b1multicasting/internal/utils"
 	_ "github.com/msalvati1997/b1multicasting/pkg/basic"
@@ -20,6 +19,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 )
 
 var grpcL net.Listener
@@ -81,25 +81,23 @@ func main() {
 			log.Println("Error in connecting server", err.Error())
 			return
 		}
+		time.Sleep(100 * time.Millisecond)
 		wg.Done()
 	}()
 	if *application {
 		wg.Add(1)
 		log.Println("Starting application")
 		api.GrpcPort = *grpcPort
-		newRouter := mux.NewRouter()
-		newRouter.HandleFunc("/groups", api.GetGroups).Methods("GET")
-		newRouter.HandleFunc("/groups", api.CreateGroup).Methods("PUT")
-		newRouter.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
-		http.Handle("/", newRouter)
-		//http.HandleFunc("/groups/", api.GetGroups)
-		//http.HandleFunc("/groups/create", api.CreateGroup)
+		http.Handle("/swagger/", httpSwagger.WrapHandler)
+		http.HandleFunc("/groups", api.GetGroups)
+		http.HandleFunc("/groups/create", api.CreateGroup)
 		go func() {
 			log.Println("http server started...")
-			err := http.Serve(httpL, newRouter)
+			err := http.Serve(httpL, nil)
 			if err != nil {
 				log.Println("Error in starting http server", err.Error())
 			}
+			time.Sleep(500 * time.Millisecond)
 		}()
 		// Start cmux serving.
 		log.Println("Start cmux serving")
