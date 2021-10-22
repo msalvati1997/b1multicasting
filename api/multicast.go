@@ -115,11 +115,12 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 	} else {
 		log.Println("The group doesn't exist before")
 	}
-	source, ok := peer.FromContext(r.Context())
+	source, ok := peer.FromContext(context.Background())
 	log.Println("source peer ", source.Addr)
 	src := source.Addr.String()
 	srcAddr := src[:strings.LastIndexByte(src, ':')]
 	log.Println("Source adress ", srcAddr)
+	time.Sleep(100 * time.Millisecond)
 
 	register, err := Registryclient.Register(context.Background(), &proto.Rinfo{
 		MulticastId:   multicastId.MulticastId,
@@ -127,7 +128,7 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 		ClientPort:    uint32(GrpcPort),
 	})
 	if err != nil {
-		log.Println("Problem in regitering member to group", err.Error())
+		log.Println("Problem in registering src ", srcAddr, " to group \n", " err", err.Error())
 	} else {
 		log.Println("ok in registering")
 	}
