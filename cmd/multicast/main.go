@@ -19,7 +19,6 @@ import (
 	"log"
 	"net"
 	"sync"
-	"time"
 )
 
 func main() {
@@ -67,11 +66,10 @@ func main() {
 	handler.GrpcPort = *grpcPort
 	if *application {
 		handler.RegClient, err = clientregistry.Connect(*registry_addr)
-		time.Sleep(150 * time.Millisecond)
 		router := gin.Default()
 		routerGroup := router.Group(*registry_addr)
 		routerGroup.GET("/groups", handler.GetGroups)
-		routerGroup.POST("/groups/", handler.CreateGroup)
+		routerGroup.POST("/groups", handler.CreateGroup)
 		wg.Add(1)
 		log.Println("Starting application")
 		log.Println("http server started...")
