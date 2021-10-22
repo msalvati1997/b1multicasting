@@ -4,7 +4,6 @@ import (
 	"flag"
 	_ "flag"
 	"fmt"
-	"github.com/gorilla/mux"
 	"github.com/msalvati1997/b1multicasting/api"
 	"github.com/msalvati1997/b1multicasting/internal/utils"
 	_ "github.com/msalvati1997/b1multicasting/pkg/basic"
@@ -13,7 +12,6 @@ import (
 	registry "github.com/msalvati1997/b1multicasting/pkg/reg/server"
 	_ "github.com/sirupsen/logrus"
 	"github.com/soheilhy/cmux"
-	"github.com/swaggo/http-swagger"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -36,7 +34,7 @@ func main() {
 	//	nt := utils.GetEnvIntWithDefault("NUM_THREADS", 1)
 	//verbose := utils.GetEnvStringWithDefault("VERBOSE", "ON")
 	rg := utils.GetEnvBoolWithDefault("REGISTRY", false)
-	app := utils.GetEnvBoolWithDefault("APP", false)
+	app := utils.GetEnvBoolWithDefault("APP", true)
 	gPort := utils.GetEnvIntWithDefault("GRPC_PORT", 90)
 	rPort := utils.GetEnvIntWithDefault("REST_PORT", 80)
 
@@ -74,7 +72,6 @@ func main() {
 	httpL := tcpm.Match(cmux.HTTP1Fast())
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
-	errCh := make(chan error)
 	go func() {
 		log.Println("Connecting grpc server..")
 		err := StartServer(services...)
@@ -86,49 +83,54 @@ func main() {
 	}()
 	if *application {
 		wg.Add(1)
+		log.Println("Starting application")
 		api.GrpcPort = *grpcPort
-		newRouter := mux.NewRouter()
-		newRouter.HandleFunc("/groups", api.GetGroups).Methods("GET")
-		newRouter.HandleFunc("/groups", api.CreateGroup).Methods("PUT")
-		newRouter.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
+		//newRouter := mux.NewRouter()
+		//newRouter.HandleFunc("/groups", api.GetGroups).Methods("GET")
+		//newRouter.HandleFunc("/groups", api.CreateGroup).Methods("PUT")
+		//newRouter.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
+		http.HandleFunc("/groups/", api.GetGroups)
+		http.HandleFunc("/groups/create", api.CreateGroup)
 		go func() {
-			err := http.Serve(httpL, newRouter)
-			log.Println("http server started.")
+			log.Println("http server started...")
+			err := http.Serve(httpL, nil)
 			if err != nil {
+				log.Println("Error in starting http server", err.Error())
 			}
 		}()
 		// Start cmux serving.
-		if err = tcpm.Serve(); !strings.Contains(err.Error(),
-			"use of closed network connection") {
-			log.Fatal(err)
-		}
-		log.Println("Server listening on ", restPort)
+		log.Println("Start cmux serving")
+		go func() {
+			if err = tcpm.Serve(); !strings.Contains(err.Error(),
+				"use of closed network connection") {
+				log.Fatal(err)
+			}
+			log.Println("Server listening on ", restPort)
+		}()
 		api.Registryclient, err = clientregistry.Connect(*registry_addr)
 		if err != nil {
 			log.Println("error", err)
 		}
 		wg.Done()
 	}
+
 	wgChan := make(chan bool)
 
 	go func() {
 		wg.Wait()
 		wgChan <- true
 	}()
-
 	log.Println("App started")
 
 	select {
-	case err := <-errCh:
-		log.Println("error", err.Error())
 	case <-wgChan:
 	}
+
 }
 
 func StartServer(grpcServices ...func(grpc.ServiceRegistrar) error) error {
 
 	s := grpc.NewServer()
-	log.Println(grpcServices)
 	for _, grpcService := range grpcServices {
 		err := grpcService(s)
 		if err != nil {
