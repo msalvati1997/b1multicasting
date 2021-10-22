@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "context"
 	"flag"
 	_ "flag"
 	"fmt"
@@ -9,8 +10,10 @@ import (
 	"github.com/msalvati1997/b1multicasting/internal/utils"
 	_ "github.com/msalvati1997/b1multicasting/pkg/basic"
 	basic "github.com/msalvati1997/b1multicasting/pkg/basic/server"
+	_ "github.com/msalvati1997/b1multicasting/pkg/reg"
 	clientregistry "github.com/msalvati1997/b1multicasting/pkg/reg/client"
-	registry "github.com/msalvati1997/b1multicasting/pkg/reg/server"
+	_ "github.com/msalvati1997/b1multicasting/pkg/reg/proto"
+	rgstr "github.com/msalvati1997/b1multicasting/pkg/reg/server"
 	_ "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"log"
@@ -34,14 +37,14 @@ func main() {
 	//	numThreads := flag.Uint("NUM_THREADS", uint(nt), "number of threads used to multicast messages")
 	//	verb := flag.String("VERBOSE", verbose, "Turn verbose mode on or off.")
 	registry_addr := flag.String("REGISTRY_ADDR", ":90", "service registry adress")
-	reg := flag.Bool("REGISTRY", rg, "start multicast registry")
+	r := flag.Bool("REGISTRY", rg, "start multicast registry")
 	application := flag.Bool("APP", app, "start multicast application")
 
 	flag.Parse()
 	services := make([]func(registrar grpc.ServiceRegistrar) error, 0)
 	var err error
-	if *reg {
-		services = append(services, registry.Registration)
+	if *r {
+		services = append(services, rgstr.Registration)
 	}
 	if *application {
 		services = append(services, basic.RegisterService)
@@ -63,7 +66,6 @@ func main() {
 	handler.GrpcPort = *grpcPort
 	if *application {
 		handler.RegClient, err = clientregistry.Connect(*registry_addr)
-
 		router := gin.Default()
 		routerGroup := router.Group(*registry_addr)
 		routerGroup.GET("/groups", handler.GetGroups)
