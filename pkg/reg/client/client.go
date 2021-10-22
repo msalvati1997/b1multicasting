@@ -11,7 +11,7 @@ func Connect(address string) (proto.RegistryClient, error) {
 	log.Println("Connecting to registry server")
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
-		log.Println(err.Error())
+		log.Println("Error in connecting to registry server to adress ", address, " ", err.Error())
 		return nil, err
 	}
 
