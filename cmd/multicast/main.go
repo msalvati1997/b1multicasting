@@ -61,6 +61,7 @@ func main() {
 	}()
 	handler.GrpcPort = *grpcPort
 	if *application {
+		handler.Registryclient, err = clientregistry.Connect(*registry_addr)
 		router := gin.Default()
 		routerGroup := router.Group(*registry_addr)
 		routerGroup.GET("/groups", handler.GetGroups)
@@ -77,7 +78,6 @@ func main() {
 			}
 		}()
 		var err error
-		handler.Registryclient, err = clientregistry.Connect(*registry_addr)
 		if err != nil {
 			log.Println("Error in connect client to registry ", err.Error())
 		}
