@@ -64,28 +64,26 @@ func main() {
 	}()
 	handler.GrpcPort = *grpcPort
 	if *application {
+		wg.Add(1)
 
-		go func() {
-			handler.RegClient, err = clientregistry.Connect(*registry_addr)
-			if err != nil {
-				log.Println("Error in connect client to registry ", err.Error())
-			}
-		}()
-
+		handler.RegClient, err = clientregistry.Connect(*registry_addr)
+		if err != nil {
+			log.Println("Error in connect client to registry ", err.Error())
+		}
 		go func() {
 			router := gin.Default()
 			routerGroup := router.Group(*registry_addr)
 			routerGroup.GET("/groups", handler.GetGroups)
 			routerGroup.POST("/groups", handler.CreateGroup)
-			wg.Add(1)
 			log.Println("Starting application")
 			log.Println("http server started...")
 			err := router.Run(fmt.Sprintf(":%d", *restPort))
 			if err != nil {
 				log.Println("Error in starting http server", err.Error())
 			}
+			wg.Done()
+
 		}()
-		wg.Done()
 	}
 
 	wgChan := make(chan bool)
