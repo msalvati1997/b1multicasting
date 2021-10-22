@@ -16,7 +16,7 @@ var (
 	GMu             sync.RWMutex
 	MulticastGroups map[string]*MulticastGroup
 	GrpcPort        uint
-	groupsName      []MulticastId
+	groupsName      []MulticastReq
 )
 
 func init() {
@@ -65,8 +65,9 @@ type Member struct {
 	Ready    bool   `json:"ready"`
 }
 
-type MulticastId struct {
-	MulticastId string `json:"multicast_id"`
+type MulticastReq struct {
+	MulticastId   string `json:"multicast_id"`
+	MulticastType proto.MulticastType
 }
 
 // GetGroups godoc
@@ -94,7 +95,7 @@ func GetGroups(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} MulticastGroup
 // @Router /groups [put]
 func CreateGroup(w http.ResponseWriter, r *http.Request) {
-	var multicastId MulticastId
+	var multicastId MulticastReq
 	err := json.NewDecoder(r.Body).Decode(&multicastId)
 	if err != nil {
 		return
@@ -117,8 +118,9 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 	r = r.WithContext(ctx)
 
 	register, err := Registryclient.Register(r.Context(), &proto.Rinfo{
-		MulticastId: multicastId.MulticastId,
-		ClientPort:  uint32(GrpcPort),
+		MulticastId:   multicastId.MulticastId,
+		MulticastType: multicastId.MulticastType,
+		ClientPort:    uint32(GrpcPort),
 	})
 	if err != nil {
 		log.Println("Problem in regitering member to group", err.Error())
