@@ -99,6 +99,7 @@ func GetGroups(g *gin.Context) {
 //       201: body:PositionResponseBody
 // @Router /groups [post]
 func CreateGroup(g *gin.Context) {
+	log.Println("Creating group..")
 	var multicastId MulticastReq
 	err := json.NewDecoder(g.Request.Body).Decode(&multicastId)
 	if err != nil {
@@ -112,6 +113,8 @@ func CreateGroup(g *gin.Context) {
 	if !ok {
 		g.IndentedJSON(http.StatusBadRequest, gin.H{"error": "multicast_type not supported", "supported": reg.MulticastTypes})
 		return
+	} else {
+		log.Println("multicast type ok..")
 	}
 	GMu.RLock()
 	defer GMu.RUnlock()
