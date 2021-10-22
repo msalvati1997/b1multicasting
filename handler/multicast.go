@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/msalvati1997/b1multicasting/pkg/reg"
 	"github.com/msalvati1997/b1multicasting/pkg/reg/proto"
 	"log"
 	"net/http"
@@ -72,8 +73,18 @@ type MulticastReq struct {
 }
 
 func GetGroups(g *gin.Context) {
-	g.JSON(200, MulticastGroups)
+	groups := make([]*MulticastInfo, 0)
 
+	GMu.RLock()
+	defer GMu.RUnlock()
+
+	for _, group := range MulticastGroups {
+		group.GroupMu.RLock()
+		groups = append(groups, group.Group)
+		group.GroupMu.RUnlock()
+	}
+
+	g.IndentedJSON(http.StatusOK, groups)
 }
 
 // CreateGroup godoc
@@ -94,31 +105,40 @@ func CreateGroup(g *gin.Context) {
 		g.JSON(http.StatusBadRequest, "Error in body request")
 	}
 	groupsName = append(groupsName, multicastId)
+
 	log.Println("Start creating group with ", multicastId.MulticastId, " and multicast type ", multicastId.MulticastType, "at grpcPort", uint32(GrpcPort))
+
+	multicastType, ok := reg.MulticastType[multicastId.MulticastType.String()]
+	if !ok {
+		g.IndentedJSON(http.StatusBadRequest, gin.H{"error": "multicast_type not supported", "supported": reg.MulticastTypes})
+		return
+	}
 	GMu.RLock()
 	defer GMu.RUnlock()
 
-	group, ok := MulticastGroups[multicastId.MulticastId]
+	id := multicastId.MulticastId
+	group, ok := MulticastGroups[id]
 
 	if ok {
-		log.Println("The group already exist")
+		g.IndentedJSON(http.StatusConflict, gin.H{"error": "group already exists"})
+		return
 	} else {
 		log.Println("The group doesn't exist before")
 	}
 
-	register, err := Registryclient.Register(context.Background(), &proto.Rinfo{
-		MulticastId:   multicastId.MulticastId,
-		MulticastType: multicastId.MulticastType,
+	registrationAns, err := Registryclient.Register(context.Background(), &proto.Rinfo{
+		MulticastId:   id,
+		MulticastType: multicastType,
 		ClientPort:    uint32(GrpcPort),
 	})
 	if err != nil {
-		g.JSON(http.StatusBadRequest, gin.H{"Message": "Problem in registering groups"})
-	} else {
-		log.Println("ok in registering")
+		g.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
+
 	members := make(map[string]Member, 0)
 
-	for memberId, member := range register.GroupInfo.Members {
+	for memberId, member := range registrationAns.GroupInfo.Members {
 		members[memberId] = Member{
 			MemberId: member.Id,
 			Address:  member.Address,
@@ -127,20 +147,23 @@ func CreateGroup(g *gin.Context) {
 	}
 
 	group = &MulticastGroup{
-		ClientId: register.ClientId,
+		ClientId: registrationAns.ClientId,
 		Group: &MulticastInfo{
-			MulticastId:      register.GroupInfo.MulticastId,
+			MulticastId:      registrationAns.GroupInfo.MulticastId,
+			MulticastType:    proto.MulticastType_name[int32(registrationAns.GroupInfo.MulticastType)],
 			ReceivedMessages: 0,
-			Status:           proto.Status_name[int32(register.GroupInfo.Status)],
+			Status:           proto.Status_name[int32(registrationAns.GroupInfo.Status)],
 			Members:          members,
 		},
-		Messages: make([]Message, 0),
+		Messages:  make([]Message, 0),
+		MessageMu: sync.RWMutex{},
 	}
 
-	MulticastGroups[register.GroupInfo.MulticastId] = group
-	go InitGroup(register.GroupInfo, group, len(register.GroupInfo.Members) == 1)
-	log.Println("Group created")
-	g.JSON(http.StatusCreated, group)
+	MulticastGroups[registrationAns.GroupInfo.MulticastId] = group
+
+	go InitGroup(registrationAns.GroupInfo, group, len(registrationAns.GroupInfo.Members) == 1)
+
+	g.Status(http.StatusOK)
 }
 
 func InitGroup(info *proto.MGroup, group *MulticastGroup, b bool) {

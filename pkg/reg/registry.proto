@@ -32,9 +32,10 @@ message Ranswer {
 
 message MGroup {
   string multicastId = 1;
-  Status status = 2;
-  uint64 readyMembers = 3;
-  map<string, MemberInfo>  members = 4;
+  MulticastType multicastType = 2;
+  Status status = 3;
+  uint64 readyMembers = 4;
+  map<string, MemberInfo>  members = 5;
 }
 enum Status {
   OPENING = 0;
