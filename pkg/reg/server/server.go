@@ -33,6 +33,7 @@ func init() {
 
 // Registration registers the calling node to a multicast group
 func (s *server) Register(ctx context.Context, in *proto.Rinfo) (*proto.Ranswer, error) {
+
 	log.Println("Start registering..")
 	source, ok := peer.FromContext(ctx)
 	if !ok {

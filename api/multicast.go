@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/msalvati1997/b1multicasting/pkg/reg/proto"
+	"google.golang.org/grpc/peer"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -96,13 +98,13 @@ func GetGroups(w http.ResponseWriter, r *http.Request) {
 // @Router /groups [put]
 func CreateGroup(w http.ResponseWriter, r *http.Request) {
 	var multicastId MulticastReq
+	w.Header().Set("Content-Type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&multicastId)
 	if err != nil {
 		return
 	}
 	groupsName = append(groupsName, multicastId)
-	log.Println("Start creating group with ", multicastId.MulticastId, " at grpcPort", uint32(GrpcPort))
-	w.Header().Set("Content-Type", "application/json")
+	log.Println("Start creating group with ", multicastId.MulticastId, " and multicast type ", multicastId.MulticastType, "at grpcPort", uint32(GrpcPort))
 	GMu.RLock()
 	defer GMu.RUnlock()
 
@@ -113,11 +115,13 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 	} else {
 		log.Println("The group doesn't exist before")
 	}
-	ctx, cancel := context.WithTimeout(r.Context(), 60*time.Second)
-	defer cancel()
-	r = r.WithContext(ctx)
+	source, ok := peer.FromContext(r.Context())
+	log.Println("source peer ", source.Addr)
+	src := source.Addr.String()
+	srcAddr := src[:strings.LastIndexByte(src, ':')]
+	log.Println("Source adress ", srcAddr)
 
-	register, err := Registryclient.Register(r.Context(), &proto.Rinfo{
+	register, err := Registryclient.Register(context.Background(), &proto.Rinfo{
 		MulticastId:   multicastId.MulticastId,
 		MulticastType: multicastId.MulticastType,
 		ClientPort:    uint32(GrpcPort),
