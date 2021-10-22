@@ -13,7 +13,7 @@ import (
 	"sync"
 )
 
-type server struct {
+type RegistryServer struct {
 	proto.UnimplementedRegistryServer
 }
 
@@ -32,7 +32,7 @@ func init() {
 }
 
 // Registration registers the calling node to a multicast group
-func (s *server) Register(ctx context.Context, in *proto.Rinfo) (*proto.Ranswer, error) {
+func (s *RegistryServer) Register(ctx context.Context, in *proto.Rinfo) (*proto.Ranswer, error) {
 
 	log.Println("Start registering..")
 	source, ok := peer.FromContext(ctx)
@@ -84,7 +84,7 @@ func (s *server) Register(ctx context.Context, in *proto.Rinfo) (*proto.Ranswer,
 // Start enables multicast in the group.
 // All processes belonging to the group can initializes the necessary structure and
 // then they must communicate they are ready using Ready function.
-func (s *server) StartGroup(ctx context.Context, in *proto.RequestData) (*proto.MGroup, error) {
+func (s *RegistryServer) StartGroup(ctx context.Context, in *proto.RequestData) (*proto.MGroup, error) {
 	_, ok := peer.FromContext(ctx)
 	if !ok {
 		return nil, status.Errorf(codes.InvalidArgument, "Missing source address")
@@ -115,7 +115,7 @@ func (s *server) StartGroup(ctx context.Context, in *proto.RequestData) (*proto.
 
 // Ready stats that the calling node has correctly initialized the required structures for multicast.
 // Nodes can multicast messages when all members have called the Ready function
-func (s *server) Ready(ctx context.Context, in *proto.RequestData) (*proto.MGroup, error) {
+func (s *RegistryServer) Ready(ctx context.Context, in *proto.RequestData) (*proto.MGroup, error) {
 
 	_, ok := peer.FromContext(ctx)
 	if !ok {
@@ -160,7 +160,7 @@ func (s *server) Ready(ctx context.Context, in *proto.RequestData) (*proto.MGrou
 }
 
 // CloseGroup closes the group. The process cannot longer use the group to multicast messages
-func (s *server) CloseGroup(ctx context.Context, in *proto.RequestData) (*proto.MGroup, error) {
+func (s *RegistryServer) CloseGroup(ctx context.Context, in *proto.RequestData) (*proto.MGroup, error) {
 	_, ok := peer.FromContext(ctx)
 
 	if !ok {
@@ -209,12 +209,12 @@ func (s *server) CloseGroup(ctx context.Context, in *proto.RequestData) (*proto.
 }
 
 func Registration(s grpc.ServiceRegistrar) (err error) {
-	proto.RegisterRegistryServer(s, &server{})
+	proto.RegisterRegistryServer(s, &RegistryServer{})
 	return
 }
 
 // GetStatus returns infos about the group associated to multicastId
-func (s *server) GetStatus(ctx context.Context, in *proto.MulticastId) (*proto.MGroup, error) {
+func (s *RegistryServer) GetStatus(ctx context.Context, in *proto.MulticastId) (*proto.MGroup, error) {
 	_, ok := peer.FromContext(ctx)
 
 	if !ok {

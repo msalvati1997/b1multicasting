@@ -5,11 +5,15 @@ import (
 	_ "flag"
 	"fmt"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
+	"github.com/lambdaxs/go-server"
 	"github.com/msalvati1997/b1multicasting/handler"
 	"github.com/msalvati1997/b1multicasting/internal/utils"
 	_ "github.com/msalvati1997/b1multicasting/pkg/basic"
+	proto2 "github.com/msalvati1997/b1multicasting/pkg/basic/proto"
 	basic "github.com/msalvati1997/b1multicasting/pkg/basic/server"
 	clientregistry "github.com/msalvati1997/b1multicasting/pkg/reg/client"
+	"github.com/msalvati1997/b1multicasting/pkg/reg/proto"
 	registry "github.com/msalvati1997/b1multicasting/pkg/reg/server"
 	_ "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -41,12 +45,19 @@ func main() {
 
 	flag.Parse()
 	services := make([]func(registrar grpc.ServiceRegistrar) error, 0)
+	server := go_server.New("server")
 
 	if *reg {
 		services = append(services, registry.Registration)
+		server.RegisterGRPCServer(func(srv *grpc.Server) {
+			proto.RegisterRegistryServer(srv, &registry.RegistryServer{})
+		})
 	}
 	if *application {
 		services = append(services, basic.RegisterService)
+		server.RegisterGRPCServer(func(srv *grpc.Server) {
+			proto2.RegisterEndToEndServiceServer(srv, &basic.Server{})
+		})
 	}
 	log.Println("start")
 
@@ -65,11 +76,12 @@ func main() {
 	if *application {
 		wg.Add(1)
 		log.Println("Starting application")
+		httpSrv := server.HttpServer()
 		e := echo.New()
-		api := e.Group("/api/v1", serverHeader)
-		api.POST("/groups/", handler.CreateGroup)
-		api.GET("/groups", handler.GetGroups)
-
+		e.Use(middleware.Logger())
+		e.Use(middleware.Recover())
+		httpSrv.POST("/groups/", handler.CreateGroup)
+		httpSrv.GET("/groups", handler.GetGroups)
 		go func() {
 			log.Println("http server started...")
 			err := e.Start(fmt.Sprintf(":%d", *restPort))
@@ -84,6 +96,7 @@ func main() {
 		}
 		wg.Done()
 	}
+	server.Run()
 
 	wgChan := make(chan bool)
 
