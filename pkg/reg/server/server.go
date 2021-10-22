@@ -83,7 +83,7 @@ func (s *server) Register(ctx context.Context, in *proto.Rinfo) (*proto.Ranswer,
 // Start enables multicast in the group.
 // All processes belonging to the group can initializes the necessary structure and
 // then they must communicate they are ready using Ready function.
-func (s *server) startGroup(ctx context.Context, in *proto.RequestData) (*proto.MGroup, error) {
+func (s *server) StartGroup(ctx context.Context, in *proto.RequestData) (*proto.MGroup, error) {
 	_, ok := peer.FromContext(ctx)
 	if !ok {
 		return nil, status.Errorf(codes.InvalidArgument, "Missing source address")
@@ -210,4 +210,27 @@ func (s *server) CloseGroup(ctx context.Context, in *proto.RequestData) (*proto.
 func Registration(s grpc.ServiceRegistrar) (err error) {
 	proto.RegisterRegistryServer(s, &server{})
 	return
+}
+
+// GetStatus returns infos about the group associated to multicastId
+func (s *server) GetStatus(ctx context.Context, in *proto.MulticastId) (*proto.MGroup, error) {
+	_, ok := peer.FromContext(ctx)
+
+	if !ok {
+		return nil, status.Errorf(codes.InvalidArgument, "Missing source address")
+	}
+
+	Mugroups.RLock()
+	defer Mugroups.RUnlock()
+
+	mGroup, ok := groups[in.MulticastId]
+	if !ok {
+		return nil, status.Errorf(codes.NotFound, "Group not found")
+	}
+
+	mGroup.mu.RLock()
+	defer mGroup.mu.RUnlock()
+
+	return mGroup.groupInfo, nil
+
 }

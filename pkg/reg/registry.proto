@@ -12,9 +12,17 @@ service Registry {
   rpc getStatus (MulticastId) returns (MGroup) {}
 }
 
+enum MulticastType {
+  BMULTICAST = 0;
+  TOCMULTICAST = 1;
+  TODMULTICAST = 2;
+  COMULTICAST = 3;
+}
+
 message Rinfo {
   string multicastId = 1;
-  uint32 clientPort = 2;
+  MulticastType multicastType = 2;
+  uint32 clientPort = 3;
 }
 
 message Ranswer {
