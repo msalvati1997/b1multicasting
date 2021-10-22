@@ -11,7 +11,6 @@ import (
 	basic "github.com/msalvati1997/b1multicasting/pkg/basic/server"
 	clientregistry "github.com/msalvati1997/b1multicasting/pkg/reg/client"
 	registry "github.com/msalvati1997/b1multicasting/pkg/reg/server"
-
 	_ "github.com/sirupsen/logrus"
 	"github.com/soheilhy/cmux"
 	"github.com/swaggo/http-swagger"
@@ -20,12 +19,9 @@ import (
 	"net"
 	"net/http"
 	"strings"
-	"sync"
 )
 
 var grpcL net.Listener
-var httpL net.Listener
-var tcpm cmux.CMux
 
 // @title Orders API
 // @version 1.0
@@ -63,29 +59,25 @@ func main() {
 	}
 	log.Println("start")
 	// Create a listener at the desired port.
+	log.Println("Creating a listener at port ", fmt.Sprintf(":%d", *restPort))
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", *restPort))
 	if err != nil {
 		log.Fatal(err)
 	}
 	// Create a cmux object.
-	tcpm = cmux.New(l)
+	tcpm := cmux.New(l)
 	// Declare the match for different services required.
 	// Match connections in order:
 	// First grpc, then HTTP, and otherwise Go RPC/TCP.
 	grpcL = tcpm.Match(cmux.HTTP2HeaderField("content-type", "application/grpc"))
-	httpL = tcpm.Match(cmux.HTTP1Fast())
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func(w *sync.WaitGroup) {
+	httpL := tcpm.Match(cmux.HTTP1Fast())
+	go func() {
 		err := StartServer(services...)
 		if err != nil {
 			log.Println("Error in connecting server", err.Error())
 			return
 		}
-		w.Done()
-	}(&wg)
-
-	wg.Add(1)
+	}()
 	if *application {
 		api.GrpcPort = *grpcPort
 		newRouter := mux.NewRouter()
@@ -96,7 +88,6 @@ func main() {
 			err := http.Serve(httpL, newRouter)
 			log.Println("http server started.")
 			if err != nil {
-
 			}
 		}()
 		// Start cmux serving.
@@ -104,39 +95,26 @@ func main() {
 			"use of closed network connection") {
 			log.Fatal(err)
 		}
-
 		log.Println("Server listening on ", restPort)
-
 		api.Registryclient, err = clientregistry.Connect(*registry_addr)
 		if err != nil {
 			log.Println("error", err)
 		}
-	}
-	wgChan := make(chan bool)
-
-	go func() {
-		wg.Wait()
-		wgChan <- true
-	}()
-
-	select {
-	case <-wgChan:
 	}
 }
 
 func StartServer(grpcServices ...func(grpc.ServiceRegistrar) error) error {
 
 	s := grpc.NewServer()
+	log.Println(grpcServices)
 	for _, grpcService := range grpcServices {
 		err := grpcService(s)
 		if err != nil {
 			return err
 		}
 	}
-
 	if err := s.Serve(grpcL); err != nil {
 		return err
 	}
-
 	return nil
 }
