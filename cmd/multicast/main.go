@@ -72,7 +72,7 @@ func main() {
 
 		go func() {
 			log.Println("http server started...")
-			err := e.Start(fmt.Sprintf(":%d", restPort))
+			err := e.Start(fmt.Sprintf(":%d", *restPort))
 			if err != nil {
 				log.Println("Error in starting http server", err.Error())
 			}
