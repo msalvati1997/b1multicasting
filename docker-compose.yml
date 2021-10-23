@@ -7,49 +7,56 @@ services:
     container_name: registry
     environment:
       - REGISTRY=true
+      - LOG_LEVEL=debug
 
-
-  member1:
+  node1:
     build:
       context: .
-    container_name: member1
+    container_name: node1
     environment:
+      - APP=true
       - "REGISTRY_ADDR=registry:90"
-      - APP=TRUE
-      - VERBOSE=ON
       - NUM_THREADS=2
-      - DELAY=2
+      - VERBOSE=true
     ports:
       - 8080:80
-    depends_on:
-      - serviceregistry
 
-  member2:
+  node2:
     build:
       context: .
-    container_name: member2
+    container_name: node2
     environment:
+      - APP=true
       - "REGISTRY_ADDR=registry:90"
-      - APP=TRUE
-      - VERBOSE=ON
       - NUM_THREADS=2
-      - DELAY=1
+      - DELAY=1000
+      - VERBOSE=true
     ports:
       - 8081:80
-    depends_on:
-     - serviceregistry
 
-  member3:
+  node3:
     build:
       context: .
-    container_name: member3
+    container_name: node3
     environment:
+      - APP=true
       - "REGISTRY_ADDR=registry:90"
-      - APP=TRUE
-      - VERBOSE=ON
       - NUM_THREADS=2
-      - DELAY=2
+      - DELAY=1500
+      - LOG_LEVEL=debug
+      - VERBOSE=true
     ports:
       - 8082:80
-    depends_on:
-      - serviceregistry
+
+  node4:
+    build:
+      context: .
+    container_name: node4
+    environment:
+      - APP=true
+      - "REGISTRY_ADDR=registry:90"
+      - NUM_THREADS=2
+      - LOG_LEVEL=debug
+      - DEBUG=true
+    ports:
+      - 8083:80
