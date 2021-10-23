@@ -10,7 +10,7 @@ import (
 
 func Test_CREATE_GROUP(t *testing.T) {
 
-	url := "http://localhost:8081/multicast/api/groups/"
+	url := "http://localhost:8081/multicast/api/groups/:multicastId"
 	method := "PUT"
 
 	payload := strings.NewReader(`{"multicast_type":"BMULTICAST","multicastId":"PROVA"}`)
