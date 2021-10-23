@@ -19,8 +19,6 @@ services:
       - VERBOSE=true
     ports:
       - 8080:80
-    depends_on:
-      - registry
 
   node2:
     build:
@@ -33,8 +31,7 @@ services:
       - VERBOSE=true
     ports:
       - 8081:80
-    depends_on:
-      - registry
+
   node3:
     build:
       context: .
@@ -46,8 +43,7 @@ services:
       - VERBOSE=true
     ports:
       - 8082:80
-    depends_on:
-    - registry
+
   node4:
     build:
       context: .
@@ -59,5 +55,3 @@ services:
       - DEBUG=true
     ports:
       - 8083:80
-    depends_on:
-    - registry
