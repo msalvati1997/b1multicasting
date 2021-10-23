@@ -1,7 +1,6 @@
 package multicastapp
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -9,14 +8,12 @@ import (
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
 	"github.com/msalvati1997/b1multicasting/pkg/utils"
 	"golang.org/x/net/context"
-	"log"
-	"net/http"
 	"sync"
 	"time"
 )
 
 var (
-	RegClient       protoregistry.RegistryClient
+	registryClient  protoregistry.RegistryClient
 	GMu             sync.RWMutex
 	Delay           uint
 	MulticastGroups map[string]*MulticastGroup
@@ -29,11 +26,11 @@ func init() {
 
 // MulticastGroup manages the metadata associated with a group in which the node is registered
 type MulticastGroup struct {
-	ClientId  string `json:"client_id"`
-	Group     *MulticastInfo
-	GroupMu   sync.RWMutex `json:"-"`
-	Messages  []Message
-	MessageMu sync.RWMutex `json:"-"`
+	clientId  string
+	group     *MulticastInfo
+	groupMu   sync.RWMutex
+	messages  []Message
+	messageMu sync.RWMutex
 }
 
 type Message struct {
@@ -54,15 +51,6 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
-// ErrorResponse defines an error response returned upon any request failure.
-func writeErrorResponse(w http.ResponseWriter, status int, err error) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-
-	bz, _ := json.Marshal(ErrorResponse{Error: err.Error()})
-	_, _ = w.Write(bz)
-}
-
 type Member struct {
 	MemberId string `json:"member_id"`
 	Address  string `json:"address"`
@@ -81,18 +69,16 @@ type GroupConfig struct {
 func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl uint, debug bool) error {
 	GrpcPort = grpcP
 	Delay = dl
+
 	var err error
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	go func() {
-		RegClient, err = client.Connect(registryAddr)
-		if err != nil {
-			log.Println("Error in connecting registry client ", err.Error())
-		}
-		wg.Done()
-	}()
-	wg.Wait()
 
+	registryClient, err = client.Connect(registryAddr)
+
+	if err != nil {
+		return err
+	}
 	if debug {
 		gin.SetMode(gin.DebugMode)
 	} else {
@@ -107,9 +93,8 @@ func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl
 	routerGroup.GET("/groups", GetGroups)
 	routerGroup.POST("/groups", CreateGroup)
 
-	go func() {
-		err = router.Run(fmt.Sprintf(":%d", restPort))
-	}()
+	err = router.Run(fmt.Sprintf(":%d", restPort))
+
 	return err
 }
 func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
@@ -118,9 +103,9 @@ func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 	groupInfo, _ := StatusChange(info, group, protoregistry.Status_OPENING)
 
 	// Communicating to the registry that the node is ready
-	groupInfo, _ = RegClient.Ready(context.Background(), &protoregistry.RequestData{
-		MulticastId: group.Group.MulticastId,
-		MId:         group.ClientId,
+	groupInfo, _ = registryClient.Ready(context.Background(), &protoregistry.RequestData{
+		MulticastId: group.group.MulticastId,
+		MId:         group.clientId,
 	})
 
 	// Waiting tha all other nodes are ready
@@ -134,7 +119,7 @@ func StatusChange(groupInfo *protoregistry.MGroup, multicastGroup *MulticastGrou
 
 	for groupInfo.Status == status {
 		time.Sleep(time.Second * 5)
-		groupInfo, err = RegClient.GetStatus(context.Background(), &protoregistry.MulticastId{MulticastId: groupInfo.MulticastId})
+		groupInfo, err = registryClient.GetStatus(context.Background(), &protoregistry.MulticastId{MulticastId: groupInfo.MulticastId})
 		if err != nil {
 			return nil, err
 		}
@@ -150,13 +135,13 @@ func StatusChange(groupInfo *protoregistry.MGroup, multicastGroup *MulticastGrou
 }
 
 func update(groupInfo *protoregistry.MGroup, multicastGroup *MulticastGroup) {
-	multicastGroup.GroupMu.Lock()
-	defer multicastGroup.GroupMu.Unlock()
+	multicastGroup.groupMu.Lock()
+	defer multicastGroup.groupMu.Unlock()
 
-	multicastGroup.Group.Status = protoregistry.Status_name[int32(groupInfo.Status)]
+	multicastGroup.group.Status = protoregistry.Status_name[int32(groupInfo.Status)]
 
 	for clientId, member := range groupInfo.Members {
-		m, ok := multicastGroup.Group.Members[clientId]
+		m, ok := multicastGroup.group.Members[clientId]
 
 		if !ok {
 			m = Member{
@@ -165,12 +150,12 @@ func update(groupInfo *protoregistry.MGroup, multicastGroup *MulticastGroup) {
 				Ready:    member.Ready,
 			}
 
-			multicastGroup.Group.Members[clientId] = m
+			multicastGroup.group.Members[clientId] = m
 		}
 
 		if m.Ready != member.Ready {
 			m.Ready = member.Ready
-			multicastGroup.Group.Members[clientId] = m
+			multicastGroup.group.Members[clientId] = m
 		}
 
 	}

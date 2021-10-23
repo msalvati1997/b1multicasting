@@ -27,9 +27,9 @@ func GetGroups(g *gin.Context) {
 	defer GMu.RUnlock()
 
 	for _, group := range MulticastGroups {
-		group.GroupMu.RLock()
-		groups = append(groups, group.Group)
-		group.GroupMu.RUnlock()
+		group.groupMu.RLock()
+		groups = append(groups, group.group)
+		group.groupMu.RUnlock()
 	}
 
 	g.IndentedJSON(http.StatusOK, groups)
@@ -76,7 +76,7 @@ func CreateGroup(ctx *gin.Context) {
 		return
 	}
 
-	registrationAns, err := RegClient.Register(context.Background(), &protoregistry.Rinfo{
+	registrationAns, err := registryClient.Register(context.Background(), &protoregistry.Rinfo{
 		MulticastId:   multicastId,
 		MulticastType: multicastType,
 		ClientPort:    uint32(GrpcPort),
@@ -98,16 +98,16 @@ func CreateGroup(ctx *gin.Context) {
 	}
 
 	group = &MulticastGroup{
-		ClientId: registrationAns.ClientId,
-		Group: &MulticastInfo{
+		clientId: registrationAns.ClientId,
+		group: &MulticastInfo{
 			MulticastId:      registrationAns.GroupInfo.MulticastId,
 			MulticastType:    protoregistry.MulticastType_name[int32(registrationAns.GroupInfo.MulticastType)],
 			ReceivedMessages: 0,
 			Status:           protoregistry.Status_name[int32(registrationAns.GroupInfo.Status)],
 			Members:          members,
 		},
-		Messages: make([]Message, 0),
-		GroupMu:  sync.RWMutex{},
+		messages: make([]Message, 0),
+		groupMu:  sync.RWMutex{},
 	}
 
 	MulticastGroups[registrationAns.GroupInfo.MulticastId] = group
