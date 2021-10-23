@@ -4,9 +4,11 @@ services:
   serviceregistry:
     build:
       context: .
-    container_name: registry
+    container_name: serviceregistry
     environment:
       - REGISTRY=true
+
+
   member1:
     build:
       context: .
@@ -18,7 +20,9 @@ services:
       - NUM_THREADS=2
       - DELAY=2
     ports:
-      - "8080:80"
+      - 8080:80
+    depends_on:
+      - serviceregistry
 
   member2:
     build:
@@ -31,7 +35,9 @@ services:
       - NUM_THREADS=2
       - DELAY=1
     ports:
-      - "8081:80"
+      - 8081:80
+    depends_on:
+     - serviceregistry
 
   member3:
     build:
@@ -44,4 +50,6 @@ services:
       - NUM_THREADS=2
       - DELAY=2
     ports:
-      - "8082:80"
+      - 8082:80
+    depends_on:
+      - serviceregistry
