@@ -2,7 +2,7 @@ package multicastapp
 
 import (
 	"errors"
-	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/client"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
@@ -88,15 +88,19 @@ func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl
 	utils.GoPool.Initialize(int(numThreads))
 
 	router := gin.Default()
-
-	routerGroup := router.Group(relativePath)
-	routerGroup.GET("/groups", GetGroups)
-	routerGroup.POST("/groups", CreateGroup)
-
-	err = router.Run(fmt.Sprintf(":%d", restPort))
+	router.Use(cors.Default())
+	api := router.Group(relativePath)
+	GroupsApi(api.Group("/groups"))
+	router.Run()
 
 	return err
 }
+
+func GroupsApi(router *gin.RouterGroup) {
+	router.GET("/", GetGroups)
+	router.POST("/", CreateGroup)
+}
+
 func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 	// Waiting that the group is ready
 	update(info, group)

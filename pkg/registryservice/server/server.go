@@ -11,6 +11,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"time"
 )
 
 type RegistryServer struct {
@@ -33,9 +34,11 @@ func init() {
 
 // Registration registers the calling node to a multicast group
 func (s *RegistryServer) Register(ctx context.Context, in *protoregistry.Rinfo) (*protoregistry.Ranswer, error) {
-
+	timeout := time.Second
+	c, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
 	log.Println("Start registering..")
-	source, ok := peer.FromContext(ctx)
+	source, ok := peer.FromContext(c)
 	if !ok {
 		return nil, status.Errorf(codes.InvalidArgument, "Missing source address")
 	}
@@ -161,6 +164,7 @@ func (s *RegistryServer) Ready(ctx context.Context, in *protoregistry.RequestDat
 
 // CloseGroup closes the group. The process cannot longer use the group to multicast messages
 func (s *RegistryServer) CloseGroup(ctx context.Context, in *protoregistry.RequestData) (*protoregistry.MGroup, error) {
+
 	_, ok := peer.FromContext(ctx)
 
 	if !ok {

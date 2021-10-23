@@ -16,23 +16,15 @@ import (
 
 func main() {
 
-	d := utils.GetEnvIntWithDefault("DELAY", 0)
-	nt := utils.GetEnvIntWithDefault("NUM_THREADS", 1)
-	verbose := utils.GetEnvBoolWithDefault("VERBOSE", true)
-	rg := utils.GetEnvBoolWithDefault("REGISTRY", false)
-	app := utils.GetEnvBoolWithDefault("APP", false)
-	gPort := utils.GetEnvIntWithDefault("GRPC_PORT", 90)
-	rPort := utils.GetEnvIntWithDefault("REST_PORT", 80)
-	restP := utils.GetEnvStringWithDefault("REST_PATH", "/multicast/api/v1")
-	delay := flag.Uint("DELAY", uint(d), "delay for sending operations (ms)")
-	grpcPort := flag.Uint("GRPC_PORT", uint(gPort), "port number of the grpc server")
-	restPort := flag.Uint("REST_PORT", uint(rPort), "port number of the rest server")
-	restPath := flag.String("restPath", restP, "path of the rest api")
-	numThreads := flag.Uint("NUM_THREADS", uint(nt), "number of threads used to multicast messages")
-	verb := flag.Bool("VERBOSE", verbose, "Turn verbose mode on or off.")
+	delay := flag.Uint("DELAY", uint(utils.GetEnvIntWithDefault("DELAY", 0)), "delay for sending operations (ms)")
+	grpcPort := flag.Uint("GRPC_PORT", uint(utils.GetEnvIntWithDefault("GRPC_PORT", 90)), "port number of the grpc server")
+	restPort := flag.Uint("REST_PORT", uint(utils.GetEnvIntWithDefault("REST_PORT", 80)), "port number of the rest server")
+	restPath := flag.String("restPath", utils.GetEnvStringWithDefault("REST_PATH", "/multicast/api"), "path of the rest api")
+	numThreads := flag.Uint("NUM_THREADS", uint(utils.GetEnvIntWithDefault("NUM_THREADS", 1)), "number of threads used to multicast messages")
+	verb := flag.Bool("VERBOSE", utils.GetEnvBoolWithDefault("VERBOSE", true), "Turn verbose mode on or off.")
 	registry_addr := flag.String("REGISTRY_ADDR", ":90", "service registry adress")
-	r := flag.Bool("REGISTRY", rg, "start multicast registry")
-	application := flag.Bool("APP", app, "start multicast application")
+	r := flag.Bool("REGISTRY", utils.GetEnvBoolWithDefault("REGISTRY", false), "start multicast registry")
+	application := flag.Bool("APP", utils.GetEnvBoolWithDefault("APP", false), "start multicast application")
 
 	flag.Parse()
 	services := make([]func(registrar grpc.ServiceRegistrar) error, 0)
@@ -91,6 +83,7 @@ func StartServer(programAddress string, grpcServices ...func(grpc.ServiceRegistr
 	if err != nil {
 		return err
 	}
+	log.Printf("Grpc-Server started at %v", lis.Addr().String())
 
 	s := grpc.NewServer()
 	for _, grpcService := range grpcServices {

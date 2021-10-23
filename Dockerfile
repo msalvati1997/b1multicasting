@@ -3,6 +3,9 @@ FROM golang
 WORKDIR /go/src/multicast
 COPY . .
 
+
+RUN apk update && apk add git
+RUN go mod download
 RUN go clean
 RUN go mod tidy
 RUN go get -d -v ./... \

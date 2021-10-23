@@ -9,13 +9,13 @@ import (
 func Connect(address string) (protoregistry.RegistryClient, error) {
 
 	log.Println("Connecting to registry server ", address)
-	conn, err := grpc.Dial(address, grpc.WithInsecure())
+
+	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		log.Println("Error in connecting to registry server to address ", address, " ", err.Error())
 		return nil, err
 	} else {
-		log.Println("Correctly connected to registry server ")
+		log.Println("Correctly connected to registry server at target ", conn.Target())
 	}
-
 	return protoregistry.NewRegistryClient(conn), nil
 }
