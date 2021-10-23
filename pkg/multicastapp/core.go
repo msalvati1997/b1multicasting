@@ -3,11 +3,11 @@ package multicastapp
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/client"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
 	"github.com/msalvati1997/b1multicasting/pkg/utils"
+	"github.com/soheilhy/cmux"
 	"golang.org/x/net/context"
 	"log"
 	"net/http"
@@ -78,9 +78,10 @@ type GroupConfig struct {
 	MulticastType string `json:"multicast_type"`
 }
 
-func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl uint, debug bool) error {
+func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl uint, debug bool, M cmux.CMux) error {
 	GrpcPort = grpcP
 	Delay = dl
+	httpL := M.Match(cmux.HTTP1Fast())
 	var err error
 	wg := sync.WaitGroup{}
 	wg.Add(1)
@@ -108,7 +109,10 @@ func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl
 	routerGroup.POST("/groups", CreateGroup)
 
 	go func() {
-		err = router.Run(fmt.Sprintf(":%d", restPort))
+		err := router.RunListener(httpL)
+		if err != nil {
+			return
+		}
 	}()
 	return err
 }

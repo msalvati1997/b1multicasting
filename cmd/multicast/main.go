@@ -7,12 +7,15 @@ import (
 	basic "github.com/msalvati1997/b1multicasting/pkg/basic/server"
 	"github.com/msalvati1997/b1multicasting/pkg/multicastapp"
 	rgstr "github.com/msalvati1997/b1multicasting/pkg/registryservice/server"
+	"github.com/soheilhy/cmux"
 	"google.golang.org/grpc"
 	"log"
-
 	"net"
 	"sync"
 )
+
+var grpcL net.Listener
+var M cmux.CMux
 
 func main() {
 
@@ -49,9 +52,11 @@ func main() {
 	log.Println("start")
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
-
+	l, err := net.Listen("tcp", ":80")
+	M = cmux.New(l)
 	go func() {
-		err = StartServer(fmt.Sprintf(":%d", *grpcPort), services...)
+		grpcL = M.MatchWithWriters(cmux.HTTP2MatchHeaderFieldSendSettings("content-type", "application/grpc"))
+		err = StartServer(fmt.Sprintf(":%d", *restPort), services...)
 		if err != nil {
 			log.Println("Error in connecting server", err.Error())
 			return
@@ -62,7 +67,7 @@ func main() {
 
 		wg.Add(1)
 		go func() {
-			err := multicastapp.Run(*grpcPort, *restPort, *registry_addr, *restPath, *numThreads, *delay, *verb)
+			err := multicastapp.Run(*grpcPort, *restPort, *registry_addr, *restPath, *numThreads, *delay, *verb, M)
 			if err != nil {
 				log.Println("Error in running applicatioon", err.Error())
 				return
@@ -87,21 +92,21 @@ func main() {
 
 func StartServer(programAddress string, grpcServices ...func(grpc.ServiceRegistrar) error) error {
 
-	lis, err := net.Listen("tcp", programAddress)
-	if err != nil {
-		return err
-	}
+	//lis, err := net.Listen("tcp", programAddress)
+	//if err != nil {
+	//	return err
+	//}
 
 	s := grpc.NewServer()
 	for _, grpcService := range grpcServices {
-		err = grpcService(s)
+		err := grpcService(s)
 		if err != nil {
 			return err
 		}
 
 	}
 
-	if err = s.Serve(lis); err != nil {
+	if err := s.Serve(grpcL); err != nil {
 		return err
 	}
 
