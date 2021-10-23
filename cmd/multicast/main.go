@@ -105,10 +105,12 @@ func StartServer(programAddress string, grpcServices ...func(grpc.ServiceRegistr
 		}
 
 	}
-
-	if err := s.Serve(grpcL); err != nil {
-		return err
-	}
-
-	return nil
+	var err error
+	go func() {
+		err = s.Serve(grpcL)
+		if err != nil {
+			log.Println("Error ", err.Error())
+		}
+	}()
+	return err
 }

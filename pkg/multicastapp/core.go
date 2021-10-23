@@ -114,6 +114,11 @@ func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl
 			return
 		}
 	}()
+
+	err = M.Serve()
+	if err != nil {
+		return err
+	}
 	return err
 }
 func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
