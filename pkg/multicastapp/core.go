@@ -88,16 +88,86 @@ func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl
 	utils.GoPool.Initialize(int(numThreads))
 
 	router := gin.Default()
-	api := router.Group(relativePath)
-	GroupsApi(api.Group("/groups"))
 
+	routerGroup := router.Group(relativePath)
+
+	routerMap, err := GetRouterMethods(routerGroup)
+
+	for path, methods := range GetRestAPI() {
+		for methodType, method := range methods {
+			routerMethod, ok := routerMap[methodType]
+
+			if !ok {
+				return errors.New(fmt.Sprintf("missing routing method: %s", HttpMethodName[methodType]))
+			}
+
+			routerMethod(path, method)
+
+		}
+	}
 	err = router.Run(fmt.Sprintf(":%d", restPort))
 	if err != nil {
 		return err
 	}
-
 	return err
 }
+
+var restAPI = map[string]map[HttpMethod]func(ctx *gin.Context){
+
+	"/groups": {
+		HttpMethodGET: GetGroups,
+	},
+	"/groups/:multicastId": {
+		HttpMethodPUT: CreateGroup,
+	},
+}
+
+func GetRestAPI() map[string]map[HttpMethod]func(ctx *gin.Context) {
+	api := make(map[string]map[HttpMethod]func(ctx *gin.Context))
+
+	for key, value := range restAPI {
+		api[key] = value
+	}
+
+	return api
+}
+
+const (
+	HttpMethodGET HttpMethod = iota
+	HttpMethodPOST
+	HttpMethodPUT
+	HttpMethodDELETE
+	HttpMethodHEAD
+)
+
+var (
+	HttpMethodName = map[HttpMethod]string{
+		HttpMethodGET:    "GET",
+		HttpMethodPOST:   "POST",
+		HttpMethodPUT:    "PUT",
+		HttpMethodDELETE: "DELETE",
+		HttpMethodHEAD:   "HEAD",
+	}
+	MulticastTypeValue = map[string]HttpMethod{
+		"GET":    HttpMethodGET,
+		"POST":   HttpMethodPOST,
+		"PUT":    HttpMethodPUT,
+		"DELETE": HttpMethodDELETE,
+		"HEAD":   HttpMethodHEAD,
+	}
+)
+
+func GetRouterMethods(router *gin.RouterGroup) (map[HttpMethod]func(path string, handlers ...gin.HandlerFunc) gin.IRoutes, error) {
+	routerMap := make(map[HttpMethod]func(path string, handlers ...gin.HandlerFunc) gin.IRoutes)
+
+	routerMap[HttpMethodGET] = router.GET
+	routerMap[HttpMethodPOST] = router.POST
+	routerMap[HttpMethodPUT] = router.PUT
+	return routerMap, nil
+
+}
+
+type HttpMethod int
 
 func GroupsApi(router *gin.RouterGroup) {
 	router.GET("/", GetGroups)

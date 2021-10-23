@@ -6,6 +6,7 @@ import (
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
 	context "golang.org/x/net/context"
+	"google.golang.org/grpc/peer"
 	"log"
 	"net/http"
 	"strings"
@@ -17,16 +18,6 @@ var (
 	timeout = time.Second
 )
 
-// GetGroups godoc
-// @Summary Get Multicast Group
-// @Description Get Multicast Group
-// @Tags groups
-// @Accept  json
-// @Produce  json
-// @Success 201 {object} MulticastGroups
-//     Responses:
-//       201: body:PositionResponseBody
-// @Router /groups [get]
 func GetGroups(g *gin.Context) {
 
 	groups := make([]*MulticastInfo, 0)
@@ -43,17 +34,6 @@ func GetGroups(g *gin.Context) {
 	g.IndentedJSON(http.StatusOK, groups)
 }
 
-// CreateGroup godoc
-// @Summary Create Multicast Group
-// @Description Create Multicast Group
-// @Tags groups
-// @Accept  json
-// @Produce  json
-// @Param post body MulticastReq
-// @Success 201 {object} MulticastGroups
-//     Responses:
-//       201: body:PositionResponseBody
-// @Router /groups [post]
 // CreateGroup initializes a new multicast group.
 func CreateGroup(ctx *gin.Context) {
 	context_, cancel := context.WithTimeout(ctx, timeout)
@@ -69,7 +49,8 @@ func CreateGroup(ctx *gin.Context) {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
+	p, _ := peer.FromContext(context_)
+	log.Println("Peer ", p.Addr)
 	multicastType, ok := registryservice.MulticastType[config.MulticastType]
 
 	if !ok {
@@ -84,6 +65,7 @@ func CreateGroup(ctx *gin.Context) {
 	if ok {
 		response(ctx, ok, errors.New("Group already exists"))
 	}
+	log.Println("Trying to register group ", multicastId)
 
 	registrationAns, err := registryClient.Register(context_, &protoregistry.Rinfo{
 		MulticastId:   multicastId,
