@@ -44,19 +44,16 @@ func main() {
 		services = append(services, basic.RegisterService)
 	}
 	log.Println("start")
-
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	var verboseLogs bool
-
 	if *verb == "ON" {
 		verboseLogs = true
 	} else {
 		verboseLogs = false
 	}
-
 	go func() {
-		log.Println("Connecting grpc server..")
+		log.Println("First step : connecting to grpc services ", services)
 		err = StartServer(fmt.Sprintf(":%d", *grpcPort), services...)
 		if err != nil {
 			log.Println("Error in connecting server", err.Error())
@@ -104,9 +101,7 @@ func StartServer(programAddress string, grpcServices ...func(grpc.ServiceRegistr
 		if err != nil {
 			return err
 		}
-
 	}
-
 	if err = s.Serve(lis); err != nil {
 		return err
 	}

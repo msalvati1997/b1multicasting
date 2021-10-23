@@ -6,43 +6,33 @@ import (
 	"github.com/msalvati1997/b1multicasting/handler"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/client"
-	_ "github.com/msalvati1997/b1multicasting/pkg/registryservice/client"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
 	"github.com/msalvati1997/b1multicasting/pkg/utils"
 	"golang.org/x/net/context"
 	"log"
+	"sync"
 )
 
 func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl uint, debug bool) error {
 	handler.GrpcPort = grpcP
 	handler.Delay = dl
 	var err error
-
-	handler.RegClient, err = client.Connect(registryAddr)
-
-	if err != nil {
-		return err
-	}
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		handler.RegClient, err = client.Connect(registryAddr)
+		if err != nil {
+			log.Println("Error in connecting registry client ", err.Error())
+		}
+		wg.Done()
+	}()
+	wg.Wait()
 
 	if debug {
 		gin.SetMode(gin.DebugMode)
 	} else {
 		gin.SetMode(gin.ReleaseMode)
 	}
-
-	utils.GoPool.Initialize(int(numThreads))
-
-	router := gin.Default()
-
-	routerGroup := router.Group(relativePath)
-	routerGroup.GET("/groups", handler.GetGroups)
-	routerGroup.POST("/groups", handler.CreateGroup)
-
-	err = router.Run(fmt.Sprintf(":%d", restPort))
-	if err != nil {
-		return err
-	}
-
 	multicastType, _ := registryservice.MulticastType["BMULTICAST"]
 
 	registrationAns, err := handler.RegClient.Register(context.Background(), &protoregistry.Rinfo{
@@ -52,6 +42,17 @@ func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl
 	})
 
 	log.Println("Group info", registrationAns.GetGroupInfo())
+	utils.GoPool.Initialize(int(numThreads))
+
+	router := gin.Default()
+
+	routerGroup := router.Group(relativePath)
+	routerGroup.GET("/groups", handler.GetGroups)
+	routerGroup.POST("/groups", handler.CreateGroup)
+	err = router.Run(fmt.Sprintf(":%d", restPort))
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
