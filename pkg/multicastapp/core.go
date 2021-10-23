@@ -169,11 +169,6 @@ func GetRouterMethods(router *gin.RouterGroup) (map[HttpMethod]func(path string,
 
 type HttpMethod int
 
-func GroupsApi(router *gin.RouterGroup) {
-	router.GET("/", GetGroups)
-	router.POST("/", CreateGroup)
-}
-
 func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 	// Waiting that the group is ready
 	update(info, group)

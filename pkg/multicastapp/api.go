@@ -6,7 +6,6 @@ import (
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
 	context "golang.org/x/net/context"
-	"google.golang.org/grpc/peer"
 	"log"
 	"net/http"
 	"strings"
@@ -49,8 +48,7 @@ func CreateGroup(ctx *gin.Context) {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	p, _ := peer.FromContext(context_)
-	log.Println("Peer ", p.Addr)
+
 	multicastType, ok := registryservice.MulticastType[config.MulticastType]
 
 	if !ok {
