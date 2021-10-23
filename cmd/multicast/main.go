@@ -74,6 +74,11 @@ func main() {
 			}
 			wg.Done()
 		}()
+	} else {
+		err := M.Serve()
+		if err != nil {
+			return
+		}
 	}
 
 	wgChan := make(chan bool)
