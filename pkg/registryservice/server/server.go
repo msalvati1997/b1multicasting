@@ -1,9 +1,9 @@
 package server
 
 import (
-	"context"
 	"fmt"
-	"github.com/msalvati1997/b1multicasting/pkg/reg/proto"
+	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
+	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/peer"
@@ -14,7 +14,7 @@ import (
 )
 
 type RegistryServer struct {
-	proto.UnimplementedRegistryServer
+	protoregistry.UnimplementedRegistryServer
 }
 
 var (
@@ -24,7 +24,7 @@ var (
 
 type Mgroup struct {
 	mu        sync.RWMutex
-	groupInfo *proto.MGroup
+	groupInfo *protoregistry.MGroup
 }
 
 func init() {
@@ -32,7 +32,7 @@ func init() {
 }
 
 // Registration registers the calling node to a multicast group
-func (s *RegistryServer) Register(ctx context.Context, in *proto.Rinfo) (*proto.Ranswer, error) {
+func (s *RegistryServer) Register(ctx context.Context, in *protoregistry.Rinfo) (*protoregistry.Ranswer, error) {
 
 	log.Println("Start registering..")
 	source, ok := peer.FromContext(ctx)
@@ -50,7 +50,7 @@ func (s *RegistryServer) Register(ctx context.Context, in *proto.Rinfo) (*proto.
 	multicastGroup, exists := groups[multicastId]
 
 	if exists {
-		if multicastGroup.groupInfo.Status != proto.Status_OPENING {
+		if multicastGroup.groupInfo.Status != protoregistry.Status_OPENING {
 			return nil, status.Errorf(codes.PermissionDenied, "ServiceStarted")
 		}
 		if _, ok := multicastGroup.groupInfo.Members[srcAddr]; ok {
@@ -59,23 +59,23 @@ func (s *RegistryServer) Register(ctx context.Context, in *proto.Rinfo) (*proto.
 	} else {
 		log.Println("Start registering ..")
 		// Creating the group
-		multicastGroup = &Mgroup{groupInfo: &proto.MGroup{
+		multicastGroup = &Mgroup{groupInfo: &protoregistry.MGroup{
 			MulticastId: multicastId,
-			Status:      proto.Status_OPENING,
-			Members:     make(map[string]*proto.MemberInfo),
+			Status:      protoregistry.Status_OPENING,
+			Members:     make(map[string]*protoregistry.MemberInfo),
 		}}
 		groups[multicastId] = multicastGroup
 	}
 	// Registering node to the group
 	//Creating new MemberInfo
-	memberInfo := new(proto.MemberInfo)
+	memberInfo := new(protoregistry.MemberInfo)
 	memberInfo.Id = srcAddr
 	memberInfo.Address = srcAddr
 	memberInfo.Ready = false
 	//Adding the MemberInfo to the multicastGroup Map
 	multicastGroup.groupInfo.Members[srcAddr] = memberInfo
 
-	return &proto.Ranswer{
+	return &protoregistry.Ranswer{
 		ClientId:  srcAddr,
 		GroupInfo: multicastGroup.groupInfo,
 	}, nil
@@ -84,7 +84,7 @@ func (s *RegistryServer) Register(ctx context.Context, in *proto.Rinfo) (*proto.
 // Start enables multicast in the group.
 // All processes belonging to the group can initializes the necessary structure and
 // then they must communicate they are ready using Ready function.
-func (s *RegistryServer) StartGroup(ctx context.Context, in *proto.RequestData) (*proto.MGroup, error) {
+func (s *RegistryServer) StartGroup(ctx context.Context, in *protoregistry.RequestData) (*protoregistry.MGroup, error) {
 	_, ok := peer.FromContext(ctx)
 	if !ok {
 		return nil, status.Errorf(codes.InvalidArgument, "Missing source address")
@@ -101,7 +101,7 @@ func (s *RegistryServer) StartGroup(ctx context.Context, in *proto.RequestData) 
 	mGroup.mu.Lock()
 	defer mGroup.mu.Unlock()
 	// Checking if the group can be started
-	if mGroup.groupInfo.Status != proto.Status_OPENING {
+	if mGroup.groupInfo.Status != protoregistry.Status_OPENING {
 		return nil, status.Errorf(codes.Canceled, "Cannot start group")
 	}
 	// Checking if the process belong to the group
@@ -109,13 +109,13 @@ func (s *RegistryServer) StartGroup(ctx context.Context, in *proto.RequestData) 
 		return nil, status.Errorf(codes.PermissionDenied, "Not registered to the group")
 	}
 	// Updating group status
-	mGroup.groupInfo.Status = proto.Status_STARTING
+	mGroup.groupInfo.Status = protoregistry.Status_STARTING
 	return mGroup.groupInfo, nil
 }
 
 // Ready stats that the calling node has correctly initialized the required structures for multicast.
 // Nodes can multicast messages when all members have called the Ready function
-func (s *RegistryServer) Ready(ctx context.Context, in *proto.RequestData) (*proto.MGroup, error) {
+func (s *RegistryServer) Ready(ctx context.Context, in *protoregistry.RequestData) (*protoregistry.MGroup, error) {
 
 	_, ok := peer.FromContext(ctx)
 	if !ok {
@@ -136,11 +136,11 @@ func (s *RegistryServer) Ready(ctx context.Context, in *proto.RequestData) (*pro
 	defer mGroup.mu.Unlock()
 
 	// Checking if the group is in the correct status
-	if mGroup.groupInfo.Status != proto.Status_STARTING {
+	if mGroup.groupInfo.Status != protoregistry.Status_STARTING {
 		return nil, status.Errorf(codes.Canceled, "Cannot start group")
 	}
 
-	var member *proto.MemberInfo
+	var member *protoregistry.MemberInfo
 
 	// Checking if the process belongs to the group
 	if member, ok = mGroup.groupInfo.Members[clientId]; !ok {
@@ -154,13 +154,13 @@ func (s *RegistryServer) Ready(ctx context.Context, in *proto.RequestData) (*pro
 
 	if mGroup.groupInfo.ReadyMembers == uint64(len(mGroup.groupInfo.Members)) {
 		// All members are ready, they can multicast messages
-		mGroup.groupInfo.Status = proto.Status_ACTIVE
+		mGroup.groupInfo.Status = protoregistry.Status_ACTIVE
 	}
 	return mGroup.groupInfo, nil
 }
 
 // CloseGroup closes the group. The process cannot longer use the group to multicast messages
-func (s *RegistryServer) CloseGroup(ctx context.Context, in *proto.RequestData) (*proto.MGroup, error) {
+func (s *RegistryServer) CloseGroup(ctx context.Context, in *protoregistry.RequestData) (*protoregistry.MGroup, error) {
 	_, ok := peer.FromContext(ctx)
 
 	if !ok {
@@ -184,7 +184,7 @@ func (s *RegistryServer) CloseGroup(ctx context.Context, in *proto.RequestData) 
 	defer mGroup.mu.Unlock()
 
 	// Checking if the group can be closed
-	if mGroup.groupInfo.Status != proto.Status_ACTIVE && mGroup.groupInfo.Status != proto.Status_CLOSING {
+	if mGroup.groupInfo.Status != protoregistry.Status_ACTIVE && mGroup.groupInfo.Status != protoregistry.Status_CLOSING {
 		return nil, status.Errorf(codes.Canceled, "Cannot start group")
 	}
 
@@ -195,26 +195,26 @@ func (s *RegistryServer) CloseGroup(ctx context.Context, in *proto.RequestData) 
 		return nil, status.Errorf(codes.PermissionDenied, "Not registered to the group")
 	}
 
-	mGroup.groupInfo.Status = proto.Status_CLOSING
+	mGroup.groupInfo.Status = protoregistry.Status_CLOSING
 
 	if member.Ready {
 		member.Ready = false
 		mGroup.groupInfo.ReadyMembers--
 		if mGroup.groupInfo.ReadyMembers == 0 {
 			// Closing definitely the group when all members have called CloseGroup function
-			mGroup.groupInfo.Status = proto.Status_CLOSED
+			mGroup.groupInfo.Status = protoregistry.Status_CLOSED
 		}
 	}
 	return mGroup.groupInfo, nil
 }
 
 func Registration(s grpc.ServiceRegistrar) (err error) {
-	proto.RegisterRegistryServer(s, &RegistryServer{})
+	protoregistry.RegisterRegistryServer(s, &RegistryServer{})
 	return
 }
 
 // GetStatus returns infos about the group associated to multicastId
-func (s *RegistryServer) GetStatus(ctx context.Context, in *proto.MulticastId) (*proto.MGroup, error) {
+func (s *RegistryServer) GetStatus(ctx context.Context, in *protoregistry.MulticastId) (*protoregistry.MGroup, error) {
 	_, ok := peer.FromContext(ctx)
 
 	if !ok {

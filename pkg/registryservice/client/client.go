@@ -9,7 +9,7 @@ import (
 func Connect(address string) (protoregistry.RegistryClient, error) {
 
 	log.Println("Connecting to registry server ", address)
-	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
 		log.Println("Error in connecting to registry server to address ", address, " ", err.Error())
 		return nil, err
