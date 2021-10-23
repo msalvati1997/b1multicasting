@@ -91,7 +91,7 @@ func main() {
 }
 
 func StartServer(programAddress string, grpcServices ...func(grpc.ServiceRegistrar) error) error {
-	log.Println("grpc server start to ", programAddress)
+
 	lis, err := net.Listen("tcp", programAddress)
 	if err != nil {
 		return err
@@ -103,9 +103,12 @@ func StartServer(programAddress string, grpcServices ...func(grpc.ServiceRegistr
 		if err != nil {
 			return err
 		}
+
 	}
+
 	if err = s.Serve(lis); err != nil {
 		return err
 	}
+
 	return nil
 }
