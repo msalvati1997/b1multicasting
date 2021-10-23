@@ -24,7 +24,7 @@ func main() {
 	verbose := utils.GetEnvBoolWithDefault("VERBOSE", true)
 	rg := utils.GetEnvBoolWithDefault("REGISTRY", false)
 	app := utils.GetEnvBoolWithDefault("APP", false)
-	gPort := utils.GetEnvIntWithDefault("GRPC_PORT", 90)
+	gPort := utils.GetEnvIntWithDefault("GRPC_PORT", 80)
 	rPort := utils.GetEnvIntWithDefault("REST_PORT", 80)
 	restP := utils.GetEnvStringWithDefault("REST_PATH", "/multicast/api/v1")
 	delay := flag.Uint("DELAY", uint(d), "delay for sending operations (ms)")
