@@ -16,6 +16,7 @@ import (
 var (
 	RegClient       proto.RegistryClient
 	GMu             sync.RWMutex
+	Delay           uint
 	MulticastGroups map[string]*MulticastGroup
 	GrpcPort        uint
 	groupsName      []MulticastReq
@@ -72,6 +73,16 @@ type MulticastReq struct {
 	MulticastType proto.MulticastType
 }
 
+// GetGroups godoc
+// @Summary Get Multicast Group
+// @Description Get Multicast Group
+// @Tags groups
+// @Accept  json
+// @Produce  json
+// @Success 201 {object} MulticastGroups
+//     Responses:
+//       201: body:PositionResponseBody
+// @Router /groups [get]
 func GetGroups(g *gin.Context) {
 	groups := make([]*MulticastInfo, 0)
 

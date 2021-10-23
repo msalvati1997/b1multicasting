@@ -7,10 +7,10 @@ services:
     container_name: registry
     environment:
       - REGISTRY=true
-  m1:
+  member1:
     build:
       context: .
-    container_name: m1
+    container_name: member1
     environment:
       - "REGISTRY_ADDR=registry:90"
       - APP=TRUE
@@ -20,10 +20,10 @@ services:
     ports:
       - "8080:80"
 
-  m2:
+  member2:
     build:
       context: .
-    container_name: m2
+    container_name: member2
     environment:
       - "REGISTRY_ADDR=registry:90"
       - APP=TRUE
@@ -33,10 +33,10 @@ services:
     ports:
       - "8081:80"
 
-  m3:
+  member3:
     build:
       context: .
-    container_name: m3
+    container_name: member3
     environment:
       - "REGISTRY_ADDR=registry:90"
       - APP=TRUE
