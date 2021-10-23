@@ -9,10 +9,10 @@ import (
 	"github.com/msalvati1997/b1multicasting/pkg/basic"
 	server "github.com/msalvati1997/b1multicasting/pkg/basic/server"
 	"github.com/msalvati1997/b1multicasting/pkg/multicasting"
-	"github.com/msalvati1997/b1multicasting/pkg/reg"
-	clientregistry "github.com/msalvati1997/b1multicasting/pkg/reg/client"
-	"github.com/msalvati1997/b1multicasting/pkg/reg/proto"
-	registry "github.com/msalvati1997/b1multicasting/pkg/reg/server"
+	"github.com/msalvati1997/b1multicasting/pkg/registryservice"
+	clientregistry "github.com/msalvati1997/b1multicasting/pkg/registryservice/client"
+	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
+	registry "github.com/msalvati1997/b1multicasting/pkg/registryservice/server"
 	utils2 "github.com/msalvati1997/b1multicasting/pkg/utils"
 	"google.golang.org/grpc"
 	"log"
@@ -32,10 +32,10 @@ func main() {
 	multicastId := flag.String("multicastId", "multicastTopic", "identifier of the multicast group")
 	delay := flag.Uint("delay", 0, "delay for sending operations (ms)")
 	startMulticastGroup := flag.Bool("startMulticastGroup", false, "start multicast group after registering")
-	multicastTypeString := flag.String("multicastType", "BMULTICAST", fmt.Sprintf("multicast typology: %s", reg.MulticastTypes))
+	multicastTypeString := flag.String("multicastType", "BMULTICAST", fmt.Sprintf("multicast typology: %s", registryservice.MulticastTypes))
 	flag.Parse()
 
-	multicastType, ok := reg.MulticastType[*multicastTypeString]
+	multicastType, ok := registryservice.MulticastType[*multicastTypeString]
 
 	if !ok {
 		log.Println("Multicast type %s not supported", *multicastTypeString)
@@ -77,7 +77,7 @@ func main() {
 		}
 		log.Println("Connected to registry")
 
-		registrationAns, err := registryClient.Register(context.Background(), &proto.Rinfo{
+		registrationAns, err := registryClient.Register(context.Background(), &protoregistry.Rinfo{
 			MulticastId:   *multicastId,
 			MulticastType: multicastType,
 			ClientPort:    uint32(*grpcPort),
@@ -93,7 +93,7 @@ func main() {
 		clientId := registrationAns.ClientId
 
 		if *startMulticastGroup {
-			groupInfo, err = registryClient.StartGroup(context.Background(), &proto.RequestData{
+			groupInfo, err = registryClient.StartGroup(context.Background(), &protoregistry.RequestData{
 				MulticastId: *multicastId,
 				MId:         clientId})
 			if err != nil {
@@ -101,33 +101,33 @@ func main() {
 				return
 			}
 		}
-		for groupInfo.Status == proto.Status_OPENING {
+		for groupInfo.Status == protoregistry.Status_OPENING {
 			time.Sleep(time.Second * 5)
-			groupInfo, err = registryClient.GetStatus(context.Background(), &proto.MulticastId{MulticastId: *multicastId})
+			groupInfo, err = registryClient.GetStatus(context.Background(), &protoregistry.MulticastId{MulticastId: *multicastId})
 			if err != nil {
 				log.Println("Error in get status ", err.Error())
 			}
 
 		}
-		if groupInfo.Status == proto.Status_CLOSED {
+		if groupInfo.Status == protoregistry.Status_CLOSED {
 			log.Println("Error in group closed ", err.Error())
 		}
 
-		groupInfo, err = registryClient.Ready(context.Background(), &proto.RequestData{MulticastId: *multicastId, MId: clientId})
+		groupInfo, err = registryClient.Ready(context.Background(), &protoregistry.RequestData{MulticastId: *multicastId, MId: clientId})
 		log.Println("Ready")
 		if err != nil {
 			log.Println("Error in Ready group ", err.Error())
 
 		}
-		for groupInfo.Status == proto.Status_STARTING {
+		for groupInfo.Status == protoregistry.Status_STARTING {
 			time.Sleep(time.Second * 5)
-			groupInfo, err = registryClient.GetStatus(context.Background(), &proto.MulticastId{MulticastId: *multicastId})
+			groupInfo, err = registryClient.GetStatus(context.Background(), &protoregistry.MulticastId{MulticastId: *multicastId})
 			if err != nil {
 				log.Println("Error in get status ", err.Error())
 
 			}
 		}
-		if groupInfo.Status == proto.Status_CLOSED {
+		if groupInfo.Status == protoregistry.Status_CLOSED {
 			log.Println("Group closed")
 		}
 		var members []string

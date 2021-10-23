@@ -1,18 +1,12 @@
 package main
 
 import (
-	_ "context"
 	"flag"
-	_ "flag"
 	"fmt"
 	"github.com/msalvati1997/b1multicasting/internal/utils"
-	_ "github.com/msalvati1997/b1multicasting/pkg/basic"
 	basic "github.com/msalvati1997/b1multicasting/pkg/basic/server"
 	"github.com/msalvati1997/b1multicasting/pkg/multicastapp"
-	_ "github.com/msalvati1997/b1multicasting/pkg/reg"
-	_ "github.com/msalvati1997/b1multicasting/pkg/reg/proto"
-	rgstr "github.com/msalvati1997/b1multicasting/pkg/reg/server"
-	_ "github.com/sirupsen/logrus"
+	rgstr "github.com/msalvati1997/b1multicasting/pkg/registryservice/server"
 	"google.golang.org/grpc"
 	"log"
 	"net"

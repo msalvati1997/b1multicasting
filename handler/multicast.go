@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/msalvati1997/b1multicasting/pkg/reg"
-	"github.com/msalvati1997/b1multicasting/pkg/reg/proto"
+	"github.com/msalvati1997/b1multicasting/pkg/registryservice"
+	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
 	"log"
 	"net/http"
 	"sync"
@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	RegClient       proto.RegistryClient
+	RegClient       protoregistry.RegistryClient
 	GMu             sync.RWMutex
 	Delay           uint
 	MulticastGroups map[string]*MulticastGroup
@@ -70,7 +70,7 @@ type Member struct {
 
 type MulticastReq struct {
 	MulticastId   string `json:"multicast_id"`
-	MulticastType proto.MulticastType
+	MulticastType protoregistry.MulticastType
 }
 
 // GetGroups godoc
@@ -120,9 +120,9 @@ func CreateGroup(g *gin.Context) {
 
 	log.Println("Start creating group with ", multicastId.MulticastId, " and multicast type ", multicastId.MulticastType, "at grpcPort", uint32(GrpcPort))
 
-	multicastType, ok := reg.MulticastType[multicastId.MulticastType.String()]
+	multicastType, ok := registryservice.MulticastType[multicastId.MulticastType.String()]
 	if !ok {
-		g.IndentedJSON(http.StatusBadRequest, gin.H{"error": "multicast_type not supported", "supported": reg.MulticastTypes})
+		g.IndentedJSON(http.StatusBadRequest, gin.H{"error": "multicast_type not supported", "supported": registryservice.MulticastTypes})
 		return
 	} else {
 		log.Println("multicast type ok..")
@@ -140,7 +140,7 @@ func CreateGroup(g *gin.Context) {
 		log.Println("The group doesn't exist before")
 	}
 
-	registrationAns, err := RegClient.Register(context.Background(), &proto.Rinfo{
+	registrationAns, err := RegClient.Register(context.Background(), &protoregistry.Rinfo{
 		MulticastId:   id,
 		MulticastType: multicastType,
 		ClientPort:    uint32(GrpcPort),
@@ -164,9 +164,9 @@ func CreateGroup(g *gin.Context) {
 		ClientId: registrationAns.ClientId,
 		Group: &MulticastInfo{
 			MulticastId:      registrationAns.GroupInfo.MulticastId,
-			MulticastType:    proto.MulticastType_name[int32(registrationAns.GroupInfo.MulticastType)],
+			MulticastType:    protoregistry.MulticastType_name[int32(registrationAns.GroupInfo.MulticastType)],
 			ReceivedMessages: 0,
-			Status:           proto.Status_name[int32(registrationAns.GroupInfo.Status)],
+			Status:           protoregistry.Status_name[int32(registrationAns.GroupInfo.Status)],
 			Members:          members,
 		},
 		Messages:  make([]Message, 0),
@@ -180,29 +180,29 @@ func CreateGroup(g *gin.Context) {
 	g.Status(http.StatusOK)
 }
 
-func InitGroup(info *proto.MGroup, group *MulticastGroup, b bool) {
+func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 	// Waiting that the group is ready
 	update(info, group)
-	groupInfo, _ := StatusChange(info, group, proto.Status_OPENING)
+	groupInfo, _ := StatusChange(info, group, protoregistry.Status_OPENING)
 
 	// Communicating to the registry that the node is ready
-	groupInfo, _ = RegClient.Ready(context.Background(), &proto.RequestData{
+	groupInfo, _ = RegClient.Ready(context.Background(), &protoregistry.RequestData{
 		MulticastId: group.Group.MulticastId,
 		MId:         group.ClientId,
 	})
 
 	// Waiting tha all other nodes are ready
 	update(groupInfo, group)
-	groupInfo, _ = StatusChange(groupInfo, group, proto.Status_STARTING)
+	groupInfo, _ = StatusChange(groupInfo, group, protoregistry.Status_STARTING)
 
 }
 
-func StatusChange(groupInfo *proto.MGroup, multicastGroup *MulticastGroup, status proto.Status) (*proto.MGroup, error) {
+func StatusChange(groupInfo *protoregistry.MGroup, multicastGroup *MulticastGroup, status protoregistry.Status) (*protoregistry.MGroup, error) {
 	var err error
 
 	for groupInfo.Status == status {
 		time.Sleep(time.Second * 5)
-		groupInfo, err = RegClient.GetStatus(context.Background(), &proto.MulticastId{MulticastId: groupInfo.MulticastId})
+		groupInfo, err = RegClient.GetStatus(context.Background(), &protoregistry.MulticastId{MulticastId: groupInfo.MulticastId})
 		if err != nil {
 			return nil, err
 		}
@@ -210,18 +210,18 @@ func StatusChange(groupInfo *proto.MGroup, multicastGroup *MulticastGroup, statu
 		update(groupInfo, multicastGroup)
 	}
 
-	if groupInfo.Status == proto.Status_CLOSED || groupInfo.Status == proto.Status_CLOSING {
+	if groupInfo.Status == protoregistry.Status_CLOSED || groupInfo.Status == protoregistry.Status_CLOSING {
 		return nil, errors.New("multicast group is closed")
 	}
 
 	return groupInfo, nil
 }
 
-func update(groupInfo *proto.MGroup, multicastGroup *MulticastGroup) {
+func update(groupInfo *protoregistry.MGroup, multicastGroup *MulticastGroup) {
 	multicastGroup.GroupMu.Lock()
 	defer multicastGroup.GroupMu.Unlock()
 
-	multicastGroup.Group.Status = proto.Status_name[int32(groupInfo.Status)]
+	multicastGroup.Group.Status = protoregistry.Status_name[int32(groupInfo.Status)]
 
 	for clientId, member := range groupInfo.Members {
 		m, ok := multicastGroup.Group.Members[clientId]

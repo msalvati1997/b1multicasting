@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/msalvati1997/b1multicasting/handler"
-	"github.com/msalvati1997/b1multicasting/pkg/reg/client"
+	"github.com/msalvati1997/b1multicasting/pkg/registryservice/client"
 	"github.com/msalvati1997/b1multicasting/pkg/utils"
 )
 

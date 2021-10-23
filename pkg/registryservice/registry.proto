@@ -1,7 +1,7 @@
 syntax = "proto3";
 
-package reg;
-option go_package = "./proto";
+package registryservice;
+option go_package = "./protoregistry";
 
 
 service Registry {

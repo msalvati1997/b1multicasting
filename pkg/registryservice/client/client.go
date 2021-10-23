@@ -1,12 +1,12 @@
 package client
 
 import (
-	"github.com/msalvati1997/b1multicasting/pkg/reg/proto"
+	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
 	"google.golang.org/grpc"
 	"log"
 )
 
-func Connect(address string) (proto.RegistryClient, error) {
+func Connect(address string) (protoregistry.RegistryClient, error) {
 
 	log.Println("Connecting to registry server ", address)
 	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
@@ -17,5 +17,5 @@ func Connect(address string) (proto.RegistryClient, error) {
 		log.Println("Correctly connected to registry server ")
 	}
 
-	return proto.NewRegistryClient(conn), nil
+	return protoregistry.NewRegistryClient(conn), nil
 }
