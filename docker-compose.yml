@@ -1,0 +1,61 @@
+version: '3'
+
+services:
+  registry:
+    build:
+      context: .
+    container_name: registry
+    environment:
+      - REGISTRY=true
+      - LOG_LEVEL=debug
+
+  node1:
+    build:
+      context: .
+    container_name: node1
+    environment:
+      - APP=true
+      - "REGISTRY_ADDR=registry:90"
+      - NUM_THREADS=2
+      - DELAY=2000
+      - VERBOSE=true
+    ports:
+      - 8080:80
+
+  node2:
+    build:
+      context: .
+    container_name: node2
+    environment:
+      - APP=true
+      - "REGISTRY_ADDR=registry:90"
+      - NUM_THREADS=2
+      - DELAY=1000
+      - VERBOSE=true
+    ports:
+      - 8081:80
+
+  node3:
+    build:
+      context: .
+    container_name: node3
+    environment:
+      - APP=true
+      - "REGISTRY_ADDR=registry:90"
+      - NUM_THREADS=2
+      - DELAY=1500
+      - VERBOSE=true
+    ports:
+      - 8082:80
+
+  node4:
+    build:
+      context: .
+    container_name: node4
+    environment:
+      - APP=true
+      - "REGISTRY_ADDR=registry:90"
+      - NUM_THREADS=2
+      - VERBOSE=true
+    ports:
+      - 8083:80
