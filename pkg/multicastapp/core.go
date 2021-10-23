@@ -4,8 +4,13 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/msalvati1997/b1multicasting/handler"
+	"github.com/msalvati1997/b1multicasting/pkg/registryservice"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/client"
+	_ "github.com/msalvati1997/b1multicasting/pkg/registryservice/client"
+	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
 	"github.com/msalvati1997/b1multicasting/pkg/utils"
+	"golang.org/x/net/context"
+	"log"
 )
 
 func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl uint, debug bool) error {
@@ -37,6 +42,16 @@ func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl
 	if err != nil {
 		return err
 	}
+
+	multicastType, _ := registryservice.MulticastType["BMULTICAST"]
+
+	registrationAns, err := handler.RegClient.Register(context.Background(), &protoregistry.Rinfo{
+		MulticastId:   "BASICGROUP",
+		MulticastType: multicastType,
+		ClientPort:    uint32(handler.GrpcPort),
+	})
+
+	log.Println("Group info", registrationAns.GetGroupInfo())
 
 	return nil
 }
