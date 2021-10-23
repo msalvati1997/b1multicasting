@@ -1,10 +1,10 @@
 version: '3'
 
 services:
-  serviceregistry:
+  registry:
     build:
       context: .
-    container_name: serviceregistry
+    container_name: registry
     environment:
       - REGISTRY=true
 
