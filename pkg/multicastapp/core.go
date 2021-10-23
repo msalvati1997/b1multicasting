@@ -2,7 +2,7 @@ package multicastapp
 
 import (
 	"errors"
-	"github.com/gin-contrib/cors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/client"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
@@ -88,10 +88,13 @@ func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl
 	utils.GoPool.Initialize(int(numThreads))
 
 	router := gin.Default()
-	router.Use(cors.Default())
 	api := router.Group(relativePath)
 	GroupsApi(api.Group("/groups"))
-	router.Run()
+
+	err = router.Run(fmt.Sprintf(":%d", restPort))
+	if err != nil {
+		return err
+	}
 
 	return err
 }
