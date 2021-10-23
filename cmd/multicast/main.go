@@ -37,11 +37,14 @@ func main() {
 	flag.Parse()
 	services := make([]func(registrar grpc.ServiceRegistrar) error, 0)
 	var err error
-	if *r {
-		services = append(services, rgstr.Registration)
-	}
+
 	if *application {
+		log.Println("Adding basic communication service to gRPC server")
 		services = append(services, basic.RegisterService)
+	}
+	if *r {
+		log.Println("Adding multicast registry service to gRPC server")
+		services = append(services, rgstr.Registration)
 	}
 	log.Println("start")
 	wg := &sync.WaitGroup{}
@@ -53,7 +56,6 @@ func main() {
 		verboseLogs = false
 	}
 	go func() {
-		log.Println("First step : connecting to grpc services ", services)
 		err = StartServer(fmt.Sprintf(":%d", *grpcPort), services...)
 		if err != nil {
 			log.Println("Error in connecting server", err.Error())
