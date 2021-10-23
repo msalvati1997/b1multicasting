@@ -92,7 +92,7 @@ func CreateGroup(ctx *gin.Context) {
 	})
 
 	if err != nil {
-		response(ctx, err, errors.New("Error in registering client "))
+		response(ctx, err.Error(), errors.New("Error in registering client "))
 	}
 
 	members := make(map[string]Member, 0)
