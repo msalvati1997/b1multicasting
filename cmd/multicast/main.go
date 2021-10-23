@@ -7,15 +7,12 @@ import (
 	basic "github.com/msalvati1997/b1multicasting/pkg/basic/server"
 	"github.com/msalvati1997/b1multicasting/pkg/multicastapp"
 	rgstr "github.com/msalvati1997/b1multicasting/pkg/registryservice/server"
-	"github.com/soheilhy/cmux"
 	"google.golang.org/grpc"
 	"log"
+
 	"net"
 	"sync"
 )
-
-var grpcL net.Listener
-var M cmux.CMux
 
 func main() {
 
@@ -24,7 +21,7 @@ func main() {
 	verbose := utils.GetEnvBoolWithDefault("VERBOSE", true)
 	rg := utils.GetEnvBoolWithDefault("REGISTRY", false)
 	app := utils.GetEnvBoolWithDefault("APP", false)
-	gPort := utils.GetEnvIntWithDefault("GRPC_PORT", 80)
+	gPort := utils.GetEnvIntWithDefault("GRPC_PORT", 90)
 	rPort := utils.GetEnvIntWithDefault("REST_PORT", 80)
 	restP := utils.GetEnvStringWithDefault("REST_PATH", "/multicast/api/v1")
 	delay := flag.Uint("DELAY", uint(d), "delay for sending operations (ms)")
@@ -52,11 +49,9 @@ func main() {
 	log.Println("start")
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
-	l, err := net.Listen("tcp", ":80")
-	M = cmux.New(l)
+
 	go func() {
-		grpcL = M.MatchWithWriters(cmux.HTTP2MatchHeaderFieldSendSettings("content-type", "application/grpc"))
-		err = StartServer(fmt.Sprintf(":%d", *restPort), services...)
+		err = StartServer(fmt.Sprintf(":%d", *grpcPort), services...)
 		if err != nil {
 			log.Println("Error in connecting server", err.Error())
 			return
@@ -67,18 +62,13 @@ func main() {
 
 		wg.Add(1)
 		go func() {
-			err := multicastapp.Run(*grpcPort, *restPort, *registry_addr, *restPath, *numThreads, *delay, *verb, M)
+			err := multicastapp.Run(*grpcPort, *restPort, *registry_addr, *restPath, *numThreads, *delay, *verb)
 			if err != nil {
 				log.Println("Error in running applicatioon", err.Error())
 				return
 			}
 			wg.Done()
 		}()
-	} else {
-		err := M.Serve()
-		if err != nil {
-			return
-		}
 	}
 
 	wgChan := make(chan bool)
@@ -97,25 +87,23 @@ func main() {
 
 func StartServer(programAddress string, grpcServices ...func(grpc.ServiceRegistrar) error) error {
 
-	//lis, err := net.Listen("tcp", programAddress)
-	//if err != nil {
-	//	return err
-	//}
+	lis, err := net.Listen("tcp", programAddress)
+	if err != nil {
+		return err
+	}
 
 	s := grpc.NewServer()
 	for _, grpcService := range grpcServices {
-		err := grpcService(s)
+		err = grpcService(s)
 		if err != nil {
 			return err
 		}
 
 	}
-	var err error
-	go func() {
-		err = s.Serve(grpcL)
-		if err != nil {
-			log.Println("Error ", err.Error())
-		}
-	}()
-	return err
+
+	if err = s.Serve(lis); err != nil {
+		return err
+	}
+
+	return nil
 }
