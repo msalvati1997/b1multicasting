@@ -75,6 +75,9 @@ func CreateGroup(ctx *gin.Context) {
 		response(ctx, err.Error(), errors.New("Error in registering client "))
 	}
 
+	log.Println(registrationAns.GetGroupInfo().String())
+	log.Println(registrationAns.ClientId)
+
 	members := make(map[string]Member, 0)
 
 	for memberId, member := range registrationAns.GroupInfo.Members {
