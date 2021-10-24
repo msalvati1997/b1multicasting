@@ -7,7 +7,9 @@ services:
     container_name: registry
     environment:
       - REGISTRY=true
-      - LOG_LEVEL=debug
+    ports:
+      - ':90'
+
 
   node1:
     build:

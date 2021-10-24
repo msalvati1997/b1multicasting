@@ -21,7 +21,7 @@ func main() {
 	restPath := flag.String("restPath", utils.GetEnvStringWithDefault("REST_PATH", "/multicast/api"), "path of the rest api")
 	numThreads := flag.Uint("NUM_THREADS", uint(utils.GetEnvIntWithDefault("NUM_THREADS", 1)), "number of threads used to multicast messages")
 	verb := flag.Bool("VERBOSE", utils.GetEnvBoolWithDefault("VERBOSE", true), "Turn verbose mode on or off.")
-	registry_addr := flag.String("REGISTRY_ADDR", ":90", "service registry adress")
+	registry_addr := flag.String("REGISTRY_ADDR", "registry:90", "service registry adress")
 	r := flag.Bool("REGISTRY", utils.GetEnvBoolWithDefault("REGISTRY", false), "start multicast registry")
 	application := flag.Bool("APP", utils.GetEnvBoolWithDefault("APP", false), "start multicast application")
 
