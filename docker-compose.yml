@@ -8,7 +8,7 @@ services:
     environment:
       - REGISTRY=true
     ports:
-      - ':90'
+      - '90'
 
 
   node1:
@@ -17,7 +17,7 @@ services:
     container_name: node1
     environment:
       - APP=true
-      - "REGISTRY_ADDR=registry:90"
+      - REGISTRY_ADDR=registry:90
       - NUM_THREADS=2
       - DELAY=2000
       - VERBOSE=true
@@ -30,7 +30,7 @@ services:
     container_name: node2
     environment:
       - APP=true
-      - "REGISTRY_ADDR=registry:90"
+      - REGISTRY_ADDR=registry:90
       - NUM_THREADS=2
       - DELAY=1000
       - VERBOSE=true
@@ -43,7 +43,7 @@ services:
     container_name: node3
     environment:
       - APP=true
-      - "REGISTRY_ADDR=registry:90"
+      - REGISTRY_ADDR=registry:90
       - NUM_THREADS=2
       - DELAY=1500
       - VERBOSE=true
@@ -56,7 +56,7 @@ services:
     container_name: node4
     environment:
       - APP=true
-      - "REGISTRY_ADDR=registry:90"
+      - REGISTRY_ADDR=registry:90
       - NUM_THREADS=2
       - VERBOSE=true
     ports:
