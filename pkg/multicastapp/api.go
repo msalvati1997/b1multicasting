@@ -122,7 +122,7 @@ func CreateGroup(ctx *gin.Context) {
 			Status:           protoregistry.Status_name[int32(registrationAns.GroupInfo.Status)],
 			Members:          members,
 		},
-		messages: make([]Message, 0),
+		Messages: make([]Message, 0),
 		groupMu:  sync.RWMutex{},
 	}
 
@@ -301,12 +301,10 @@ func MulticastMessage(ctx *gin.Context) {
 	}
 
 	utils2.GoPool.MessageCh <- msg
-	group.messageMu.Lock()
+
 	var m Message
 	m.MessageHeader = msg.MessageHeader
 	m.Payload = msg.Payload
-	group.messages = append(group.messages, m)
-	defer group.messageMu.Unlock()
 
 	response(ctx, m, nil)
 }
@@ -328,7 +326,7 @@ func RetrieveMessages(ctx *gin.Context) {
 	if !ok {
 		response(ctx, ok, errors.New("The groups "+mId+" doesn't exist"))
 	}
-	response(ctx, group.messages, nil)
+	response(ctx, group.Messages, nil)
 }
 
 func response(c *gin.Context, data interface{}, err error) {

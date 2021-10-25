@@ -29,6 +29,13 @@ func (s *Server) SendMessage(ctx context.Context, in *proto.RequestMessage) (*pr
 		mid := in.MessageHeader["GroupId"]
 		group := multicastapp.MulticastGroups[mid]
 		group.Group.ReceivedMessages = group.Group.ReceivedMessages + 1
+		group.MessageMu.Lock()
+		defer group.MessageMu.Unlock()
+		msgh := multicastapp.Message{
+			MessageHeader: in.MessageHeader,
+			Payload:       in.Payload,
+		}
+		group.Messages = append(group.Messages, msgh)
 	}
 	source, _ := peer.FromContext(ctx)
 	id := in.GetId()

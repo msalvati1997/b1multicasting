@@ -34,8 +34,8 @@ type MulticastGroup struct {
 	clientId  string
 	Group     *MulticastInfo
 	groupMu   sync.RWMutex
-	messages  []Message
-	messageMu sync.RWMutex
+	Messages  []Message
+	MessageMu sync.RWMutex
 }
 
 type Message struct {
