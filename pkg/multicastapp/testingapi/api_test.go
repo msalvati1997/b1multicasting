@@ -19,14 +19,14 @@ func Test_main(t *testing.T) {
 	CREATE_GROUP(t, "8083")
 	CREATE_GROUP(t, "8080")
 	time.Sleep(3 * time.Second)
-	Test_STARTGROUP(t)
+	//Test_STARTGROUP(t)
 }
 
 func CREATE_GROUP(t *testing.T, host string) {
 	url := "http://localhost:" + host + "/multicast/v1/groups"
 	method := "POST"
 
-	payload := strings.NewReader(`{"multicast_type":"TOCMULTICAST","multicast_id":"prova"}`)
+	payload := strings.NewReader(`{"multicast_type":"COMULTICAST","multicast_id":"prova4"}`)
 
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, payload)
