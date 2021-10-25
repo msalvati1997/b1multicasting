@@ -27,10 +27,11 @@ func ProcessMessage(msgChan chan basic.Message) {
 		case data := <-msgChan:
 			log.Println("Processing message..")
 			if data.MessageHeader["type"] == "B" {
+				currentTime := time.Now()
 				log.Println("Start B_SENDING")
 				data.MessageHeader["ProcessId"] = strconv.Itoa(utils.Myid)
 				data.MessageHeader["i"] = utils.GenerateUID()
-				data.MessageHeader["TIME"] = time.UnixDate
+				data.MessageHeader["TIME"] = currentTime.Format("2006-01-02 15:04:05")
 				err := multicasting.Cnn.BMulticast(data.MessageHeader["GroupId"], data)
 				if err != nil {
 					go func() {
@@ -41,7 +42,8 @@ func ProcessMessage(msgChan chan basic.Message) {
 			}
 			if data.MessageHeader["type"] == "TOD" {
 				log.Println("Start TOD_SENDING")
-				data.MessageHeader["TIME"] = time.UnixDate
+				currentTime := time.Now()
+				data.MessageHeader["TIME"] = currentTime.Format("2006-01-02 15:04:05")
 				data.MessageHeader["i"] = utils.GenerateUID()
 				data.MessageHeader["s"] = strconv.FormatUint(utils.Clock.Tock(), 10)
 				data.MessageHeader["ProcessId"] = strconv.Itoa(utils.Myid)
@@ -55,7 +57,8 @@ func ProcessMessage(msgChan chan basic.Message) {
 			}
 			if data.MessageHeader["type"] == "CO" {
 				log.Println("Start CO_SENDING")
-				data.MessageHeader["TIME"] = time.UnixDate
+				currentTime := time.Now()
+				data.MessageHeader["TIME"] = currentTime.Format("2006-01-02 15:04:05")
 				data.MessageHeader["i"] = utils.GenerateUID()
 				data.MessageHeader["ProcessId"] = strconv.Itoa(utils.Myid)
 				utils.Vectorclock.TickV(utils.Myid)
@@ -79,7 +82,8 @@ func ProcessMessage(msgChan chan basic.Message) {
 				}
 			}
 			if data.MessageHeader["type"] == "TOC" {
-				data.MessageHeader["TIME"] = time.UnixDate
+				currentTime := time.Now()
+				data.MessageHeader["TIME"] = currentTime.Format("2006-01-02 15:04:05")
 				log.Println("Start TOC_SENDING")
 				data.MessageHeader["i"] = utils.GenerateUID()
 				data.MessageHeader["ProcessId"] = strconv.Itoa(utils.Myid)
