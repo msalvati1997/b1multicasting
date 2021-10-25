@@ -3,6 +3,7 @@ package basic
 import (
 	"github.com/msalvati1997/b1multicasting/pkg/basic"
 	"github.com/msalvati1997/b1multicasting/pkg/basic/proto"
+	"github.com/msalvati1997/b1multicasting/pkg/multicastapp"
 	"github.com/msalvati1997/b1multicasting/pkg/utils"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -24,6 +25,11 @@ func RegisterService(s grpc.ServiceRegistrar) (err error) {
 
 //implementation of the service methods called by Grpc
 func (s *Server) SendMessage(ctx context.Context, in *proto.RequestMessage) (*proto.ResponseMessage, error) {
+	if in.MessageHeader["Tranport"] == "http" {
+		mid := in.MessageHeader["GroupId"]
+		group := multicastapp.MulticastGroups[mid]
+		group.Group.ReceivedMessages = group.Group.ReceivedMessages + 1
+	}
 	source, _ := peer.FromContext(ctx)
 	id := in.GetId()
 	log.Println("Request from :{user_ip :", source.Addr, ",auth : ", source.AuthInfo, "} ")

@@ -32,7 +32,7 @@ func init() {
 // MulticastGroup manages the metadata associated with a group in which the node is registered
 type MulticastGroup struct {
 	clientId  string
-	group     *MulticastInfo
+	Group     *MulticastInfo
 	groupMu   sync.RWMutex
 	messages  []Message
 	messageMu sync.RWMutex
@@ -119,6 +119,7 @@ func (r routes) addGroups(rg *gin.RouterGroup) {
 func (r routes) addMessaging(rg *gin.RouterGroup) {
 	groups := rg.Group("/messaging")
 	groups.POST("/:mId", MulticastMessage)
+	groups.GET("/:mId", RetrieveMessages)
 }
 
 func (r routes) addSwagger(rg *gin.RouterGroup) {
@@ -134,7 +135,7 @@ func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 	groupInfo, err := StatusChange(info, group, protoregistry.Status_OPENING)
 	if err != nil {
 		group.groupMu.Lock()
-		group.group.Error = err.Error()
+		group.Group.Error = err.Error()
 		group.groupMu.Unlock()
 		return
 	}
@@ -146,7 +147,7 @@ func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 
 	if err != nil {
 		group.groupMu.Lock()
-		group.group.Error = err.Error()
+		group.Group.Error = err.Error()
 		group.groupMu.Unlock()
 		return
 	}
@@ -154,12 +155,12 @@ func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 	log.Println("Notify the registry that the multicaster is ready")
 	// Communicating to the registry that the node is ready
 	groupInfo, err = registryClient.Ready(context.Background(), &protoregistry.RequestData{
-		MulticastId: group.group.MulticastId,
+		MulticastId: group.Group.MulticastId,
 		MId:         group.clientId,
 	})
 	if err != nil {
 		group.groupMu.Lock()
-		group.group.Error = err.Error()
+		group.Group.Error = err.Error()
 		group.groupMu.Unlock()
 		return
 	}
@@ -171,7 +172,7 @@ func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 
 	if err != nil {
 		group.groupMu.Lock()
-		group.group.Error = err.Error()
+		group.Group.Error = err.Error()
 		group.groupMu.Unlock()
 		return
 	}
@@ -183,7 +184,7 @@ func initializeMulticast(group *MulticastGroup, b bool) error {
 
 	var members []string
 	//effettuo la connessione degli altri nodi come clients
-	for memberId, member := range group.group.Members {
+	for memberId, member := range group.Group.Members {
 		if memberId != group.clientId {
 			log.Println("Connecting to: %s", member.Address)
 			members = append(members, member.Address)
@@ -222,10 +223,10 @@ func update(groupInfo *protoregistry.MGroup, multicastGroup *MulticastGroup) {
 	multicastGroup.groupMu.Lock()
 	defer multicastGroup.groupMu.Unlock()
 
-	multicastGroup.group.Status = protoregistry.Status_name[int32(groupInfo.Status)]
+	multicastGroup.Group.Status = protoregistry.Status_name[int32(groupInfo.Status)]
 
 	for clientId, member := range groupInfo.Members {
-		m, ok := multicastGroup.group.Members[clientId]
+		m, ok := multicastGroup.Group.Members[clientId]
 
 		if !ok {
 			m = Member{
@@ -234,12 +235,12 @@ func update(groupInfo *protoregistry.MGroup, multicastGroup *MulticastGroup) {
 				Ready:    member.Ready,
 			}
 
-			multicastGroup.group.Members[clientId] = m
+			multicastGroup.Group.Members[clientId] = m
 		}
 
 		if m.Ready != member.Ready {
 			m.Ready = member.Ready
-			multicastGroup.group.Members[clientId] = m
+			multicastGroup.Group.Members[clientId] = m
 		}
 
 	}

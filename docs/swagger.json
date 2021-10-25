@@ -1,0 +1,208 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a multicast API",
+        "title": "MULTICAST API",
+        "contact": {
+            "email": "salvatimartina97@gmail.com"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "paths": {
+        "/groups": {
+            "get": {
+                "description": "Get Multicast Group",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Get Multicast Group",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.MulticastInfo"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create Multicast Group",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Create Multicast Group",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.MulticastInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/groups/:mId": {
+            "get": {
+                "description": "Get Multicast Group by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Get Multicast Group by id",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.MulticastInfo"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Start multicast by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Start multicast by id",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.MulticastInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/messaging/:mId": {
+            "get": {
+                "description": "Get Message of Group by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Get Message of Group by id",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/multicastapp.Message"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Multicast a message to a group G",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "messaging"
+                ],
+                "summary": "Multicast a message to a group G",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.Message"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "multicastapp.Member": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "member_id": {
+                    "type": "string"
+                },
+                "ready": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "multicastapp.Message": {
+            "type": "object",
+            "properties": {
+                "MessageHeader": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "Payload": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "multicastapp.MulticastInfo": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "members": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/multicastapp.Member"
+                    }
+                },
+                "multicast_id": {
+                    "type": "string"
+                },
+                "multicast_type": {
+                    "type": "string"
+                },
+                "received_messages": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

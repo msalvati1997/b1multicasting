@@ -42,7 +42,7 @@ func GetGroups(g *gin.Context) {
 
 	for _, group := range MulticastGroups {
 		group.groupMu.RLock()
-		groups = append(groups, group.group)
+		groups = append(groups, group.Group)
 		group.groupMu.RUnlock()
 	}
 
@@ -115,7 +115,7 @@ func CreateGroup(ctx *gin.Context) {
 
 	group = &MulticastGroup{
 		clientId: registrationAns.ClientId,
-		group: &MulticastInfo{
+		Group: &MulticastInfo{
 			MulticastId:      registrationAns.GroupInfo.MulticastId,
 			MulticastType:    protoregistry.MulticastType_name[int32(registrationAns.GroupInfo.MulticastType)],
 			ReceivedMessages: 0,
@@ -130,7 +130,7 @@ func CreateGroup(ctx *gin.Context) {
 
 	go InitGroup(registrationAns.GroupInfo, group, len(registrationAns.GroupInfo.Members) == 1)
 
-	response(ctx, group.group, nil)
+	response(ctx, group.Group, nil)
 }
 
 // @BasePath /multicast/v1
@@ -162,7 +162,7 @@ func GetGroupById(ctx *gin.Context) {
 	group.groupMu.RLock()
 	defer group.groupMu.RUnlock()
 
-	response(ctx, group.group, nil)
+	response(ctx, group.Group, nil)
 }
 
 // @BasePath /multicast/v1
@@ -190,7 +190,7 @@ func StartGroup(ctx *gin.Context) {
 	}
 
 	groupInfo, err := registryClient.StartGroup(context.Background(), &protoregistry.RequestData{
-		MulticastId: group.group.MulticastId,
+		MulticastId: group.Group.MulticastId,
 		MId:         group.clientId})
 
 	if err != nil {
@@ -238,7 +238,7 @@ func StartGroup(ctx *gin.Context) {
 		go utils2.CODeliver()
 	}
 
-	response(ctx, group.group, nil)
+	response(ctx, group.Group, nil)
 }
 
 // @BasePath /multicast/v1
@@ -249,7 +249,7 @@ func StartGroup(ctx *gin.Context) {
 // @Tags messaging
 // @Accept  json
 // @Produce  json
-// @Success 201 {object} basic.Message
+// @Success 201 {object} Message
 // @Router /messaging/:mId [POST]
 // MulticastMessage Multicast a message to a group mId
 func MulticastMessage(ctx *gin.Context) {
@@ -268,45 +268,67 @@ func MulticastMessage(ctx *gin.Context) {
 	group.groupMu.RLock()
 	defer group.groupMu.RUnlock()
 
-	if protoregistry.Status(protoregistry.Status_value[group.group.Status]) != protoregistry.Status_ACTIVE {
+	if protoregistry.Status(protoregistry.Status_value[group.Group.Status]) != protoregistry.Status_ACTIVE {
 		ctx.IndentedJSON(http.StatusTooEarly, gin.H{"error": "group not ready"})
 		return
 	}
 	log.Println("Trying to multicasting message to group ", mId)
-	multicastType := group.group.MulticastType
+	multicastType := group.Group.MulticastType
 	payload := req.Payload
 	mtype, ok := registryservice.MulticastType[multicastType]
 	if !ok {
 		response(ctx, ok, errors.New("Multicast type not supported"))
 	}
 	log.Println("Trying to sending ", payload)
+
 	msg := basic.NewMessage(make(map[string]string), payload)
+	msg.MessageHeader["Tranport"] = "HTTP"
 	if mtype.Number() == 0 {
 		msg.MessageHeader["type"] = "B"
-		msg.MessageHeader["GroupId"] = group.group.MulticastId
+		msg.MessageHeader["GroupId"] = group.Group.MulticastId
 	}
 	if mtype.Number() == 1 {
 		msg.MessageHeader["type"] = "TOC"
-		msg.MessageHeader["GroupId"] = group.group.MulticastId
+		msg.MessageHeader["GroupId"] = group.Group.MulticastId
 	}
 	if mtype.Number() == 2 {
 		msg.MessageHeader["type"] = "TOD"
-		msg.MessageHeader["GroupId"] = group.group.MulticastId
+		msg.MessageHeader["GroupId"] = group.Group.MulticastId
 	}
 	if mtype.Number() == 3 {
 		msg.MessageHeader["type"] = "CO"
-		msg.MessageHeader["GroupId"] = group.group.MulticastId
+		msg.MessageHeader["GroupId"] = group.Group.MulticastId
 	}
 
 	utils2.GoPool.MessageCh <- msg
-
 	group.messageMu.Lock()
-	defer group.messageMu.Unlock()
 	var m Message
 	m.MessageHeader = msg.MessageHeader
 	m.Payload = msg.Payload
 	group.messages = append(group.messages, m)
-	response(ctx, msg, nil)
+	defer group.messageMu.Unlock()
+
+	response(ctx, m, nil)
+}
+
+// RetrieveMessages godoc
+// @Summary Get Message of Group by id
+// @Description Get Message of Group by id
+// @Tags groups
+// @Accept  json
+// @Produce  json
+// @Params Message
+//       Description : id of multicast
+// @Success 201 {object} []Message
+// @Router /messaging/:mId [get]
+// GetGroupById retrieve group msg by an id
+func RetrieveMessages(ctx *gin.Context) {
+	mId := ctx.Param("mId")
+	group, ok := MulticastGroups[mId]
+	if !ok {
+		response(ctx, ok, errors.New("The groups "+mId+" doesn't exist"))
+	}
+	response(ctx, group.messages, nil)
 }
 
 func response(c *gin.Context, data interface{}, err error) {
