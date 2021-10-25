@@ -51,6 +51,7 @@ func (s *RegistryServer) Register(ctx context.Context, in *protoregistry.Rinfo) 
 	ids, _ := strconv.Atoi(id1)
 	utils.Myid = ids
 	srcAddr = fmt.Sprintf("%s:%d", srcAddr, in.ClientPort)
+	utils.MyAdress = srcAddr
 	log.Println("Registration of the group ", in.MulticastId, "with client", srcAddr)
 	multicastId := in.MulticastId
 	Mugroups.Lock()

@@ -10,10 +10,8 @@ import (
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
 	utils2 "github.com/msalvati1997/b1multicasting/pkg/utils"
 	context "golang.org/x/net/context"
-	"google.golang.org/grpc/peer"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -187,13 +185,7 @@ func StartGroup(ctx *gin.Context) {
 	if !ok {
 		response(ctx, ok, errors.New("The groups doesn't exist"))
 	}
-	source, ok := peer.FromContext(ctx)
-	src := source.Addr.String()
-	srcAddr := src[:strings.LastIndexByte(src, ':')]
-	myid := strings.Split(srcAddr, ":")
-	mid := myid[len(myid)-1]
-	i, _ := strconv.Atoi(mid)
-	utils.Myid = i
+
 	groupInfo, err := registryClient.StartGroup(context.Background(), &protoregistry.RequestData{
 		MulticastId: group.group.MulticastId,
 		MId:         group.clientId})
@@ -220,7 +212,7 @@ func StartGroup(ctx *gin.Context) {
 			return
 		}
 		seq := false
-		if srcAddr == sequencerPort {
+		if utils.MyAdress == sequencerPort {
 			log.Println("I'm the sequencer of MulticastGroup", groupInfo.MulticastId)
 			seq = true
 		} else {

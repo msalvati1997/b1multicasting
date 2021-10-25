@@ -23,7 +23,8 @@ var (
 )
 
 var (
-	Myid int
+	Myid     int
+	MyAdress string
 )
 
 // ProcessVectorClock for a single process, implements the VectorClock interface.

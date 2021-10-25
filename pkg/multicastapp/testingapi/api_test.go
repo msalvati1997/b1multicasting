@@ -13,6 +13,12 @@ var host string
 func Test_main(t *testing.T) {
 	host = "8081"
 	//Test_CREATE_GROUP(t)
+	host = "8082"
+	//Test_CREATE_GROUP(t)
+	host = "8083"
+	//Test_CREATE_GROUP(t)
+	host = "8080"
+	//Test_CREATE_GROUP(t)
 	Test_STARTGROUP(t)
 }
 
