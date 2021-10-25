@@ -66,13 +66,7 @@ func GetGroups(g *gin.Context) {
 func CreateGroup(ctx *gin.Context) {
 	context_, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
-	source, ok := peer.FromContext(ctx)
-	src := source.Addr.String()
-	srcAddr := src[:strings.LastIndexByte(src, ':')]
-	myid := strings.Split(srcAddr, ":")
-	mid := myid[len(myid)-1]
-	i, _ := strconv.Atoi(mid)
-	utils.Myid = i
+
 	var config GroupConfig
 
 	multicastId := ctx.Param("multicastId")
