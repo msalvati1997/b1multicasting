@@ -1,0 +1,147 @@
+basePath: /multicast/v1
+definitions:
+  main.Error:
+    properties:
+      error:
+        type: string
+    type: object
+  main.Member:
+    properties:
+      address:
+        type: string
+      member_id:
+        type: string
+      ready:
+        type: boolean
+    type: object
+  main.Message:
+    properties:
+      MessageHeader:
+        additionalProperties:
+          type: string
+        type: object
+      Payload:
+        items:
+          type: integer
+        type: array
+    type: object
+  main.MulticastInfo:
+    properties:
+      error:
+        $ref: '#/definitions/main.Error'
+      members:
+        additionalProperties:
+          $ref: '#/definitions/main.Member'
+        type: object
+      multicast_id:
+        type: string
+      multicast_type:
+        type: string
+      received_messages:
+        type: integer
+      status:
+        type: string
+    type: object
+  main.MulticastReq:
+    properties:
+      multicast_id:
+        type: string
+      multicast_type:
+        type: string
+    type: object
+host: localhost
+info:
+  contact:
+    email: salvatimartina97@gmail.com
+  description: This is a multicast API
+  title: MULTICAST API
+  version: "1.0"
+paths:
+  /groups:
+    get:
+      consumes:
+      - application/json
+      description: Get Multicast Group
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.MulticastInfo'
+      summary: Get Multicast Group
+      tags:
+      - groups
+    post:
+      consumes:
+      - application/json
+      description: Create Multicast Group
+      parameters:
+      - description: Request for creating Group
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/main.MulticastReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.MulticastInfo'
+      summary: Create Multicast Group
+      tags:
+      - groups
+  /groups/:mId:
+    get:
+      consumes:
+      - application/json
+      description: Get Multicast Group by id
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.MulticastInfo'
+      summary: Get Multicast Group by id
+      tags:
+      - groups
+    put:
+      consumes:
+      - application/json
+      description: Start multicast by id
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.MulticastInfo'
+      summary: Start multicast by id
+      tags:
+      - groups
+  /messaging/:mId:
+    post:
+      consumes:
+      - application/json
+      description: Multicast a message to a group G
+      parameters:
+      - description: Message
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/main.Message'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.Message'
+      summary: Multicast a message to a group G
+      tags:
+      - messaging
+swagger: "2.0"

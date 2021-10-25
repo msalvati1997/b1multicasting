@@ -49,6 +49,8 @@ func GetGroups(g *gin.Context) {
 	g.IndentedJSON(http.StatusOK, groups)
 }
 
+// @BasePath /multicast/v1
+
 // CreateGroup godoc
 // @Summary Create Multicast Group
 // @Description Create Multicast Group
@@ -131,6 +133,8 @@ func CreateGroup(ctx *gin.Context) {
 	response(ctx, group.group, nil)
 }
 
+// @BasePath /multicast/v1
+
 // GetGroupById godoc
 // @Summary Get Multicast Group by id
 // @Description Get Multicast Group by id
@@ -161,6 +165,8 @@ func GetGroupById(ctx *gin.Context) {
 
 	response(ctx, group.group, nil)
 }
+
+// @BasePath /multicast/v1
 
 // StartGroup godoc
 // @Summary Start multicast by id
@@ -238,6 +244,8 @@ func StartGroup(ctx *gin.Context) {
 
 	response(ctx, group.group, nil)
 }
+
+// @BasePath /multicast/v1
 
 // MulticastMessage godoc
 // @Summary Multicast a message to a group G

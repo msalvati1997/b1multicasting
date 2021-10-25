@@ -13,6 +13,12 @@ import (
 	"sync"
 )
 
+// @title MULTICAST API
+// @version 1.0
+// @description This is a multicast API
+// @contact.email salvatimartina97@gmail.com
+// @host localhost
+// @BasePath /multicast/v1
 func main() {
 
 	delay := flag.Uint("DELAY", uint(utils.GetEnvIntWithDefault("DELAY", 0)), "delay for sending operations (ms)")
