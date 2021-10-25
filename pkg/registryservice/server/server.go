@@ -46,10 +46,10 @@ func (s *RegistryServer) Register(ctx context.Context, in *protoregistry.Rinfo) 
 	}
 	src := source.Addr.String()
 	srcAddr := src[:strings.LastIndexByte(src, ':')]
-	myid := strings.Split(srcAddr, ":")
-	mid := myid[len(myid)-1]
-	i, _ := strconv.Atoi(mid)
-	utils.Myid = i
+	id := strings.Split(srcAddr, ".")
+	id1 := strings.Join(id, "")
+	ids, _ := strconv.Atoi(id1)
+	utils.Myid = ids
 	srcAddr = fmt.Sprintf("%s:%d", srcAddr, in.ClientPort)
 	log.Println("Registration of the group ", in.MulticastId, "with client", srcAddr)
 	multicastId := in.MulticastId
@@ -78,7 +78,7 @@ func (s *RegistryServer) Register(ctx context.Context, in *protoregistry.Rinfo) 
 	// Registering node to the group
 	//Creating new MemberInfo
 	memberInfo := new(protoregistry.MemberInfo)
-	memberInfo.Id = strconv.Itoa(i)
+	memberInfo.Id = srcAddr
 	memberInfo.Address = srcAddr
 	memberInfo.Ready = false
 	//Adding the MemberInfo to the multicastGroup Map

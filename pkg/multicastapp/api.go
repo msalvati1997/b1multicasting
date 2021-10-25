@@ -67,18 +67,18 @@ func CreateGroup(ctx *gin.Context) {
 	context_, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	var config GroupConfig
+	var req MulticastReq
+	err := ctx.BindJSON(&req)
 
-	multicastId := ctx.Param("multicastId")
-
-	err := ctx.BindJSON(&config)
+	multicastId := req.MulticastId
+	mType := req.MulticastType.String()
 
 	if err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	multicastType, ok := registryservice.MulticastType[config.MulticastType]
+	multicastType, ok := registryservice.MulticastType[mType]
 
 	if !ok {
 		response(ctx, ok, errors.New("Multicast type not supported"))
