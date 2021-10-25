@@ -3,11 +3,17 @@ package multicastapp
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/msalvati1997/b1multicasting/internal/utils"
+	"github.com/msalvati1997/b1multicasting/pkg/basic"
+	"github.com/msalvati1997/b1multicasting/pkg/multicasting"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
+	utils2 "github.com/msalvati1997/b1multicasting/pkg/utils"
 	context "golang.org/x/net/context"
+	"google.golang.org/grpc/peer"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -56,11 +62,17 @@ func GetGroups(g *gin.Context) {
 //     Responses:
 //       201: body:PositionResponseBody
 // @Router /groups [post]
-// CreateGroup initializes a new multicast group.
+// CreateGroup initializes a new multicast group or join in an group.
 func CreateGroup(ctx *gin.Context) {
 	context_, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
-
+	source, ok := peer.FromContext(ctx)
+	src := source.Addr.String()
+	srcAddr := src[:strings.LastIndexByte(src, ':')]
+	myid := strings.Split(srcAddr, ":")
+	mid := myid[len(myid)-1]
+	i, _ := strconv.Atoi(mid)
+	utils.Myid = i
 	var config GroupConfig
 
 	multicastId := ctx.Param("multicastId")
@@ -137,7 +149,7 @@ func CreateGroup(ctx *gin.Context) {
 // @Success 201 {object} MulticastInfo
 //     Responses:
 //       201: body:PositionResponseBody
-// @Router /groups [get]
+// @Router /groups/:mId [get]
 // GetGroupById retrives group info by an id.
 func GetGroupById(ctx *gin.Context) {
 	multicastId := ctx.Param("multicastId")
@@ -155,7 +167,7 @@ func GetGroupById(ctx *gin.Context) {
 	group.groupMu.RLock()
 	defer group.groupMu.RUnlock()
 
-	response(ctx, group, nil)
+	response(ctx, group.group, nil)
 }
 
 // StartGroup godoc
@@ -168,7 +180,7 @@ func GetGroupById(ctx *gin.Context) {
 // @Success 201 {object} MulticastInfo
 //     Responses:
 //       201: body:PositionResponseBody
-// @Router /groups [put]
+// @Router /groups/:mId [put]
 // StartGroup starting multicast group
 func StartGroup(ctx *gin.Context) {
 	multicastId := ctx.Param("multicastId")
@@ -181,8 +193,14 @@ func StartGroup(ctx *gin.Context) {
 	if !ok {
 		response(ctx, ok, errors.New("The groups doesn't exist"))
 	}
-
-	_, err := registryClient.StartGroup(context.Background(), &protoregistry.RequestData{
+	source, ok := peer.FromContext(ctx)
+	src := source.Addr.String()
+	srcAddr := src[:strings.LastIndexByte(src, ':')]
+	myid := strings.Split(srcAddr, ":")
+	mid := myid[len(myid)-1]
+	i, _ := strconv.Atoi(mid)
+	utils.Myid = i
+	groupInfo, err := registryClient.StartGroup(context.Background(), &protoregistry.RequestData{
 		MulticastId: group.group.MulticastId,
 		MId:         group.clientId})
 
@@ -190,7 +208,97 @@ func StartGroup(ctx *gin.Context) {
 		log.Println("Error in start group ", err.Error())
 		return
 	}
-	response(ctx, group, nil)
+	log.Println("Group starting..")
+
+	if groupInfo.MulticastType.Number() == 0 {
+		log.Println("STARTING BMULTICAST COMMUNICATION")
+	}
+	if groupInfo.MulticastType.Number() == 1 {
+		log.Println("STARTING TOC COMMUNICATION")
+		members := []string{}
+		for k := range groupInfo.Members {
+			members = append(members, k)
+		}
+		sequencerPort := multicasting.SelectingSequencer(members)
+		seqCon, err := multicasting.Cnn.GetGrpcClient(sequencerPort)
+		if err != nil {
+			log.Println("Error in find connection with sequencer..", err.Error())
+			return
+		}
+		seq := false
+		if srcAddr == sequencerPort {
+			log.Println("I'm the sequencer of MulticastGroup", groupInfo.MulticastId)
+			seq = true
+		} else {
+			log.Println("The sequencer nodes is at port", sequencerPort)
+		}
+		multicasting.Seq.MulticastId = groupInfo.MulticastId
+		multicasting.Seq.SeqConn = *seqCon
+		multicasting.Seq.Conns = multicasting.Cnn
+		multicasting.Seq.B = seq
+		multicasting.Seq.SeqPort = sequencerPort
+		go utils2.TOCDeliver()
+	}
+	if groupInfo.MulticastType.Number() == 2 {
+		log.Println("STARTING TOD COMMUNICATION")
+		go utils2.TODDeliver()
+	}
+	if groupInfo.MulticastType.Number() == 3 {
+		utils.Vectorclock = utils.NewVectorClock(len(groupInfo.Members))
+		log.Println("STARTING CO COMMUNICATION")
+		go utils2.CODeliver()
+	}
+
+	response(ctx, group.group, nil)
+}
+
+// MulticastMessage godoc
+// @Summary Multicast a message to a group G
+// @Description Multicast a message to a group G
+// @Tags messaging
+// @Accept  json
+// @Produce  json
+// @Param post body MessageRequest
+// @Success 201 {object}
+//     Responses:  basic.Message
+//       201: body:PositionResponseBody
+// @Router /messaging/:mId [POST]
+// MulticastMessage Multicast a message to a group G
+func MulticastMessage(ctx *gin.Context) {
+	var req MessageRequest
+	err := ctx.BindJSON(&req)
+	if err != nil {
+		return
+	}
+	group, ok := MulticastGroups[req.multicastId.MulticastId]
+	if !ok {
+		response(ctx, ok, errors.New("The groups doesn't exist"))
+	}
+	multicastType := group.group.MulticastType
+	payload := req.message.Payload
+	mtype, ok := registryservice.MulticastType[multicastType]
+	if !ok {
+		response(ctx, ok, errors.New("Multicast type not supported"))
+	}
+	msg := basic.NewMessage(make(map[string]string), payload)
+	if mtype.Number() == 0 {
+		msg.MessageHeader["type"] = "B"
+		msg.MessageHeader["GroupId"] = group.group.MulticastId
+	}
+	if mtype.Number() == 1 {
+		msg.MessageHeader["type"] = "TOC"
+		msg.MessageHeader["GroupId"] = group.group.MulticastId
+	}
+	if mtype.Number() == 2 {
+		msg.MessageHeader["type"] = "TOD"
+		msg.MessageHeader["GroupId"] = group.group.MulticastId
+	}
+	if mtype.Number() == 3 {
+		msg.MessageHeader["type"] = "CO"
+		msg.MessageHeader["GroupId"] = group.group.MulticastId
+	}
+	utils2.GoPool.MessageCh <- msg
+	response(ctx, msg, nil)
 }
 
 func response(c *gin.Context, data interface{}, err error) {

@@ -40,6 +40,11 @@ type Message struct {
 	Payload       []byte            `json:"Payload"`
 }
 
+type MessageRequest struct {
+	multicastId MulticastId
+	message     Message
+}
+
 type MulticastInfo struct {
 	MulticastId      string            `json:"multicast_id"`
 	MulticastType    string            `json:"multicast_type"`
@@ -110,6 +115,11 @@ func (r routes) addGroups(rg *gin.RouterGroup) {
 	groups.POST("/", CreateGroup)
 	groups.PUT("/:mId", StartGroup)
 	groups.GET("/:mId", GetGroupById)
+}
+
+func (r routes) addMessaging(rg *gin.RouterGroup) {
+	groups := rg.Group("/messaging")
+	groups.POST("/:Mid", MulticastMessage)
 }
 
 func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {

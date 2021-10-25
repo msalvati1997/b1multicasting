@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/msalvati1997/b1multicasting/internal/utils"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -9,6 +10,7 @@ import (
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
 	"log"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -44,6 +46,10 @@ func (s *RegistryServer) Register(ctx context.Context, in *protoregistry.Rinfo) 
 	}
 	src := source.Addr.String()
 	srcAddr := src[:strings.LastIndexByte(src, ':')]
+	myid := strings.Split(srcAddr, ":")
+	mid := myid[len(myid)-1]
+	i, _ := strconv.Atoi(mid)
+	utils.Myid = i
 	srcAddr = fmt.Sprintf("%s:%d", srcAddr, in.ClientPort)
 	log.Println("Registration of the group ", in.MulticastId, "with client", srcAddr)
 	multicastId := in.MulticastId
@@ -72,7 +78,7 @@ func (s *RegistryServer) Register(ctx context.Context, in *protoregistry.Rinfo) 
 	// Registering node to the group
 	//Creating new MemberInfo
 	memberInfo := new(protoregistry.MemberInfo)
-	memberInfo.Id = srcAddr
+	memberInfo.Id = strconv.Itoa(i)
 	memberInfo.Address = srcAddr
 	memberInfo.Ready = false
 	//Adding the MemberInfo to the multicastGroup Map
