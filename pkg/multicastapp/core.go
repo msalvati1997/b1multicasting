@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/msalvati1997/b1multicasting/docs"
-	docs "github.com/msalvati1997/b1multicasting/docs"
 	"github.com/msalvati1997/b1multicasting/pkg/multicasting"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/client"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
@@ -109,7 +108,6 @@ func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl
 	v1 := r.router.Group(relativePath)
 	r.addGroups(v1)
 	r.addMessaging(v1)
-	docs.SwaggerInfo.BasePath = "/multicast/v1"
 	r.addMessaging(v1)
 	r.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	err = r.router.Run(fmt.Sprintf(":%d", restPort))
