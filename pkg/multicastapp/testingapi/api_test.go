@@ -122,7 +122,7 @@ type Message struct {
 }
 
 func Test_SENDMESSAGEBMULTICAST(t *testing.T) {
-	url := "http://localhost:8082/multicast/v1/messaging/PROVA"
+	url := "http://localhost:8083/multicast/v1/messaging/PROVA"
 	method := "POST"
 	helloStr := "Hello"
 	helloSlc := []byte(helloStr)

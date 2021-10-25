@@ -29,7 +29,7 @@ var (
 // @Tags groups
 // @Accept  json
 // @Produce  json
-// @Success 201 {object} MulticastGroups
+// @Success 201 {object} MulticastInfo
 //     Responses:
 //       201: body:PositionResponseBody
 // @Router /groups [get]
@@ -57,10 +57,10 @@ func GetGroups(g *gin.Context) {
 // @Tags groups
 // @Accept  json
 // @Produce  json
-// @Param post body MulticastReq
+// @Params  MulticastReq
+//       description :
+//            id of multicast and type
 // @Success 201 {object} MulticastInfo
-//     Responses:
-//       201: body:PositionResponseBody
 // @Router /groups [post]
 // CreateGroup initializes a new multicast group or join in an group.
 func CreateGroup(ctx *gin.Context) {
@@ -141,10 +141,9 @@ func CreateGroup(ctx *gin.Context) {
 // @Tags groups
 // @Accept  json
 // @Produce  json
-// @Param post body MulticastId
+// @Params MulticastId
+//       Description : id of multicast
 // @Success 201 {object} MulticastInfo
-//     Responses:
-//       201: body:PositionResponseBody
 // @Router /groups/:mId [get]
 // GetGroupById retrives group info by an id.
 func GetGroupById(ctx *gin.Context) {
@@ -174,10 +173,7 @@ func GetGroupById(ctx *gin.Context) {
 // @Tags groups
 // @Accept  json
 // @Produce  json
-// @Param post body MulticastId
 // @Success 201 {object} MulticastInfo
-//     Responses:
-//       201: body:PositionResponseBody
 // @Router /groups/:mId [put]
 // StartGroup starting multicast group
 func StartGroup(ctx *gin.Context) {
@@ -253,10 +249,7 @@ func StartGroup(ctx *gin.Context) {
 // @Tags messaging
 // @Accept  json
 // @Produce  json
-// @Param post body Message
-// @Success 201 {object}
-//     Responses:  basic.Message
-//       201: body:PositionResponseBody
+// @Success 201 {object} basic.Message
 // @Router /messaging/:mId [POST]
 // MulticastMessage Multicast a message to a group mId
 func MulticastMessage(ctx *gin.Context) {

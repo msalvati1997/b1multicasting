@@ -19,7 +19,7 @@ services:
       - APP=true
       - REGISTRY_ADDR=registry:90
       - NUM_THREADS=2
-      - DELAY=2000
+      - DELAY=2
       - VERBOSE=true
     ports:
       - 8080:80
@@ -32,7 +32,7 @@ services:
       - APP=true
       - REGISTRY_ADDR=registry:90
       - NUM_THREADS=2
-      - DELAY=1000
+      - DELAY=1
       - VERBOSE=true
     ports:
       - 8081:80
@@ -45,7 +45,7 @@ services:
       - APP=true
       - REGISTRY_ADDR=registry:90
       - NUM_THREADS=2
-      - DELAY=1500
+      - DELAY=1
       - VERBOSE=true
     ports:
       - 8082:80
@@ -58,6 +58,7 @@ services:
       - APP=true
       - REGISTRY_ADDR=registry:90
       - NUM_THREADS=2
+      - DELAY=1
       - VERBOSE=true
     ports:
       - 8083:80

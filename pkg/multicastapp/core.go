@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/msalvati1997/b1multicasting/docs"
 	_ "github.com/msalvati1997/b1multicasting/docs"
 	"github.com/msalvati1997/b1multicasting/pkg/multicasting"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/client"
@@ -55,12 +54,7 @@ type MulticastInfo struct {
 	ReceivedMessages int               `json:"received_messages"`
 	Status           string            `json:"status"`
 	Members          map[string]Member `json:"members"`
-	Error            error             `json:"error"`
-}
-
-// ErrorResponse defines an error response returned upon any request failure.
-type ErrorResponse struct {
-	Error string `json:"error"`
+	Error            string            `json:"error"`
 }
 
 type Member struct {
@@ -128,7 +122,6 @@ func (r routes) addMessaging(rg *gin.RouterGroup) {
 }
 
 func (r routes) addSwagger(rg *gin.RouterGroup) {
-	docs.SwaggerInfo.Host = "localhost"
 	groups := rg.Group("/swagger")
 	groups.GET("/", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }
@@ -141,7 +134,7 @@ func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 	groupInfo, err := StatusChange(info, group, protoregistry.Status_OPENING)
 	if err != nil {
 		group.groupMu.Lock()
-		group.group.Error = err
+		group.group.Error = err.Error()
 		group.groupMu.Unlock()
 		return
 	}
@@ -153,7 +146,7 @@ func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 
 	if err != nil {
 		group.groupMu.Lock()
-		group.group.Error = err
+		group.group.Error = err.Error()
 		group.groupMu.Unlock()
 		return
 	}
@@ -166,7 +159,7 @@ func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 	})
 	if err != nil {
 		group.groupMu.Lock()
-		group.group.Error = err
+		group.group.Error = err.Error()
 		group.groupMu.Unlock()
 		return
 	}
@@ -178,7 +171,7 @@ func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 
 	if err != nil {
 		group.groupMu.Lock()
-		group.group.Error = err
+		group.group.Error = err.Error()
 		group.groupMu.Unlock()
 		return
 	}
