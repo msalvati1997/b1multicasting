@@ -16,7 +16,7 @@ var (
 )
 
 func init() {
-	MulticastTypes = make([]string, 0)
+	MulticastTypes = make([]string, 4)
 
 	for multicastType := range MulticastType {
 		MulticastTypes = append(MulticastTypes, multicastType)
