@@ -50,6 +50,7 @@ func (s *RegistryServer) Register(ctx context.Context, in *protoregistry.Rinfo) 
 	id1 := strings.Join(id, "")
 	ids, _ := strconv.Atoi(id1)
 	utils.Myid = ids
+	utils.MystringId = id1
 	srcAddr = fmt.Sprintf("%s:%d", srcAddr, in.ClientPort)
 	utils.MyAdress = srcAddr
 	log.Println("Registration of the group ", in.MulticastId, "with client", srcAddr)
