@@ -152,7 +152,7 @@ func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 	}
 
 	log.Println("Notify the registry that the multicaster is ready")
-	// Communicating to the registry that the node is ready
+
 	groupInfo, err = registryClient.Ready(context.Background(), &protoregistry.RequestData{
 		MulticastId: group.Group.MulticastId,
 		MId:         group.clientId,
@@ -179,7 +179,7 @@ func initializeMulticast(group *MulticastGroup, b bool) error {
 	//effettuo la connessione degli altri nodi come clients
 	for memberId, member := range group.Group.Members {
 		if memberId != group.clientId {
-			log.Println("Connecting to: %s", member.Address)
+			log.Println("Connecting to ", member.Address)
 			members = append(members, member.Address)
 		}
 	}

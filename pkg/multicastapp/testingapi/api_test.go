@@ -26,7 +26,7 @@ func CREATE_GROUP(t *testing.T, host string) {
 	url := "http://localhost:" + host + "/multicast/v1/groups"
 	method := "POST"
 
-	payload := strings.NewReader(`{"multicast_type":"TOCMULTICAST","multicast_id":"TOCMULTICASTGROUP"}`)
+	payload := strings.NewReader(`{"multicast_type":"TOCMULTICAST","multicast_id":"prova"}`)
 
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, payload)
@@ -53,7 +53,7 @@ func CREATE_GROUP(t *testing.T, host string) {
 }
 
 func Test_STARTGROUP(t *testing.T) {
-	url := "http://localhost:" + "8080" + "/multicast/v1/groups/TOCMULTICASTGROUP"
+	url := "http://localhost:" + "8080" + "/multicast/v1/groups/prova"
 	method := "PUT"
 
 	client := &http.Client{}

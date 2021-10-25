@@ -25,7 +25,7 @@ func Connections(ports []string, delay int) (*Conns, error) {
 
 	clients := make([]*client.GrpcClient, len(ports))
 	for i := 0; i < len(ports); i++ {
-		log.Println("Connecting with", ports[i])
+		//log.Println("Connecting with", ports[i])
 		conn, err := client.Connect(ports[i], delay)
 		if err != nil {
 			log.Println("Error in connecting Clients ", err.Error())
