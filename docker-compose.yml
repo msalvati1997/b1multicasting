@@ -21,6 +21,7 @@ services:
       - NUM_THREADS=2
       - DELAY=2
       - VERBOSE=true
+      - ID=0
     ports:
       - 8080:80
 
@@ -34,6 +35,7 @@ services:
       - NUM_THREADS=2
       - DELAY=1
       - VERBOSE=true
+      - ID=1
     ports:
       - 8081:80
 
@@ -47,6 +49,7 @@ services:
       - NUM_THREADS=2
       - DELAY=1
       - VERBOSE=true
+      - ID=2
     ports:
       - 8082:80
 
@@ -60,5 +63,6 @@ services:
       - NUM_THREADS=2
       - DELAY=1
       - VERBOSE=true
+      - ID=3
     ports:
       - 8083:80

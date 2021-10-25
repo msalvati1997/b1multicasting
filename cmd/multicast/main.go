@@ -29,7 +29,9 @@ func main() {
 	registry_addr := flag.String("REGISTRY_ADDR", "registry:90", "service registry adress")
 	r := flag.Bool("REGISTRY", utils.GetEnvBoolWithDefault("REGISTRY", false), "start multicast registry")
 	application := flag.Bool("APP", utils.GetEnvBoolWithDefault("APP", false), "start multicast application")
+	myId := flag.Int("ID", utils.GetEnvIntWithDefault("ID", 0), "number id of member")
 
+	utils.Myid = *myId
 	flag.Parse()
 	services := make([]func(registrar grpc.ServiceRegistrar) error, 0)
 	var err error

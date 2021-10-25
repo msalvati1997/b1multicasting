@@ -10,7 +10,6 @@ import (
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
 	"log"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -46,13 +45,7 @@ func (s *RegistryServer) Register(ctx context.Context, in *protoregistry.Rinfo) 
 	}
 	src := source.Addr.String()
 	srcAddr := src[:strings.LastIndexByte(src, ':')]
-	id := strings.Split(src[:strings.LastIndexByte(src, ':')], ".")
-	id1 := strings.Join(id, "")
-	ids, _ := strconv.Atoi(id1)
-	utils.Mymu.Lock()
-	defer utils.Mymu.Unlock()
-	utils.Myid = ids
-	utils.MystringId = id1
+
 	srcAddr = fmt.Sprintf("%s:%d", srcAddr, in.ClientPort)
 	utils.MyAdress = srcAddr
 	log.Println("Registration of the group ", in.MulticastId, "with client", srcAddr)

@@ -1,15 +1,12 @@
 package basic
 
 import (
-	utils2 "github.com/msalvati1997/b1multicasting/internal/utils"
 	"github.com/msalvati1997/b1multicasting/pkg/basic"
 	"github.com/msalvati1997/b1multicasting/pkg/basic/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"log"
 	"math/rand"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -47,12 +44,7 @@ func Connect(address string, delay int) (*GrpcClient, error) {
 //method to send message to GrpcServer
 func (c *GrpcClient) Send(id string, message basic.Message, ch *chan bool) error {
 	var w sync.WaitGroup
-	s1 := c.GetTarget()[:strings.LastIndexByte(c.GetTarget(), ':')]
-	s := strings.Join(strings.Split(s1, "."), "")
-	message.MessageHeader["ProcessId"] = s
-	p, _ := strconv.Atoi(s)
-	utils2.Myid = p
-	utils2.MystringId = s
+
 	if c.Client == nil {
 		panic("Closed Connection")
 	}
