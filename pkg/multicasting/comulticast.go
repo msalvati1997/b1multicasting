@@ -31,7 +31,7 @@ func (c *Conns) COMulticast(g string, m basic.Message) error {
 			log.Println("Message not arrived to nodes ", c.Conns[i].GetTarget())
 			//prova a rinviarlo
 		} else {
-			//log.Println("Message correctly sent to ", c.Conns[i].GetTarget())
+			log.Println("Message correctly sent to ", c.Conns[i].GetTarget())
 		}
 	}
 	return nil

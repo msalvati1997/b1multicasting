@@ -197,7 +197,7 @@ func CODeliver() {
 			PrintCOQueue()
 			msg := COqueue.Q[0].Msg
 			itsvector := COqueue.Q[0].Vector
-			id := msg.MessageHeader["MyId"]
+			id := msg.MessageHeader["ProcessId"]
 			pid, _ := strconv.Atoi(id)
 			delnode := COqueue.Q[0].Msg.MessageHeader["delnode"]
 			node := DelivererNode{NodeId: delnode}

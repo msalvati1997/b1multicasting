@@ -49,9 +49,10 @@ func (s *RegistryServer) Register(ctx context.Context, in *protoregistry.Rinfo) 
 	id := strings.Split(src[:strings.LastIndexByte(src, ':')], ".")
 	id1 := strings.Join(id, "")
 	ids, _ := strconv.Atoi(id1)
+	utils.Mymu.Lock()
+	defer utils.Mymu.Unlock()
 	utils.Myid = ids
 	utils.MystringId = id1
-	log.Println("Trying to convert...", ids)
 	srcAddr = fmt.Sprintf("%s:%d", srcAddr, in.ClientPort)
 	utils.MyAdress = srcAddr
 	log.Println("Registration of the group ", in.MulticastId, "with client", srcAddr)

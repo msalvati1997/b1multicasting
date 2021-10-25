@@ -152,7 +152,7 @@ func SENDMESSAGE(t *testing.T, message string) {
 }
 
 func Test_SendMessage(t *testing.T) {
-	url := "http://localhost:8083/multicast/v1/messaging/PROVA"
+	url := "http://localhost:8080/multicast/v1/messaging/PROVA"
 	method := "POST"
 	m := []byte("PROVA")
 	obj := Message{m}

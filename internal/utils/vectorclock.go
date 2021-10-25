@@ -26,6 +26,7 @@ var (
 	Myid       int
 	MyAdress   string
 	MystringId string
+	Mymu       sync.Mutex
 )
 
 // ProcessVectorClock for a single process, implements the VectorClock interface.
