@@ -64,6 +64,9 @@ type MulticastReq struct {
 	MulticastId   string `json:"multicast_id"`
 	MulticastType protoregistry.MulticastType
 }
+type MulticastId struct {
+	MulticastId string `json:"multicast_id"`
+}
 
 type GroupConfig struct {
 	MulticastType string `json:"multicast_type"`
@@ -105,6 +108,8 @@ func (r routes) addGroups(rg *gin.RouterGroup) {
 	groups := rg.Group("/groups")
 	groups.GET("/", GetGroups)
 	groups.POST("/", CreateGroup)
+	groups.PUT("/:mId", StartGroup)
+	groups.GET("/:mId", GetGroupById)
 }
 
 func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {

@@ -6,6 +6,7 @@ import (
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
 	context "golang.org/x/net/context"
+	"log"
 	"net/http"
 	"strings"
 	"sync"
@@ -125,6 +126,73 @@ func CreateGroup(ctx *gin.Context) {
 
 	response(ctx, group.group, nil)
 }
+
+// GetGroupById godoc
+// @Summary Get Multicast Group by id
+// @Description Get Multicast Group by id
+// @Tags groups
+// @Accept  json
+// @Produce  json
+// @Param post body MulticastId
+// @Success 201 {object} MulticastInfo
+//     Responses:
+//       201: body:PositionResponseBody
+// @Router /groups [get]
+// GetGroupById retrives group info by an id.
+func GetGroupById(ctx *gin.Context) {
+	multicastId := ctx.Param("multicastId")
+
+	GMu.RLock()
+	defer GMu.RUnlock()
+
+	group, ok := MulticastGroups[multicastId]
+
+	if !ok {
+		ctx.IndentedJSON(http.StatusNotFound, gin.H{"error": "group not found"})
+		return
+	}
+
+	group.groupMu.RLock()
+	defer group.groupMu.RUnlock()
+
+	response(ctx, group, nil)
+}
+
+// StartGroup godoc
+// @Summary Start multicast by id
+// @Description Start multicast by id
+// @Tags groups
+// @Accept  json
+// @Produce  json
+// @Param post body MulticastId
+// @Success 201 {object} MulticastInfo
+//     Responses:
+//       201: body:PositionResponseBody
+// @Router /groups [put]
+// StartGroup starting multicast group
+func StartGroup(ctx *gin.Context) {
+	multicastId := ctx.Param("multicastId")
+
+	GMu.RLock()
+	defer GMu.RUnlock()
+
+	group, ok := MulticastGroups[multicastId]
+
+	if !ok {
+		response(ctx, ok, errors.New("The groups doesn't exist"))
+	}
+
+	_, err := registryClient.StartGroup(context.Background(), &protoregistry.RequestData{
+		MulticastId: group.group.MulticastId,
+		MId:         group.clientId})
+
+	if err != nil {
+		log.Println("Error in start group ", err.Error())
+		return
+	}
+	response(ctx, group, nil)
+}
+
 func response(c *gin.Context, data interface{}, err error) {
 	statusCode := http.StatusOK
 	var errorMessage string
