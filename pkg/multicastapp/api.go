@@ -144,12 +144,16 @@ func CreateGroup(ctx *gin.Context) {
 // @Router /groups/:mId [get]
 // GetGroupById retrives group info by an id.
 func GetGroupById(ctx *gin.Context) {
-	multicastId := ctx.Param("multicastId")
+	var req MulticastId
+	err := ctx.BindJSON(&req)
+	if err != nil {
+		return
+	}
 
 	GMu.RLock()
 	defer GMu.RUnlock()
 
-	group, ok := MulticastGroups[multicastId]
+	group, ok := MulticastGroups[req.MulticastId]
 
 	if !ok {
 		ctx.IndentedJSON(http.StatusNotFound, gin.H{"error": "group not found"})
@@ -175,12 +179,14 @@ func GetGroupById(ctx *gin.Context) {
 // @Router /groups/:mId [put]
 // StartGroup starting multicast group
 func StartGroup(ctx *gin.Context) {
-	multicastId := ctx.Param("multicastId")
+
+	var req MulticastId
+	ctx.BindJSON(&req)
 
 	GMu.RLock()
 	defer GMu.RUnlock()
 
-	group, ok := MulticastGroups[multicastId]
+	group, ok := MulticastGroups[req.MulticastId]
 
 	if !ok {
 		response(ctx, ok, errors.New("The groups doesn't exist"))

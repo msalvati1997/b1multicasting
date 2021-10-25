@@ -53,8 +53,8 @@ func Test_CREATE_GROUP(t *testing.T) {
 }
 
 func Test_STARTGROUP(t *testing.T) {
-	url := "http://localhost:" + host + "/multicast/v1/groups/:Mid"
-	method := "PUT"
+	url := "http://localhost:" + host + "/multicast/v1/groups"
+	method := "GET"
 
 	payload := strings.NewReader(`{"multicastId":"PROVA"}`)
 
