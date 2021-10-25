@@ -41,7 +41,7 @@ type Message struct {
 }
 
 type MessageRequest struct {
-	multicastId MulticastId
+	MulticastId string `json:"multicast_id"`
 	message     Message
 }
 
@@ -120,7 +120,7 @@ func (r routes) addGroups(rg *gin.RouterGroup) {
 
 func (r routes) addMessaging(rg *gin.RouterGroup) {
 	groups := rg.Group("/messaging")
-	groups.POST("/:Mid", MulticastMessage)
+	groups.POST("/:mId", MulticastMessage)
 }
 
 func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {

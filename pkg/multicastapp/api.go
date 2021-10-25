@@ -144,16 +144,12 @@ func CreateGroup(ctx *gin.Context) {
 // @Router /groups/:mId [get]
 // GetGroupById retrives group info by an id.
 func GetGroupById(ctx *gin.Context) {
-	var req MulticastId
-	err := ctx.BindJSON(&req)
-	if err != nil {
-		return
-	}
 
+	mId := ctx.Param("mId")
 	GMu.RLock()
 	defer GMu.RUnlock()
 
-	group, ok := MulticastGroups[req.MulticastId]
+	group, ok := MulticastGroups[mId]
 
 	if !ok {
 		ctx.IndentedJSON(http.StatusNotFound, gin.H{"error": "group not found"})
@@ -179,13 +175,13 @@ func GetGroupById(ctx *gin.Context) {
 // @Router /groups/:mId [put]
 // StartGroup starting multicast group
 func StartGroup(ctx *gin.Context) {
-	var req MulticastId
-	ctx.BindJSON(&req)
+
+	mId := ctx.Param("mId")
 
 	GMu.RLock()
 	defer GMu.RUnlock()
 
-	group, ok := MulticastGroups[req.MulticastId]
+	group, ok := MulticastGroups[mId]
 
 	if !ok {
 		response(ctx, ok, errors.New("The groups doesn't exist"))
@@ -249,24 +245,26 @@ func StartGroup(ctx *gin.Context) {
 // @Tags messaging
 // @Accept  json
 // @Produce  json
-// @Param post body MessageRequest
+// @Param post body Message
 // @Success 201 {object}
 //     Responses:  basic.Message
 //       201: body:PositionResponseBody
 // @Router /messaging/:mId [POST]
 // MulticastMessage Multicast a message to a group G
 func MulticastMessage(ctx *gin.Context) {
-	var req MessageRequest
+	mId := ctx.Param("mId")
+
+	var req Message
 	err := ctx.BindJSON(&req)
 	if err != nil {
 		return
 	}
-	group, ok := MulticastGroups[req.multicastId.MulticastId]
+	group, ok := MulticastGroups[mId]
 	if !ok {
-		response(ctx, ok, errors.New("The groups doesn't exist"))
+		response(ctx, ok, errors.New("The groups "+mId+" doesn't exist"))
 	}
 	multicastType := group.group.MulticastType
-	payload := req.message.Payload
+	payload := req.Payload
 	mtype, ok := registryservice.MulticastType[multicastType]
 	if !ok {
 		response(ctx, ok, errors.New("Multicast type not supported"))
