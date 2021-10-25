@@ -49,7 +49,7 @@ definitions:
       multicast_type:
         type: string
     type: object
-host: localhost
+host: localhost:8080
 info:
   contact:
     email: salvatimartina97@gmail.com
