@@ -78,7 +78,7 @@ func CreateGroup(ctx *gin.Context) {
 		return
 	}
 
-	multicastType, ok := registryservice.MulticastType[mType.String()]
+	multicastType, ok := registryservice.MulticastType[mType]
 
 	if !ok {
 		response(ctx, ok, errors.New("Multicast type not supported"))

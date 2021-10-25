@@ -64,7 +64,7 @@ type Member struct {
 
 type MulticastReq struct {
 	MulticastId   string `json:"multicast_id"`
-	MulticastType protoregistry.MulticastType
+	MulticastType string `json:"multicast_type"`
 }
 type MulticastId struct {
 	MulticastId string `json:"multicast_id"`
