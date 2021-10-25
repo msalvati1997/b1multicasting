@@ -25,7 +25,7 @@ func RegisterService(s grpc.ServiceRegistrar) (err error) {
 
 //implementation of the service methods called by Grpc
 func (s *Server) SendMessage(ctx context.Context, in *proto.RequestMessage) (*proto.ResponseMessage, error) {
-	if in.MessageHeader["Tranport"] == "http" {
+	if in.MessageHeader["Tranport"] == "HTTP" {
 		mid := in.MessageHeader["GroupId"]
 		group := multicastapp.MulticastGroups[mid]
 		group.Group.ReceivedMessages = group.Group.ReceivedMessages + 1
