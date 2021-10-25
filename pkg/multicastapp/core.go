@@ -108,8 +108,7 @@ func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl
 	v1 := r.router.Group(relativePath)
 	r.addGroups(v1)
 	r.addMessaging(v1)
-	r.addMessaging(v1)
-	r.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	r.router.GET("/swagger/", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	err = r.router.Run(fmt.Sprintf(":%d", restPort))
 	return err
 }
