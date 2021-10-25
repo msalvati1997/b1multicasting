@@ -28,6 +28,8 @@ func ProcessMessage(msgChan chan basic.Message) {
 			log.Println("Processing message..")
 			if data.MessageHeader["type"] == "B" {
 				log.Println("Start B_SENDING")
+				data.MessageHeader["ProcessId"] = strconv.Itoa(utils.Myid)
+				data.MessageHeader["i"] = utils.GenerateUID()
 				err := multicasting.Cnn.BMulticast(data.MessageHeader["GroupId"], data)
 				if err != nil {
 					go func() {

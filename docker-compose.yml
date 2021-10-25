@@ -11,10 +11,10 @@ services:
       - '90'
 
 
-  node1:
+  member1:
     build:
       context: .
-    container_name: node1
+    container_name: member1
     environment:
       - APP=true
       - REGISTRY_ADDR=registry:90
@@ -24,10 +24,10 @@ services:
     ports:
       - 8080:80
 
-  node2:
+  member2:
     build:
       context: .
-    container_name: node2
+    container_name: member2
     environment:
       - APP=true
       - REGISTRY_ADDR=registry:90
@@ -37,10 +37,10 @@ services:
     ports:
       - 8081:80
 
-  node3:
+  member3:
     build:
       context: .
-    container_name: node3
+    container_name: member3
     environment:
       - APP=true
       - REGISTRY_ADDR=registry:90
@@ -50,10 +50,10 @@ services:
     ports:
       - 8082:80
 
-  node4:
+  member4:
     build:
       context: .
-    container_name: node4
+    container_name: member4
     environment:
       - APP=true
       - REGISTRY_ADDR=registry:90
