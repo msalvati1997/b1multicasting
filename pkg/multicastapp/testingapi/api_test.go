@@ -1,6 +1,7 @@
 package test
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -116,14 +117,20 @@ func Test_GETGRPOUP(t *testing.T) {
 	fmt.Println(string(body))
 }
 
+type Message struct {
+	Payload []byte
+}
+
 func Test_SENDMESSAGE(t *testing.T) {
-	url := "http://localhost:8081/multicast/v1/messaging/:mId"
+	url := "http://localhost:8082/multicast/v1/messaging/PROVA"
 	method := "POST"
-
-	payload := strings.NewReader(`{"Payload":"PROVA"}`)
-
+	helloStr := "Hello"
+	helloSlc := []byte(helloStr)
+	obj := Message{helloSlc}
+	json, _ := json.Marshal(obj)
+	reader := strings.NewReader(string(json))
 	client := &http.Client{}
-	req, err := http.NewRequest(method, url, payload)
+	req, err := http.NewRequest(method, url, reader)
 
 	if err != nil {
 		fmt.Println(err)

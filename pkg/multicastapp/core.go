@@ -130,7 +130,7 @@ func (r routes) addMessaging(rg *gin.RouterGroup) {
 func (r routes) addSwagger(rg *gin.RouterGroup) {
 	docs.SwaggerInfo.Host = "localhost"
 	groups := rg.Group("/swagger")
-	groups.GET("/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	groups.GET("/", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }
 
 func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {

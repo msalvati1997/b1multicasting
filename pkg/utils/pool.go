@@ -26,6 +26,15 @@ func ProcessMessage(msgChan chan basic.Message) {
 		select {
 		case data := <-msgChan:
 			log.Println("Processing message..")
+			if data.MessageHeader["type"] == "B" {
+				err := multicasting.Cnn.BMulticast(data.MessageHeader["GroupId"], data)
+				if err != nil {
+					go func() {
+						time.Sleep(time.Second * 5)
+						msgChan <- data
+					}()
+				}
+			}
 			if data.MessageHeader["type"] == "TOD" {
 				data.MessageHeader["i"] = utils.GenerateUID()
 				data.MessageHeader["s"] = strconv.FormatUint(utils.Clock.Tock(), 10)

@@ -17,7 +17,7 @@ import (
 // @version 1.0
 // @description This is a multicast API
 // @contact.email salvatimartina97@gmail.com
-// @host localhost
+//@host localhost:8080
 // @BasePath /multicast/v1
 func main() {
 
