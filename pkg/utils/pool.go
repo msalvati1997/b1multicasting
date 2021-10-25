@@ -30,6 +30,7 @@ func ProcessMessage(msgChan chan basic.Message) {
 				log.Println("Start B_SENDING")
 				data.MessageHeader["ProcessId"] = utils.MystringId
 				data.MessageHeader["i"] = utils.GenerateUID()
+				data.MessageHeader["TIME"] = time.Now().String()
 				err := multicasting.Cnn.BMulticast(data.MessageHeader["GroupId"], data)
 				if err != nil {
 					go func() {
@@ -40,6 +41,7 @@ func ProcessMessage(msgChan chan basic.Message) {
 			}
 			if data.MessageHeader["type"] == "TOD" {
 				log.Println("Start TOD_SENDING")
+				data.MessageHeader["TIME"] = time.Now().String()
 
 				data.MessageHeader["i"] = utils.GenerateUID()
 				data.MessageHeader["s"] = strconv.FormatUint(utils.Clock.Tock(), 10)
@@ -54,6 +56,7 @@ func ProcessMessage(msgChan chan basic.Message) {
 			}
 			if data.MessageHeader["type"] == "CO" {
 				log.Println("Start CO_SENDING")
+				data.MessageHeader["TIME"] = time.Now().String()
 
 				data.MessageHeader["i"] = utils.GenerateUID()
 				data.MessageHeader["ProcessId"] = strconv.Itoa(utils.Myid)
@@ -78,6 +81,8 @@ func ProcessMessage(msgChan chan basic.Message) {
 				}
 			}
 			if data.MessageHeader["type"] == "TOC" {
+				data.MessageHeader["TIME"] = time.Now().String()
+
 				log.Println("Start TOC_SENDING")
 				data.MessageHeader["i"] = utils.GenerateUID()
 				data.MessageHeader["ProcessId"] = strconv.Itoa(utils.Myid)
