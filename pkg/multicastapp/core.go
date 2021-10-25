@@ -4,10 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/msalvati1997/b1multicasting/pkg/multicasting"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/client"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
 	"github.com/msalvati1997/b1multicasting/pkg/utils"
 	"golang.org/x/net/context"
+	"log"
 	"sync"
 	"time"
 )
@@ -44,6 +46,7 @@ type MulticastInfo struct {
 	ReceivedMessages int               `json:"received_messages"`
 	Status           string            `json:"status"`
 	Members          map[string]Member `json:"members"`
+	Error            error             `json:"error"`
 }
 
 // ErrorResponse defines an error response returned upon any request failure.
@@ -106,19 +109,74 @@ func (r routes) addGroups(rg *gin.RouterGroup) {
 
 func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 	// Waiting that the group is ready
-	update(info, group)
-	groupInfo, _ := StatusChange(info, group, protoregistry.Status_OPENING)
+	log.Println("Waiting for the group to be ready")
 
+	update(info, group)
+	groupInfo, err := StatusChange(info, group, protoregistry.Status_OPENING)
+	if err != nil {
+		group.groupMu.Lock()
+		group.group.Error = err
+		group.groupMu.Unlock()
+		return
+	}
+
+	log.Println("Group ready, initializing multicast")
+
+	// Initializing  data structures
+	err = initializeMulticast(group, b)
+
+	if err != nil {
+		group.groupMu.Lock()
+		group.group.Error = err
+		group.groupMu.Unlock()
+		return
+	}
+
+	log.Println("Notify the registry that the multicaster is ready")
 	// Communicating to the registry that the node is ready
-	groupInfo, _ = registryClient.Ready(context.Background(), &protoregistry.RequestData{
+	groupInfo, err = registryClient.Ready(context.Background(), &protoregistry.RequestData{
 		MulticastId: group.group.MulticastId,
 		MId:         group.clientId,
 	})
+	if err != nil {
+		group.groupMu.Lock()
+		group.group.Error = err
+		group.groupMu.Unlock()
+		return
+	}
 
+	log.Println("Waiting for the other nodes")
 	// Waiting tha all other nodes are ready
 	update(groupInfo, group)
 	groupInfo, _ = StatusChange(groupInfo, group, protoregistry.Status_STARTING)
 
+	if err != nil {
+		group.groupMu.Lock()
+		group.group.Error = err
+		group.groupMu.Unlock()
+		return
+	}
+
+	log.Println("Ready to multicast")
+}
+
+func initializeMulticast(group *MulticastGroup, b bool) error {
+
+	var members []string
+	//effettuo la connessione degli altri nodi come clients
+	for memberId, member := range group.group.Members {
+		if memberId != group.clientId {
+			log.Println("Connecting to: %s", member.Address)
+			members = append(members, member.Address)
+		}
+	}
+	members = append(members, group.clientId)
+	_, err := multicasting.Connections(members, int(Delay))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func StatusChange(groupInfo *protoregistry.MGroup, multicastGroup *MulticastGroup, status protoregistry.Status) (*protoregistry.MGroup, error) {
@@ -130,13 +188,13 @@ func StatusChange(groupInfo *protoregistry.MGroup, multicastGroup *MulticastGrou
 		if err != nil {
 			return nil, err
 		}
-
 		update(groupInfo, multicastGroup)
 	}
 
 	if groupInfo.Status == protoregistry.Status_CLOSED || groupInfo.Status == protoregistry.Status_CLOSING {
 		return nil, errors.New("multicast group is closed")
 	}
+	log.Println("Group status changes")
 
 	return groupInfo, nil
 }

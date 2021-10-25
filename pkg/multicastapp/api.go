@@ -6,7 +6,6 @@ import (
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
 	context "golang.org/x/net/context"
-	"log"
 	"net/http"
 	"strings"
 	"sync"
@@ -52,7 +51,7 @@ func GetGroups(g *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param post body MulticastReq
-// @Success 201 {object} MulticastGroups
+// @Success 201 {object} MulticastInfo
 //     Responses:
 //       201: body:PositionResponseBody
 // @Router /groups [post]
@@ -124,13 +123,12 @@ func CreateGroup(ctx *gin.Context) {
 
 	go InitGroup(registrationAns.GroupInfo, group, len(registrationAns.GroupInfo.Members) == 1)
 
-	response(ctx, MulticastGroups, nil)
+	response(ctx, group.group, nil)
 }
 func response(c *gin.Context, data interface{}, err error) {
 	statusCode := http.StatusOK
 	var errorMessage string
 	if err != nil {
-		log.Println("Server Error Occured:", err)
 		errorMessage = strings.Title(err.Error())
 		statusCode = http.StatusInternalServerError
 	}
