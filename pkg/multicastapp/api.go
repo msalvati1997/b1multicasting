@@ -271,6 +271,14 @@ func MulticastMessage(ctx *gin.Context) {
 	if !ok {
 		response(ctx, ok, errors.New("The groups "+mId+" doesn't exist"))
 	}
+
+	group.groupMu.RLock()
+	defer group.groupMu.RUnlock()
+
+	if protoregistry.Status(protoregistry.Status_value[group.group.Status]) != protoregistry.Status_ACTIVE {
+		ctx.IndentedJSON(http.StatusTooEarly, gin.H{"error": "group not ready"})
+		return
+	}
 	log.Println("Trying to multicasting message to group ", mId)
 	multicastType := group.group.MulticastType
 	payload := req.Payload
@@ -298,6 +306,13 @@ func MulticastMessage(ctx *gin.Context) {
 	}
 
 	utils2.GoPool.MessageCh <- msg
+
+	group.messageMu.Lock()
+	defer group.messageMu.Unlock()
+	var m Message
+	m.MessageHeader = msg.MessageHeader
+	m.Payload = msg.Payload
+	group.messages = append(group.messages, m)
 	response(ctx, msg, nil)
 }
 

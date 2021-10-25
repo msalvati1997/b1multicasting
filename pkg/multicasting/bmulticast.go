@@ -32,7 +32,7 @@ func (c *Conns) BMulticast(g string, m basic.Message) error {
 		if r != true {
 			log.Println("Message not arrived to nodes ", c.Conns[i].GetTarget())
 		} else {
-			//log.Println("Message correctly sent to ", c.Conns[i].GetTarget())
+			log.Println("Message correctly sent to ", c.Conns[i].GetTarget())
 		}
 	}
 	return nil

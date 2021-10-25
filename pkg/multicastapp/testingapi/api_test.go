@@ -21,10 +21,10 @@ func Test_main(t *testing.T) {
 	Test_CREATE_GROUP(t)
 	host = "8080"
 	Test_CREATE_GROUP(t)
-	time.Sleep(1 * time.Second)
+	time.Sleep(3 * time.Second)
 	Test_STARTGROUP(t)
-	time.Sleep(5 * time.Second)
-	Test_SENDMESSAGE(t)
+	time.Sleep(10 * time.Second)
+	Test_SENDMESSAGEBMULTICAST(t)
 }
 
 func Test_CREATE_GROUP(t *testing.T) {
@@ -121,7 +121,7 @@ type Message struct {
 	Payload []byte
 }
 
-func Test_SENDMESSAGE(t *testing.T) {
+func Test_SENDMESSAGEBMULTICAST(t *testing.T) {
 	url := "http://localhost:8082/multicast/v1/messaging/PROVA"
 	method := "POST"
 	helloStr := "Hello"
