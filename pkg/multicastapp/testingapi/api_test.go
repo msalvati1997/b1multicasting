@@ -22,7 +22,7 @@ func Test_main(t *testing.T) {
 	Test_CREATE_GROUP(t)
 	time.Sleep(1 * time.Second)
 	Test_STARTGROUP(t)
-	time.Sleep(3 * time.Second)
+	time.Sleep(5 * time.Second)
 	Test_SENDMESSAGE(t)
 }
 
@@ -57,7 +57,7 @@ func Test_CREATE_GROUP(t *testing.T) {
 }
 
 func Test_STARTGROUP(t *testing.T) {
-	url := "http://localhost:" + "8080" + "/multicast/v1/groups/:MId"
+	url := "http://localhost:" + "8080" + "/multicast/v1/groups/PROVA"
 	method := "PUT"
 
 	payload := strings.NewReader(`{"multicast_id":"PROVA"}`)
@@ -117,10 +117,10 @@ func Test_GETGRPOUP(t *testing.T) {
 }
 
 func Test_SENDMESSAGE(t *testing.T) {
-	url := "http://localhost:" + "8080" + "/multicast/v1/messaging/PROVA"
+	url := "http://localhost:8081/multicast/v1/messaging/:mId"
 	method := "POST"
 
-	payload := strings.NewReader(`{"multicast_Id":""}`)
+	payload := strings.NewReader(`{"Payload":"PROVA"}`)
 
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, payload)

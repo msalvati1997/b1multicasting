@@ -25,6 +25,7 @@ func ProcessMessage(msgChan chan basic.Message) {
 	for {
 		select {
 		case data := <-msgChan:
+			log.Println("Processing message..")
 			if data.MessageHeader["type"] == "TOD" {
 				data.MessageHeader["i"] = utils.GenerateUID()
 				data.MessageHeader["s"] = strconv.FormatUint(utils.Clock.Tock(), 10)
@@ -76,6 +77,7 @@ func ProcessMessage(msgChan chan basic.Message) {
 }
 
 func (p *Pool) Initialize(nthreads int) {
+	log.Println("initialize pool")
 
 	p.MessageCh = make(chan basic.Message, 50)
 

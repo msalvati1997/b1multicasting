@@ -250,25 +250,27 @@ func StartGroup(ctx *gin.Context) {
 //     Responses:  basic.Message
 //       201: body:PositionResponseBody
 // @Router /messaging/:mId [POST]
-// MulticastMessage Multicast a message to a group G
+// MulticastMessage Multicast a message to a group mId
 func MulticastMessage(ctx *gin.Context) {
 	mId := ctx.Param("mId")
-
 	var req Message
 	err := ctx.BindJSON(&req)
 	if err != nil {
-		return
+		response(ctx, "Error in input ", err)
 	}
+
 	group, ok := MulticastGroups[mId]
 	if !ok {
 		response(ctx, ok, errors.New("The groups "+mId+" doesn't exist"))
 	}
+	log.Println("Trying to multicasting message to group ", mId)
 	multicastType := group.group.MulticastType
 	payload := req.Payload
 	mtype, ok := registryservice.MulticastType[multicastType]
 	if !ok {
 		response(ctx, ok, errors.New("Multicast type not supported"))
 	}
+	log.Println("Trying to sending ", payload)
 	msg := basic.NewMessage(make(map[string]string), payload)
 	if mtype.Number() == 0 {
 		msg.MessageHeader["type"] = "B"
@@ -286,6 +288,7 @@ func MulticastMessage(ctx *gin.Context) {
 		msg.MessageHeader["type"] = "CO"
 		msg.MessageHeader["GroupId"] = group.group.MulticastId
 	}
+
 	utils2.GoPool.MessageCh <- msg
 	response(ctx, msg, nil)
 }
