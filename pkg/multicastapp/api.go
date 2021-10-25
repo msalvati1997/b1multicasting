@@ -115,7 +115,7 @@ func CreateGroup(ctx *gin.Context) {
 		clientId: registrationAns.ClientId,
 		Group: &MulticastInfo{
 			MulticastId:      registrationAns.GroupInfo.MulticastId,
-			MulticastType:    protoregistry.MulticastType_name[int32(registrationAns.GroupInfo.MulticastType.Number())],
+			MulticastType:    multicastType.String(),
 			ReceivedMessages: 0,
 			Status:           protoregistry.Status_name[int32(registrationAns.GroupInfo.Status)],
 			Members:          members,

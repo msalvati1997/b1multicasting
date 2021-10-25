@@ -56,6 +56,9 @@ func (s *RegistryServer) Register(ctx context.Context, in *protoregistry.Rinfo) 
 	multicastGroup, exists := groups[multicastId]
 
 	if exists {
+		if multicastGroup.groupInfo.MulticastType != in.MulticastType {
+			return nil, status.Errorf(codes.InvalidArgument, "MulticastType")
+		}
 		if multicastGroup.groupInfo.Status != protoregistry.Status_OPENING {
 			return nil, status.Errorf(codes.PermissionDenied, "ServiceStarted")
 		}
@@ -66,9 +69,10 @@ func (s *RegistryServer) Register(ctx context.Context, in *protoregistry.Rinfo) 
 		log.Println("Start registering ..")
 		// Creating the group
 		multicastGroup = &Mgroup{groupInfo: &protoregistry.MGroup{
-			MulticastId: multicastId,
-			Status:      protoregistry.Status_OPENING,
-			Members:     make(map[string]*protoregistry.MemberInfo),
+			MulticastId:   multicastId,
+			MulticastType: in.MulticastType,
+			Status:        protoregistry.Status_OPENING,
+			Members:       make(map[string]*protoregistry.MemberInfo),
 		}}
 		groups[multicastId] = multicastGroup
 	}
