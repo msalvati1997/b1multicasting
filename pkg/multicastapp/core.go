@@ -104,6 +104,7 @@ func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl
 	}
 	v1 := r.router.Group(relativePath)
 	r.addGroups(v1)
+	r.addMessaging(v1)
 
 	err = r.router.Run(fmt.Sprintf(":%d", restPort))
 	return err

@@ -21,7 +21,7 @@ var (
 	timeout = time.Second
 )
 
-// @BasePath /multicast/api
+// @BasePath /multicast/v1
 
 // GetGroups godoc
 // @Summary Get Multicast Group
@@ -179,7 +179,6 @@ func GetGroupById(ctx *gin.Context) {
 // @Router /groups/:mId [put]
 // StartGroup starting multicast group
 func StartGroup(ctx *gin.Context) {
-
 	var req MulticastId
 	ctx.BindJSON(&req)
 
