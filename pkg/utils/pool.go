@@ -29,9 +29,7 @@ func ProcessMessage(msgChan chan basic.Message) {
 			if data.MessageHeader["type"] == "B" {
 				currentTime := time.Now()
 				log.Println("Start B_SENDING")
-				data.MessageHeader["ProcessId"] = strconv.Itoa(utils.Myid)
 				data.MessageHeader["i"] = utils.GenerateUID()
-				log.Println(strconv.Itoa(utils.Myid))
 				data.MessageHeader["TIME"] = currentTime.Format("2006-01-02 15:04:05")
 				err := multicasting.Cnn.BMulticast(data.MessageHeader["GroupId"], data)
 				if err != nil {

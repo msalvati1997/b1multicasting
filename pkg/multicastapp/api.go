@@ -12,6 +12,7 @@ import (
 	context "golang.org/x/net/context"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -283,6 +284,7 @@ func MulticastMessage(ctx *gin.Context) {
 
 	msg := basic.NewMessage(make(map[string]string), payload)
 	msg.MessageHeader["Tranport"] = "HTTP"
+	msg.MessageHeader["ProcessId"] = strconv.Itoa(utils.Myid)
 	if mtype.Number() == 0 {
 		msg.MessageHeader["type"] = "B"
 		msg.MessageHeader["GroupId"] = group.Group.MulticastId

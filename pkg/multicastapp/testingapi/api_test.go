@@ -20,10 +20,7 @@ func Test_main(t *testing.T) {
 	CREATE_GROUP(t, "8080")
 	time.Sleep(3 * time.Second)
 	Test_STARTGROUP(t)
-	time.Sleep(5 * time.Second)
-	SENDMESSAGE(t, "PROVA1")
-	time.Sleep(1 * time.Second)
-	SENDMESSAGE(t, "PROVA2")
+
 }
 
 func CREATE_GROUP(t *testing.T, host string) {
@@ -152,7 +149,7 @@ func SENDMESSAGE(t *testing.T, message string) {
 }
 
 func Test_SendMessage(t *testing.T) {
-	url := "http://localhost:8080/multicast/v1/messaging/PROVA"
+	url := "http://localhost:8083/multicast/v1/messaging/PROVA"
 	method := "POST"
 	m := []byte("PROVA")
 	obj := Message{m}
