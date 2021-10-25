@@ -28,7 +28,7 @@ func ProcessMessage(msgChan chan basic.Message) {
 			log.Println("Processing message..")
 			if data.MessageHeader["type"] == "B" {
 				log.Println("Start B_SENDING")
-				data.MessageHeader["ProcessId"] = utils.MystringId
+				data.MessageHeader["ProcessId"] = strconv.Itoa(utils.Myid)
 				data.MessageHeader["i"] = utils.GenerateUID()
 				data.MessageHeader["TIME"] = time.UnixDate
 				err := multicasting.Cnn.BMulticast(data.MessageHeader["GroupId"], data)

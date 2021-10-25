@@ -31,7 +31,7 @@ var (
 
 func init() {
 	Del = Deliverers{
-		DelivererNodes: make([]*Delivery, 100),
+		DelivererNodes: make([]*Delivery, 0, 100),
 	}
 }
 func (node *DelivererNode) BDeliver(message basic.Message) {

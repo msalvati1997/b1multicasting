@@ -51,9 +51,7 @@ func (s *RegistryServer) Register(ctx context.Context, in *protoregistry.Rinfo) 
 	ids, _ := strconv.Atoi(id1)
 	utils.Myid = ids
 	utils.MystringId = id1
-	log.Println(srcAddr)
-	log.Println(id1)
-
+	log.Println("Trying to convert...", ids)
 	srcAddr = fmt.Sprintf("%s:%d", srcAddr, in.ClientPort)
 	utils.MyAdress = srcAddr
 	log.Println("Registration of the group ", in.MulticastId, "with client", srcAddr)
