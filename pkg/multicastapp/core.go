@@ -4,13 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/msalvati1997/b1multicasting/docs"
 	_ "github.com/msalvati1997/b1multicasting/docs"
 	"github.com/msalvati1997/b1multicasting/pkg/multicasting"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/client"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
 	"github.com/msalvati1997/b1multicasting/pkg/utils"
-	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"golang.org/x/net/context"
 	"log"
 	"sync"
@@ -108,7 +109,7 @@ func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl
 	v1 := r.router.Group(relativePath)
 	r.addGroups(v1)
 	r.addMessaging(v1)
-	r.router.GET("/swagger/", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	r.addSwagger(v1)
 	err = r.router.Run(fmt.Sprintf(":%d", restPort))
 	return err
 }
@@ -124,6 +125,12 @@ func (r routes) addGroups(rg *gin.RouterGroup) {
 func (r routes) addMessaging(rg *gin.RouterGroup) {
 	groups := rg.Group("/messaging")
 	groups.POST("/:mId", MulticastMessage)
+}
+
+func (r routes) addSwagger(rg *gin.RouterGroup) {
+	docs.SwaggerInfo.Host = "localhost"
+	groups := rg.Group("/swagger")
+	groups.GET("/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }
 
 func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
