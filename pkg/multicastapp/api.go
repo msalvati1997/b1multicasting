@@ -83,7 +83,7 @@ func CreateGroup(ctx *gin.Context) {
 	if !ok {
 		response(ctx, ok, errors.New("Multicast type not supported"))
 	}
-	log.Println("Creating/Joining at multicast with type ", multicastType.String())
+	log.Println("Creating/Joining at multicast with type ", multicastType, " ", multicastType.String())
 
 	GMu.Lock()
 	defer GMu.Unlock()
@@ -118,7 +118,7 @@ func CreateGroup(ctx *gin.Context) {
 		clientId: registrationAns.ClientId,
 		Group: &MulticastInfo{
 			MulticastId:      registrationAns.GroupInfo.MulticastId,
-			MulticastType:    protoregistry.MulticastType_name[int32(registrationAns.GroupInfo.MulticastType)],
+			MulticastType:    multicastType.String(),
 			ReceivedMessages: 0,
 			Status:           protoregistry.Status_name[int32(registrationAns.GroupInfo.Status)],
 			Members:          members,
