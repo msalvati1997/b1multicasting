@@ -1,95 +1,66 @@
 package multicastapp
 
 import (
-	"context"
+	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/msalvati1997/b1multicasting/pkg/basic"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
+	context "golang.org/x/net/context"
+	"log"
 	"net/http"
+	"strings"
 	"sync"
-)
-
-type HttpMethod int
-
-const (
-	HttpMethodGET HttpMethod = iota
-	HttpMethodPOST
-	HttpMethodPUT
-	HttpMethodDELETE
-	HttpMethodHEAD
+	"time"
 )
 
 var (
-	HttpMethodName = map[HttpMethod]string{
-		HttpMethodGET:    "GET",
-		HttpMethodPOST:   "POST",
-		HttpMethodPUT:    "PUT",
-		HttpMethodDELETE: "DELETE",
-		HttpMethodHEAD:   "HEAD",
-	}
-	MulticastTypeValue = map[string]HttpMethod{
-		"GET":    HttpMethodGET,
-		"POST":   HttpMethodPOST,
-		"PUT":    HttpMethodPUT,
-		"DELETE": HttpMethodDELETE,
-		"HEAD":   HttpMethodHEAD,
-	}
+	timeout = time.Second
 )
 
-var restAPI = map[string]map[HttpMethod]func(ctx *gin.Context){
+// @BasePath /multicast/api
 
-	"/groups": {
-		HttpMethodGET: GetGroups,
-	},
-	"/groups/:multicastId": {
-		HttpMethodPUT:  CreateGroup,
-		HttpMethodPOST: StartGroup,
-	},
-}
+// GetGroups godoc
+// @Summary Get Multicast Group
+// @Description Get Multicast Group
+// @Tags groups
+// @Accept  json
+// @Produce  json
+// @Success 201 {object} MulticastGroups
+//     Responses:
+//       201: body:PositionResponseBody
+// @Router /groups [get]
+func GetGroups(g *gin.Context) {
 
-func GetRestAPI() map[string]map[HttpMethod]func(ctx *gin.Context) {
-	api := make(map[string]map[HttpMethod]func(ctx *gin.Context))
+	groups := make([]*MulticastInfo, 0)
 
-	for key, value := range restAPI {
-		api[key] = value
-	}
+	GMu.RLock()
+	defer GMu.RUnlock()
 
-	return api
-}
-
-func GetRouterMethods(router *gin.RouterGroup) (map[HttpMethod]func(path string, handlers ...gin.HandlerFunc) gin.IRoutes, error) {
-	routerMap := make(map[HttpMethod]func(path string, handlers ...gin.HandlerFunc) gin.IRoutes)
-
-	routerMap[HttpMethodGET] = router.GET
-	routerMap[HttpMethodPOST] = router.POST
-	routerMap[HttpMethodPUT] = router.PUT
-	routerMap[HttpMethodDELETE] = router.DELETE
-	routerMap[HttpMethodHEAD] = router.HEAD
-
-	return routerMap, nil
-
-}
-
-// GetGroups returns the groups to which the node is registered
-func GetGroups(ctx *gin.Context) {
-
-	groups := make([]*MulticastGroupInfo, 0)
-
-	groupsMu.RLock()
-	defer groupsMu.RUnlock()
-
-	for _, group := range multicastGroups {
+	for _, group := range MulticastGroups {
 		group.groupMu.RLock()
 		groups = append(groups, group.group)
 		group.groupMu.RUnlock()
 	}
 
-	ctx.IndentedJSON(http.StatusOK, groups)
+	g.IndentedJSON(http.StatusOK, groups)
 }
 
+// CreateGroup godoc
+// @Summary Create Multicast Group
+// @Description Create Multicast Group
+// @Tags groups
+// @Accept  json
+// @Produce  json
+// @Param post body MulticastReq
+// @Success 201 {object} MulticastGroups
+//     Responses:
+//       201: body:PositionResponseBody
+// @Router /groups [post]
 // CreateGroup initializes a new multicast group.
 func CreateGroup(ctx *gin.Context) {
+	context_, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
 	var config GroupConfig
 
 	multicastId := ctx.Param("multicastId")
@@ -104,29 +75,26 @@ func CreateGroup(ctx *gin.Context) {
 	multicastType, ok := registryservice.MulticastType[config.MulticastType]
 
 	if !ok {
-		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"error": "multicast_type not supported", "supported": registryservice.MulticastTypes})
-		return
+		response(ctx, ok, errors.New("Multicast type not supported"))
 	}
 
-	groupsMu.Lock()
-	defer groupsMu.Unlock()
+	GMu.Lock()
+	defer GMu.Unlock()
 
-	group, ok := multicastGroups[multicastId]
+	group, ok := MulticastGroups[multicastId]
 
 	if ok {
-		ctx.IndentedJSON(http.StatusConflict, gin.H{"error": "group already exists"})
-		return
+		response(ctx, ok, errors.New("Group already exists"))
 	}
 
-	registrationAns, err := registryClient.Register(context.Background(), &protoregistry.Rinfo{
+	registrationAns, err := registryClient.Register(context_, &protoregistry.Rinfo{
 		MulticastId:   multicastId,
 		MulticastType: multicastType,
-		ClientPort:    uint32(grpcPort),
+		ClientPort:    uint32(GrpcPort),
 	})
 
 	if err != nil {
-		ctx.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		response(ctx, err.Error(), errors.New("Error in registering client "))
 	}
 
 	members := make(map[string]Member, 0)
@@ -141,48 +109,30 @@ func CreateGroup(ctx *gin.Context) {
 
 	group = &MulticastGroup{
 		clientId: registrationAns.ClientId,
-		group: &MulticastGroupInfo{
+		group: &MulticastInfo{
 			MulticastId:      registrationAns.GroupInfo.MulticastId,
 			MulticastType:    protoregistry.MulticastType_name[int32(registrationAns.GroupInfo.MulticastType)],
 			ReceivedMessages: 0,
 			Status:           protoregistry.Status_name[int32(registrationAns.GroupInfo.Status)],
 			Members:          members,
 		},
-		messages: make([]basic.Message, 0),
+		messages: make([]Message, 0),
 		groupMu:  sync.RWMutex{},
 	}
 
-	multicastGroups[registrationAns.GroupInfo.MulticastId] = group
+	MulticastGroups[registrationAns.GroupInfo.MulticastId] = group
 
-	go initializeGroup(registrationAns.GroupInfo, group, len(registrationAns.GroupInfo.Members) == 1)
+	go InitGroup(registrationAns.GroupInfo, group, len(registrationAns.GroupInfo.Members) == 1)
 
-	ctx.Status(http.StatusOK)
+	response(ctx, MulticastGroups, nil)
 }
-
-// StartGroup completes the initialization phase of a multicast group.
-// The aforementioned group can now be used to perform multicast operations
-func StartGroup(ctx *gin.Context) {
-
-	multicastId := ctx.Param("multicastId")
-
-	groupsMu.RLock()
-	defer groupsMu.RUnlock()
-
-	group, ok := multicastGroups[multicastId]
-
-	if !ok {
-		ctx.IndentedJSON(http.StatusNotFound, gin.H{"error": "group not found"})
-		return
-	}
-
-	group.groupMu.RLock()
-	defer group.groupMu.RUnlock()
-
-	_, err := registryClient.StartGroup(context.Background(), &protoregistry.RequestData{MulticastId: group.group.MulticastId, MId: group.clientId})
+func response(c *gin.Context, data interface{}, err error) {
+	statusCode := http.StatusOK
+	var errorMessage string
 	if err != nil {
-		ctx.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		log.Println("Server Error Occured:", err)
+		errorMessage = strings.Title(err.Error())
+		statusCode = http.StatusInternalServerError
 	}
-
-	ctx.Status(http.StatusOK)
+	c.JSON(statusCode, gin.H{"data": data, "error": errorMessage})
 }

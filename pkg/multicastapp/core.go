@@ -1,55 +1,54 @@
-// Package distribuitedmulticast provides functions to run a Http REST server running a multicast node
 package multicastapp
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/msalvati1997/b1multicasting/pkg/basic"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/client"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
+	"github.com/msalvati1997/b1multicasting/pkg/utils"
+	"golang.org/x/net/context"
 	"sync"
 	"time"
 )
 
-const appHeader = "multicast"
-
 var (
-	multicastGroups map[string]*MulticastGroup
-	groupsMu        sync.RWMutex
 	registryClient  protoregistry.RegistryClient
-	grpcPort        uint
-	delay           uint
+	GMu             sync.RWMutex
+	Delay           uint
+	MulticastGroups map[string]*MulticastGroup
+	GrpcPort        uint
 )
 
 func init() {
-	multicastGroups = make(map[string]*MulticastGroup)
+	MulticastGroups = make(map[string]*MulticastGroup)
 }
 
 // MulticastGroup manages the metadata associated with a group in which the node is registered
 type MulticastGroup struct {
 	clientId  string
-	group     *MulticastGroupInfo
+	group     *MulticastInfo
 	groupMu   sync.RWMutex
-	messages  []basic.Message
+	messages  []Message
 	messageMu sync.RWMutex
 }
 
-type MulticastGroupInfo struct {
+type Message struct {
+	MessageHeader map[string]string `json:"MessageHeader"`
+	Payload       []byte            `json:"Payload"`
+}
+
+type MulticastInfo struct {
 	MulticastId      string            `json:"multicast_id"`
 	MulticastType    string            `json:"multicast_type"`
 	ReceivedMessages int               `json:"received_messages"`
 	Status           string            `json:"status"`
 	Members          map[string]Member `json:"members"`
-	Error            error             `json:"error"`
 }
 
-type RegistryGroupInfo struct {
-	MulticastId   string            `json:"multicast_id"`
-	MulticastType string            `json:"multicast_type"`
-	Status        string            `json:"status"`
-	Members       map[string]Member `json:"members"`
+// ErrorResponse defines an error response returned upon any request failure.
+type ErrorResponse struct {
+	Error string `json:"error"`
 }
 
 type Member struct {
@@ -58,17 +57,22 @@ type Member struct {
 	Ready    bool   `json:"ready"`
 }
 
+type MulticastReq struct {
+	MulticastId   string `json:"multicast_id"`
+	MulticastType protoregistry.MulticastType
+}
+
 type GroupConfig struct {
 	MulticastType string `json:"multicast_type"`
 }
+type routes struct {
+	router *gin.Engine
+}
 
-// AppCmd represents a command that can be used between multicast nodes
-type AppCmd int
-
-// Run initializes and executes the Rest HTTP server and the multicast node
 func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl uint, debug bool) error {
-	grpcPort = grpcP
-	delay = dl
+	GrpcPort = grpcP
+	Delay = dl
+
 	var err error
 
 	registryClient, err = client.Connect(registryAddr)
@@ -76,86 +80,48 @@ func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl
 	if err != nil {
 		return err
 	}
-
 	if debug {
 		gin.SetMode(gin.DebugMode)
 	} else {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	router := gin.Default()
+	utils.GoPool.Initialize(int(numThreads))
 
-	routerGroup := router.Group(relativePath)
-
-	routerMap, err := GetRouterMethods(routerGroup)
-
-	for path, methods := range GetRestAPI() {
-		for methodType, method := range methods {
-			routerMethod, ok := routerMap[methodType]
-
-			if !ok {
-				return errors.New(fmt.Sprintf("missing routing method: %s", HttpMethodName[methodType]))
-			}
-
-			routerMethod(path, method)
-
-		}
+	r := routes{
+		router: gin.Default(),
 	}
+	v1 := r.router.Group(relativePath)
+	r.addGroups(v1)
 
-	err = router.Run(fmt.Sprintf(":%d", restPort))
-	if err != nil {
-		return err
-	}
-
-	return nil
+	err = r.router.Run(fmt.Sprintf(":%d", restPort))
+	return err
 }
 
-// initializeGroup initializes a multicast group
-func initializeGroup(groupInfo *protoregistry.MGroup, multicastGroup *MulticastGroup, isMaster bool) {
+func (r routes) addGroups(rg *gin.RouterGroup) {
+	groups := rg.Group("/groups")
+	groups.GET("/", GetGroups)
+	groups.POST("/", CreateGroup)
+}
 
+func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 	// Waiting that the group is ready
-	updateMulticastGroup(groupInfo, multicastGroup)
-	groupInfo, err := waitStatusChange(groupInfo, multicastGroup, protoregistry.Status_OPENING)
-
-	if err != nil {
-		multicastGroup.groupMu.Lock()
-		multicastGroup.group.Error = err
-		multicastGroup.groupMu.Unlock()
-		return
-	}
-
-	if err != nil {
-		multicastGroup.groupMu.Lock()
-		multicastGroup.group.Error = err
-		multicastGroup.groupMu.Unlock()
-		return
-	}
+	update(info, group)
+	groupInfo, _ := StatusChange(info, group, protoregistry.Status_OPENING)
 
 	// Communicating to the registry that the node is ready
-	groupInfo, err = registryClient.Ready(context.Background(), &protoregistry.RequestData{MulticastId: multicastGroup.group.MulticastId, MId: multicastGroup.clientId})
-
-	if err != nil {
-		multicastGroup.groupMu.Lock()
-		multicastGroup.group.Error = err
-		multicastGroup.groupMu.Unlock()
-		return
-	}
+	groupInfo, _ = registryClient.Ready(context.Background(), &protoregistry.RequestData{
+		MulticastId: group.group.MulticastId,
+		MId:         group.clientId,
+	})
 
 	// Waiting tha all other nodes are ready
-	updateMulticastGroup(groupInfo, multicastGroup)
-	groupInfo, err = waitStatusChange(groupInfo, multicastGroup, protoregistry.Status_STARTING)
-
-	if err != nil {
-		multicastGroup.groupMu.Lock()
-		multicastGroup.group.Error = err
-		multicastGroup.groupMu.Unlock()
-		return
-	}
+	update(groupInfo, group)
+	groupInfo, _ = StatusChange(groupInfo, group, protoregistry.Status_STARTING)
 
 }
 
-// waitStatusChange waits until the status of the group in the registry changes
-func waitStatusChange(groupInfo *protoregistry.MGroup, multicastGroup *MulticastGroup, status protoregistry.Status) (*protoregistry.MGroup, error) {
+func StatusChange(groupInfo *protoregistry.MGroup, multicastGroup *MulticastGroup, status protoregistry.Status) (*protoregistry.MGroup, error) {
 	var err error
 
 	for groupInfo.Status == status {
@@ -165,8 +131,7 @@ func waitStatusChange(groupInfo *protoregistry.MGroup, multicastGroup *Multicast
 			return nil, err
 		}
 
-		updateMulticastGroup(groupInfo, multicastGroup)
-
+		update(groupInfo, multicastGroup)
 	}
 
 	if groupInfo.Status == protoregistry.Status_CLOSED || groupInfo.Status == protoregistry.Status_CLOSING {
@@ -176,8 +141,7 @@ func waitStatusChange(groupInfo *protoregistry.MGroup, multicastGroup *Multicast
 	return groupInfo, nil
 }
 
-// updateMulticastGroup updates local group infos with ones received from the registry
-func updateMulticastGroup(groupInfo *protoregistry.MGroup, multicastGroup *MulticastGroup) {
+func update(groupInfo *protoregistry.MGroup, multicastGroup *MulticastGroup) {
 	multicastGroup.groupMu.Lock()
 	defer multicastGroup.groupMu.Unlock()
 
