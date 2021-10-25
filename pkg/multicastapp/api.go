@@ -198,12 +198,12 @@ func StartGroup(ctx *gin.Context) {
 		log.Println("Error in start group ", err.Error())
 		return
 	}
-	log.Println("Group starting..")
+	log.Println("Group ", groupInfo.MulticastId, "start with types of communication ", groupInfo.MulticastType.String())
 
-	if groupInfo.MulticastType.Number() == 0 {
+	if groupInfo.MulticastType.String() == "BMULTICAST" {
 		log.Println("STARTING BMULTICAST COMMUNICATION")
 	}
-	if groupInfo.MulticastType.Number() == 1 {
+	if groupInfo.MulticastType.String() == "TOCMULTICAST" {
 		log.Println("STARTING TOC COMMUNICATION")
 		members := []string{}
 		for k := range groupInfo.Members {
@@ -229,11 +229,11 @@ func StartGroup(ctx *gin.Context) {
 		multicasting.Seq.SeqPort = sequencerPort
 		go utils2.TOCDeliver()
 	}
-	if groupInfo.MulticastType.Number() == 2 {
+	if groupInfo.MulticastType.String() == "TODMULTICAST" {
 		log.Println("STARTING TOD COMMUNICATION")
 		go utils2.TODDeliver()
 	}
-	if groupInfo.MulticastType.Number() == 3 {
+	if groupInfo.MulticastType.String() == "COMULTICAST" {
 		utils.Vectorclock = utils.NewVectorClock(len(groupInfo.Members))
 		log.Println("STARTING CO COMMUNICATION")
 		go utils2.CODeliver()

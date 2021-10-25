@@ -19,7 +19,7 @@ func Test_main(t *testing.T) {
 	CREATE_GROUP(t, "8083")
 	CREATE_GROUP(t, "8080")
 	time.Sleep(3 * time.Second)
-	//	Test_STARTGROUP(t)
+	Test_STARTGROUP(t)
 }
 
 func CREATE_GROUP(t *testing.T, host string) {
@@ -53,7 +53,7 @@ func CREATE_GROUP(t *testing.T, host string) {
 }
 
 func Test_STARTGROUP(t *testing.T) {
-	url := "http://localhost:" + "8080" + "/multicast/v1/groups/PROVA1"
+	url := "http://localhost:" + "8080" + "/multicast/v1/groups/TOCMULTICASTGROUP"
 	method := "PUT"
 
 	client := &http.Client{}
