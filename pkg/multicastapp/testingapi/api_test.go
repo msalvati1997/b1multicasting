@@ -20,7 +20,6 @@ func Test_main(t *testing.T) {
 	CREATE_GROUP(t, "8080")
 	time.Sleep(3 * time.Second)
 	Test_STARTGROUP(t)
-
 }
 
 func CREATE_GROUP(t *testing.T, host string) {

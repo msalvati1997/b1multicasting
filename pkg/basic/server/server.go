@@ -40,7 +40,6 @@ func (s *Server) SendMessage(ctx context.Context, in *proto.RequestMessage) (*pr
 	}
 	source, _ := peer.FromContext(ctx)
 	id := in.GetId()
-
 	log.Println("Request from :{user_ip :", source.Addr, ",auth : ", source.AuthInfo, "} ")
 	log.Println("Received message : payload: ", string(in.Payload), " header ", in.MessageHeader)
 	//start deliverying..

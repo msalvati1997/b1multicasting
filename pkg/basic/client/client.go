@@ -47,7 +47,8 @@ func Connect(address string, delay int) (*GrpcClient, error) {
 //method to send message to GrpcServer
 func (c *GrpcClient) Send(id string, message basic.Message, ch *chan bool) error {
 	var w sync.WaitGroup
-	s := strings.Join(strings.Split(c.GetTarget(), "."), "")
+	s1 := c.GetTarget()[:strings.LastIndexByte(c.GetTarget(), ':')]
+	s := strings.Join(strings.Split(s1, "."), "")
 	message.MessageHeader["ProcessId"] = s
 	p, _ := strconv.Atoi(s)
 	utils2.Myid = p
