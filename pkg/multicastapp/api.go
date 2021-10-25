@@ -71,19 +71,16 @@ func CreateGroup(ctx *gin.Context) {
 	err := ctx.BindJSON(&req)
 
 	multicastId := req.MulticastId
-	mType := req.MulticastType
 
 	if err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	multicastType, ok := registryservice.MulticastType[mType]
-
+	multicastType, ok := registryservice.MulticastType[req.MulticastType]
 	if !ok {
 		response(ctx, ok, errors.New("Multicast type not supported"))
 	}
-	log.Println("Creating/Joining at multicast with type ", multicastType, " ", multicastType.String())
+	log.Println("Creating/Joining at multicast with type ", multicastType)
 
 	GMu.Lock()
 	defer GMu.Unlock()
@@ -198,12 +195,14 @@ func StartGroup(ctx *gin.Context) {
 		log.Println("Error in start group ", err.Error())
 		return
 	}
-	log.Println("Group ", groupInfo.MulticastId, "start with types of communication ", groupInfo.MulticastType.String())
+	multicastType := registryservice.MulticastType[groupInfo.GetMulticastType().String()]
 
-	if groupInfo.MulticastType.String() == "BMULTICAST" {
+	log.Println("Group ", groupInfo.MulticastId, "start with types of communication ", multicastType)
+
+	if multicastType.String() == "BMULTICAST" {
 		log.Println("STARTING BMULTICAST COMMUNICATION")
 	}
-	if groupInfo.MulticastType.String() == "TOCMULTICAST" {
+	if multicastType.String() == "TOCMULTICAST" {
 		log.Println("STARTING TOC COMMUNICATION")
 		members := []string{}
 		for k := range groupInfo.Members {
@@ -229,11 +228,11 @@ func StartGroup(ctx *gin.Context) {
 		multicasting.Seq.SeqPort = sequencerPort
 		go utils2.TOCDeliver()
 	}
-	if groupInfo.MulticastType.String() == "TODMULTICAST" {
+	if multicastType.String() == "TODMULTICAST" {
 		log.Println("STARTING TOD COMMUNICATION")
 		go utils2.TODDeliver()
 	}
-	if groupInfo.MulticastType.String() == "COMULTICAST" {
+	if multicastType.String() == "COMULTICAST" {
 		utils.Vectorclock = utils.NewVectorClock(len(groupInfo.Members))
 		log.Println("STARTING CO COMMUNICATION")
 		go utils2.CODeliver()
