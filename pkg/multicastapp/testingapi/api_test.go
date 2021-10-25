@@ -19,14 +19,14 @@ func Test_main(t *testing.T) {
 	CREATE_GROUP(t, "8083")
 	CREATE_GROUP(t, "8080")
 	time.Sleep(3 * time.Second)
-	Test_STARTGROUP(t)
+	//	Test_STARTGROUP(t)
 }
 
 func CREATE_GROUP(t *testing.T, host string) {
 	url := "http://localhost:" + host + "/multicast/v1/groups"
 	method := "POST"
 
-	payload := strings.NewReader(`{"multicast_type":"BMULTICAST","multicast_id":"PROVA"}`)
+	payload := strings.NewReader(`{"multicast_type":"TOCMULTICAST","multicast_id":"TOCMULTICASTGROUP"}`)
 
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, payload)
@@ -53,13 +53,11 @@ func CREATE_GROUP(t *testing.T, host string) {
 }
 
 func Test_STARTGROUP(t *testing.T) {
-	url := "http://localhost:" + "8080" + "/multicast/v1/groups/PROVA"
+	url := "http://localhost:" + "8080" + "/multicast/v1/groups/PROVA1"
 	method := "PUT"
 
-	payload := strings.NewReader(`{"multicast_id":"PROVA"}`)
-
 	client := &http.Client{}
-	req, err := http.NewRequest(method, url, payload)
+	req, err := http.NewRequest(method, url, nil)
 
 	if err != nil {
 		fmt.Println(err)

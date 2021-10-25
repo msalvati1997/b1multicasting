@@ -71,18 +71,19 @@ func CreateGroup(ctx *gin.Context) {
 	err := ctx.BindJSON(&req)
 
 	multicastId := req.MulticastId
-	mType := req.MulticastType.String()
+	mType := req.MulticastType
 
 	if err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	multicastType, ok := registryservice.MulticastType[mType]
+	multicastType, ok := registryservice.MulticastType[mType.String()]
 
 	if !ok {
 		response(ctx, ok, errors.New("Multicast type not supported"))
 	}
+	log.Println("Creating/Joining at multicast with type ", multicastType.String())
 
 	GMu.Lock()
 	defer GMu.Unlock()
