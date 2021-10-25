@@ -54,7 +54,6 @@ type MulticastInfo struct {
 	ReceivedMessages int               `json:"received_messages"`
 	Status           string            `json:"status"`
 	Members          map[string]Member `json:"members"`
-	Error            string            `json:"error"`
 }
 
 type Member struct {
@@ -134,9 +133,6 @@ func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 	update(info, group)
 	groupInfo, err := StatusChange(info, group, protoregistry.Status_OPENING)
 	if err != nil {
-		group.groupMu.Lock()
-		group.Group.Error = err.Error()
-		group.groupMu.Unlock()
 		return
 	}
 
@@ -146,9 +142,6 @@ func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 	err = initializeMulticast(group, b)
 
 	if err != nil {
-		group.groupMu.Lock()
-		group.Group.Error = err.Error()
-		group.groupMu.Unlock()
 		return
 	}
 
@@ -159,9 +152,6 @@ func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 		MId:         group.clientId,
 	})
 	if err != nil {
-		group.groupMu.Lock()
-		group.Group.Error = err.Error()
-		group.groupMu.Unlock()
 		return
 	}
 
@@ -171,9 +161,6 @@ func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 	groupInfo, _ = StatusChange(groupInfo, group, protoregistry.Status_STARTING)
 
 	if err != nil {
-		group.groupMu.Lock()
-		group.Group.Error = err.Error()
-		group.groupMu.Unlock()
 		return
 	}
 

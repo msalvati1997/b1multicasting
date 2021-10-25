@@ -10,26 +10,20 @@ import (
 	"time"
 )
 
-var host string
-
 func Test_main(t *testing.T) {
-	host = "8081"
-	Test_CREATE_GROUP(t)
-	host = "8082"
-	Test_CREATE_GROUP(t)
-	host = "8083"
-	Test_CREATE_GROUP(t)
-	host = "8080"
-	Test_CREATE_GROUP(t)
+	CREATE_GROUP(t, "8081")
+	CREATE_GROUP(t, "8082")
+	CREATE_GROUP(t, "8083")
+	CREATE_GROUP(t, "8080")
 	time.Sleep(3 * time.Second)
 	Test_STARTGROUP(t)
 	time.Sleep(5 * time.Second)
-	Test_SENDMESSAGEBMULTICAST(t)
+	SENDMESSAGE(t, "PROVA1")
 	time.Sleep(1 * time.Second)
-	Test_SENDMESSAGEBMULTICAST(t)
+	SENDMESSAGE(t, "PROVA2")
 }
 
-func Test_CREATE_GROUP(t *testing.T) {
+func CREATE_GROUP(t *testing.T, host string) {
 	url := "http://localhost:" + host + "/multicast/v1/groups"
 	method := "POST"
 
@@ -123,12 +117,11 @@ type Message struct {
 	Payload []byte
 }
 
-func Test_SENDMESSAGEBMULTICAST(t *testing.T) {
+func SENDMESSAGE(t *testing.T, message string) {
 	url := "http://localhost:8080/multicast/v1/messaging/PROVA"
 	method := "POST"
-	helloStr := "Hello from me"
-	helloSlc := []byte(helloStr)
-	obj := Message{helloSlc}
+	m := []byte(message)
+	obj := Message{m}
 	json, _ := json.Marshal(obj)
 	reader := strings.NewReader(string(json))
 	client := &http.Client{}

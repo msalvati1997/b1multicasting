@@ -46,7 +46,7 @@ func GetGroups(g *gin.Context) {
 		group.groupMu.RUnlock()
 	}
 
-	g.IndentedJSON(http.StatusOK, groups)
+	response(g, groups, nil)
 }
 
 // @BasePath /multicast/v1
@@ -337,6 +337,8 @@ func response(c *gin.Context, data interface{}, err error) {
 	if err != nil {
 		errorMessage = strings.Title(err.Error())
 		statusCode = http.StatusInternalServerError
+		c.IndentedJSON(statusCode, gin.H{"data": data, "error": errorMessage})
+	} else {
+		c.IndentedJSON(statusCode, gin.H{"data": data})
 	}
-	c.JSON(statusCode, gin.H{"data": data, "error": errorMessage})
 }
