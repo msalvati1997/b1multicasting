@@ -10,18 +10,19 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 func Test_main(t *testing.T) {
-	//CREATE_GROUP(t, "8081")
-	//CREATE_GROUP(t, "8082")
-	//CREATE_GROUP(t, "8083")
-	//CREATE_GROUP(t, "8080")
-	//time.Sleep(3 * time.Second)
-	//Test_STARTGROUP(t)
-	//time.Sleep(5 * time.Second)
-	//SENDMESSAGE(t, "PROVA1")
-	//time.Sleep(1 * time.Second)
+	CREATE_GROUP(t, "8081")
+	CREATE_GROUP(t, "8082")
+	CREATE_GROUP(t, "8083")
+	CREATE_GROUP(t, "8080")
+	time.Sleep(3 * time.Second)
+	Test_STARTGROUP(t)
+	time.Sleep(5 * time.Second)
+	SENDMESSAGE(t, "PROVA1")
+	time.Sleep(1 * time.Second)
 	SENDMESSAGE(t, "PROVA2")
 }
 
