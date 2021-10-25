@@ -103,6 +103,7 @@ func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl
 	r.addGroups(v1)
 	r.addMessaging(v1)
 	r.addSwagger(v1)
+	r.addDeliver(v1)
 	err = r.router.Run(fmt.Sprintf(":%d", restPort))
 	return err
 }
@@ -124,6 +125,11 @@ func (r routes) addMessaging(rg *gin.RouterGroup) {
 func (r routes) addSwagger(rg *gin.RouterGroup) {
 	groups := rg.Group("/swagger")
 	groups.GET("/", ginSwagger.WrapHandler(swaggerFiles.Handler))
+}
+
+func (r routes) addDeliver(rg *gin.RouterGroup) {
+	groups := rg.Group("/deliver")
+	groups.GET("/:mId", RetrieveDeliverQueue)
 }
 
 func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {

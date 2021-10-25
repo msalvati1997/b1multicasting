@@ -340,3 +340,18 @@ func response(c *gin.Context, data interface{}, err error) {
 		c.IndentedJSON(statusCode, gin.H{"data": data})
 	}
 }
+
+// RetrieveDeliverQueue godoc
+// @Summary Get Deliver-Message queue
+// @Description Get Deliver-Message of Group by id
+// @Tags groups
+// @Accept  json
+// @Produce  json
+// @Params Message
+//       Description : id of multicast
+// @Success 201 {object} []Message
+// @Router /deliver/:mId [get]
+// RetrieveDeliverQueue retrieve deliver message queue
+func RetrieveDeliverQueue(c *gin.Context) {
+	response(c, utils2.Del.DelivererNodes, nil)
+}
