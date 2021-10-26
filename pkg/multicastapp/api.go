@@ -352,5 +352,12 @@ func response(c *gin.Context, data interface{}, err error) {
 // @Router /deliver/:mId [get]
 // RetrieveDeliverQueue retrieve deliver message queue
 func RetrieveDeliverQueue(c *gin.Context) {
-	response(c, utils2.Del.DelivererNodes, nil)
+	var delqueue []utils2.Delivery
+	delqueue = make([]utils2.Delivery, 0, 100)
+	for i := 0; i < len(utils2.Del.DelivererNodes); i++ {
+		if utils2.Del.DelivererNodes[i].Status == true {
+			delqueue = append(delqueue, *utils2.Del.DelivererNodes[i])
+		}
+	}
+	response(c, delqueue, nil)
 }

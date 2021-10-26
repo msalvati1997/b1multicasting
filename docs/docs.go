@@ -25,6 +25,32 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/deliver/:mId": {
+            "get": {
+                "description": "Get Deliver-Message of Group by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Get Deliver-Message queue",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/multicastapp.Message"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/groups": {
             "get": {
                 "description": "Get Multicast Group",
@@ -196,9 +222,6 @@ var doc = `{
         "multicastapp.MulticastInfo": {
             "type": "object",
             "properties": {
-                "error": {
-                    "type": "string"
-                },
                 "members": {
                     "type": "object",
                     "additionalProperties": {

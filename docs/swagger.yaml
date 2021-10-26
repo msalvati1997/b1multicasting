@@ -21,8 +21,6 @@ definitions:
     type: object
   multicastapp.MulticastInfo:
     properties:
-      error:
-        type: string
       members:
         additionalProperties:
           $ref: '#/definitions/multicastapp.Member'
@@ -44,6 +42,23 @@ info:
   title: MULTICAST API
   version: "1.0"
 paths:
+  /deliver/:mId:
+    get:
+      consumes:
+      - application/json
+      description: Get Deliver-Message of Group by id
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            items:
+              $ref: '#/definitions/multicastapp.Message'
+            type: array
+      summary: Get Deliver-Message queue
+      tags:
+      - groups
   /groups:
     get:
       consumes:

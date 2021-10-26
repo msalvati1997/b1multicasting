@@ -53,7 +53,7 @@ func CREATE_GROUP(t *testing.T, host string) {
 }
 
 func Test_STARTGROUP(t *testing.T) {
-	url := "http://localhost:" + "8080" + "/multicast/v1/groups/prova"
+	url := "http://localhost:" + "8080" + "/multicast/v1/groups/prova4"
 	method := "PUT"
 
 	client := &http.Client{}
@@ -146,7 +146,7 @@ func SENDMESSAGE(t *testing.T, message string) {
 }
 
 func Test_SendMessage(t *testing.T) {
-	url := "http://localhost:8083/multicast/v1/messaging/PROVA"
+	url := "http://localhost:8080/multicast/v1/messaging/prova4"
 	method := "POST"
 	m := []byte("PROVA")
 	obj := Message{m}
