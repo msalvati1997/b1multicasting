@@ -25,7 +25,7 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/deliver/:mId": {
+        "/deliver/{mId}": {
             "get": {
                 "description": "Get Deliver-Message queue of Group by id",
                 "produces": [
@@ -91,6 +91,17 @@ var doc = `{
                     "groups"
                 ],
                 "summary": "Create Multicast Group",
+                "parameters": [
+                    {
+                        "description": "Specify the id and type of new multicast group",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.MulticastReq"
+                        }
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -101,7 +112,7 @@ var doc = `{
                 }
             }
         },
-        "/groups/:mId": {
+        "/groups/{mId}": {
             "get": {
                 "description": "Get Multicast Group by id",
                 "consumes": [
@@ -163,7 +174,7 @@ var doc = `{
                 }
             }
         },
-        "/messaging/:mId": {
+        "/messaging/{mId}": {
             "get": {
                 "description": "Get Message of Group by id",
                 "consumes": [
@@ -306,6 +317,17 @@ var doc = `{
                     "type": "integer"
                 },
                 "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "multicastapp.MulticastReq": {
+            "type": "object",
+            "properties": {
+                "multicast_id": {
+                    "type": "string"
+                },
+                "multicast_type": {
                     "type": "string"
                 }
             }

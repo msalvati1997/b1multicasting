@@ -45,6 +45,13 @@ definitions:
       status:
         type: string
     type: object
+  multicastapp.MulticastReq:
+    properties:
+      multicast_id:
+        type: string
+      multicast_type:
+        type: string
+    type: object
   utils.DelivererNode:
     properties:
       nodeId:
@@ -67,7 +74,7 @@ info:
   title: MULTICAST API
   version: "1.0"
 paths:
-  /deliver/:mId:
+  /deliver/{mId}:
     get:
       description: Get Deliver-Message queue of Group by id
       parameters:
@@ -107,6 +114,13 @@ paths:
       consumes:
       - application/json
       description: Create Multicast Group
+      parameters:
+      - description: Specify the id and type of new multicast group
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/multicastapp.MulticastReq'
       produces:
       - application/json
       responses:
@@ -117,7 +131,7 @@ paths:
       summary: Create Multicast Group
       tags:
       - groups
-  /groups/:mId:
+  /groups/{mId}:
     get:
       consumes:
       - application/json
@@ -158,7 +172,7 @@ paths:
       summary: Start multicast by id
       tags:
       - groups
-  /messaging/:mId:
+  /messaging/{mId}:
     get:
       consumes:
       - application/json
