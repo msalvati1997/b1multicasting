@@ -1,3 +1,4 @@
+basePath: /multicast/v1
 definitions:
   basic.Message:
     properties:

@@ -370,7 +370,7 @@ type swaggerInfo struct {
 var SwaggerInfo = swaggerInfo{
 	Version:     "1.0",
 	Host:        "localhost:8080",
-	BasePath:    "",
+	BasePath:    "/multicast/v1",
 	Schemes:     []string{},
 	Title:       "MULTICAST API",
 	Description: "This is a multicast API",

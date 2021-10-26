@@ -9,6 +9,7 @@
         "version": "1.0"
     },
     "host": "localhost:8080",
+    "basePath": "/multicast/v1",
     "paths": {
         "/deliver/{mId}": {
             "get": {
