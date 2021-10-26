@@ -5,6 +5,7 @@ import (
 	"github.com/msalvati1997/b1multicasting/pkg/basic"
 	"github.com/msalvati1997/b1multicasting/pkg/basic/proto"
 	"github.com/msalvati1997/b1multicasting/pkg/multicastapp"
+	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
 	"github.com/msalvati1997/b1multicasting/pkg/utils"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -89,6 +90,21 @@ func (s *Server) SendMessage(ctx context.Context, in *proto.RequestMessage) (*pr
 		sender, _ := strconv.Atoi(in.MessageHeader["ProcessId"])
 		if sender != utils2.Myid { //il processo ha già deliverato il messaggio che ha inviato in multicast
 			node.BDeliverCO(msg)
+		}
+	}
+	if in.MessageHeader["type"] == "CloseGroup" {
+		groupInfo, err := multicastapp.RegClient.CloseGroup(context.Background(), &protoregistry.RequestData{
+			MulticastId: in.MessageHeader["MulticastId"],
+			MId:         id,
+		})
+		if err != nil {
+			log.Println("Error in closing group")
+		}
+		multicastapp.MulticastGroups[groupInfo.MulticastId].Group.Status = string(protoregistry.Status_CLOSED)
+		for key, _ := range multicastapp.MulticastGroups[groupInfo.MulticastId].Group.Members {
+			member1 := multicastapp.MulticastGroups[groupInfo.MulticastId].Group.Members[key]
+			member1.Ready = false
+			multicastapp.MulticastGroups[groupInfo.MulticastId].Group.Members[key] = member1
 		}
 	}
 	return &proto.ResponseMessage{}, nil

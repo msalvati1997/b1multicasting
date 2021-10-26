@@ -150,6 +150,7 @@ func CheckOtherVectors(vectorclock utils.VectorClock, itsvector utils.VectorCloc
 func TODDeliver() {
 	for {
 		if len(Q.Q) > 0 {
+
 			SortingQueue()
 			SortingACKQueue()
 			Q.Mu.Lock()
@@ -231,35 +232,37 @@ func TOCDeliver() {
 	for {
 		if len(Q.Q) > 0 {
 			for i := 0; i < len(Q.Q); i++ {
-				seq := Q.Q[i].Nseq
-				if seq == multicasting.Rg {
-					Q.Mu.Lock()
-					Del.M.Lock()
-					id := Q.Q[i].Msg.MessageHeader["i"]
-					delnode := Q.Q[i].Msg.MessageHeader["delnode"]
-					node := DelivererNode{NodeId: delnode}
-					msg := Q.Q[i].Msg
-					Del.DelivererNodes = append(Del.DelivererNodes, &Delivery{
-						Deliverer: node,
-						Status:    true,
-						M:         msg,
-					})
-					log.Println("Message correctly DELIVERED ", string((Del.DelivererNodes[len(Del.DelivererNodes)-1].M).Payload))
-					//removing from hold back queue
-					var wg sync.WaitGroup
-					go func(w *sync.WaitGroup) {
-						wg.Add(1)
-						for p := 0; p < len(Q.Q); p++ {
-							if Q.Q[p].I == id {
-								Q.Q = append(Q.Q[:p], Q.Q[p+1:]...)
+				if Q.Q[i].Msg.MessageHeader["type"] == "TOC2" {
+					seq := Q.Q[i].Nseq
+					if seq == multicasting.Rg {
+						Q.Mu.Lock()
+						Del.M.Lock()
+						id := Q.Q[i].Msg.MessageHeader["i"]
+						delnode := Q.Q[i].Msg.MessageHeader["delnode"]
+						node := DelivererNode{NodeId: delnode}
+						msg := Q.Q[i].Msg
+						Del.DelivererNodes = append(Del.DelivererNodes, &Delivery{
+							Deliverer: node,
+							Status:    true,
+							M:         msg,
+						})
+						log.Println("Message correctly DELIVERED ", string((Del.DelivererNodes[len(Del.DelivererNodes)-1].M).Payload))
+						//removing from hold back queue
+						var wg sync.WaitGroup
+						go func(w *sync.WaitGroup) {
+							wg.Add(1)
+							for p := 0; p < len(Q.Q); p++ {
+								if Q.Q[p].I == id {
+									Q.Q = append(Q.Q[:p], Q.Q[p+1:]...)
+								}
 							}
-						}
-						defer w.Done()
-					}(&wg)
-					wg.Wait()
-					multicasting.UpdateRg(seq)
-					Q.Mu.Unlock()
-					Del.M.Unlock()
+							defer w.Done()
+						}(&wg)
+						wg.Wait()
+						multicasting.UpdateRg(seq)
+						Q.Mu.Unlock()
+						Del.M.Unlock()
+					}
 				}
 			}
 		}

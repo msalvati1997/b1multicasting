@@ -132,7 +132,7 @@ var doc = `{
         },
         "/groups/{mId}": {
             "get": {
-                "description": "Get Multicast GroupInfo by id",
+                "description": "Delete an existing group",
                 "consumes": [
                     "application/json"
                 ],
@@ -142,7 +142,7 @@ var doc = `{
                 "tags": [
                     "groups"
                 ],
-                "summary": "Get Multicast GroupInfo by id",
+                "summary": "Delete an existing group",
                 "parameters": [
                     {
                         "type": "string",

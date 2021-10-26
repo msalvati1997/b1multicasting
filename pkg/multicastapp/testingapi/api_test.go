@@ -18,8 +18,8 @@ func Test_create_a_group(t *testing.T) {
 }
 
 func Test_start_group(t *testing.T) {
-	StartGroupTest("8080", "MYGROUP")
-	GetGroupTest("8080", "MYGROUP")
+	STARTGROUPTEST("8080", "MYGROUP")
+	GETGROUPTEST("8080", "MYGROUP")
 }
 
 func Test_send_message(t *testing.T) {
@@ -30,8 +30,15 @@ func Test_get_message(t *testing.T) {
 	GETMESSAGESTEST("8080", "MYGROUP")
 }
 
+func Test_get_groups(t *testing.T) {
+	GETGROUPTEST("8080", "MYGROUP")
+}
 func Test_get_delivered_message(t *testing.T) {
-	GETDELIVERMESSAGESTEST("8080", "MYGROUP")
+	GETDELIVERMESSAGESTEST("8081", "MYGROUP")
+}
+
+func Test_Delete_group(t *testing.T) {
+	DELETEGROUP("8081", "MYGROUP")
 }
 
 func CREATEORJOIN_GROUP(host string, mtype string, mid string) {
@@ -69,7 +76,7 @@ func CREATEORJOIN_GROUP(host string, mtype string, mid string) {
 	fmt.Println(string(body))
 }
 
-func StartGroupTest(host string, group string) {
+func STARTGROUPTEST(host string, group string) {
 	url := "http://localhost:" + host + "/multicast/v1/groups/" + group
 	method := "PUT"
 
@@ -97,9 +104,37 @@ func StartGroupTest(host string, group string) {
 	fmt.Println(string(body))
 }
 
-func GetGroupTest(host string, group string) {
+func GETGROUPTEST(host string, group string) {
 	url := "http://localhost:" + host + "/multicast/v1/groups/" + group
 	method := "GET"
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, nil)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(string(body))
+}
+
+func DELETEGROUP(host string, group string) {
+	url := "http://localhost:" + host + "/multicast/v1/groups/" + group
+	method := "DELETE"
 
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, nil)

@@ -169,7 +169,7 @@ func (s *RegistryServer) Ready(ctx context.Context, in *protoregistry.RequestDat
 	return mGroup.groupInfo, nil
 }
 
-// CloseGroup closes the group. The process cannot longer use the group to multicast messages
+// CloseGroup closes the group.
 func (s *RegistryServer) CloseGroup(ctx context.Context, in *protoregistry.RequestData) (*protoregistry.MGroup, error) {
 
 	_, ok := peer.FromContext(ctx)
@@ -196,7 +196,7 @@ func (s *RegistryServer) CloseGroup(ctx context.Context, in *protoregistry.Reque
 
 	// Checking if the group can be closed
 	if mGroup.groupInfo.Status != protoregistry.Status_ACTIVE && mGroup.groupInfo.Status != protoregistry.Status_CLOSING {
-		return nil, status.Errorf(codes.Canceled, "Cannot start group")
+		return nil, status.Errorf(codes.Canceled, "Cannot closed group")
 	}
 
 	// Checking if the node belongs to the group
@@ -207,15 +207,17 @@ func (s *RegistryServer) CloseGroup(ctx context.Context, in *protoregistry.Reque
 	}
 
 	mGroup.groupInfo.Status = protoregistry.Status_CLOSING
-
+	log.Println("start closing group")
 	if member.Ready {
 		member.Ready = false
 		mGroup.groupInfo.ReadyMembers--
 		if mGroup.groupInfo.ReadyMembers == 0 {
 			// Closing definitely the group when all members have called CloseGroup function
 			mGroup.groupInfo.Status = protoregistry.Status_CLOSED
+			log.Println("Group  closed")
 		}
 	}
+
 	return mGroup.groupInfo, nil
 }
 

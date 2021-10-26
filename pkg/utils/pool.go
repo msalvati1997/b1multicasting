@@ -102,7 +102,6 @@ func ProcessMessage(msgChan chan basic.Message) {
 }
 
 func (p *Pool) Initialize(nthreads int) {
-	log.Println("initialize pool")
 
 	p.MessageCh = make(chan basic.Message, 50)
 

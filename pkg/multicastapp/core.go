@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/msalvati1997/b1multicasting/docs"
+	utils2 "github.com/msalvati1997/b1multicasting/internal/utils"
 	"github.com/msalvati1997/b1multicasting/pkg/multicasting"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/client"
 	"github.com/msalvati1997/b1multicasting/pkg/registryservice/protoregistry"
@@ -18,7 +19,7 @@ import (
 )
 
 var (
-	registryClient  protoregistry.RegistryClient
+	RegClient       protoregistry.RegistryClient
 	GMu             sync.RWMutex
 	Delay           uint
 	MulticastGroups map[string]*MulticastGroup
@@ -78,12 +79,13 @@ type routes struct {
 }
 
 func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl uint, debug bool) error {
+
 	GrpcPort = grpcP
 	Delay = dl
 
 	var err error
 
-	registryClient, err = client.Connect(registryAddr)
+	RegClient, err = client.Connect(registryAddr)
 
 	if err != nil {
 		return err
@@ -113,9 +115,10 @@ func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl
 func (r routes) addGroups(rg *gin.RouterGroup) {
 	groups := rg.Group("/groups")
 	groups.GET("/", GetGroups)
-	groups.POST("/", CreateGroup)
+	groups.POST("/", CreateOrJoinGroup)
 	groups.PUT("/:mId", StartGroup)
 	groups.GET("/:mId", GetGroupById)
+	groups.DELETE("/:mId", DeleteGroup)
 }
 
 func (r routes) addMessaging(rg *gin.RouterGroup) {
@@ -134,7 +137,7 @@ func (r routes) addDeliver(rg *gin.RouterGroup) {
 	groups.GET("/:mId", RetrieveDeliverQueue)
 }
 
-func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
+func InitGroup(info *protoregistry.MGroup, group *MulticastGroup) {
 	// Waiting that the group is ready
 	log.Println("Waiting for the group to be ready")
 
@@ -145,17 +148,14 @@ func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 	}
 
 	log.Println("Group ready, initializing multicast")
-
 	// Initializing  data structures
-	err = initializeMulticast(group, b)
+	err = initialiazeGroupCommunication(info, group)
 
 	if err != nil {
 		return
 	}
 
-	log.Println("Notify the registry that the multicaster is ready")
-
-	groupInfo, err = registryClient.Ready(context.Background(), &protoregistry.RequestData{
+	groupInfo, err = RegClient.Ready(context.Background(), &protoregistry.RequestData{
 		MulticastId: group.Group.MulticastId,
 		MId:         group.clientId,
 	})
@@ -173,12 +173,13 @@ func InitGroup(info *protoregistry.MGroup, group *MulticastGroup, b bool) {
 	}
 
 	log.Println("Ready to multicast")
+
 }
 
-func initializeMulticast(group *MulticastGroup, b bool) error {
+func initialiazeGroupCommunication(groupInfo *protoregistry.MGroup, group *MulticastGroup) error {
 
 	var members []string
-	//effettuo la connessione degli altri nodi come clients
+
 	for memberId, member := range group.Group.Members {
 		if memberId != group.clientId {
 			log.Println("Connecting to ", member.Address)
@@ -191,6 +192,42 @@ func initializeMulticast(group *MulticastGroup, b bool) error {
 		return err
 	}
 
+	log.Println("Group ", groupInfo.MulticastId, "start with types of communication ", groupInfo.MulticastType)
+
+	if groupInfo.MulticastType.String() == "BMULTICAST" {
+		log.Println("STARTING BMULTICAST COMMUNICATION")
+	}
+	if groupInfo.MulticastType.String() == "TOCMULTICAST" {
+		log.Println("STARTING TOC COMMUNICATION")
+		members_ := []string{}
+		for k := range groupInfo.Members {
+			members_ = append(members_, k)
+		}
+		sequencerPort := multicasting.SelectingSequencer(members_)
+		seqCon, err := multicasting.Cnn.GetGrpcClient(sequencerPort)
+		if err != nil {
+			log.Println("Error in find connection with sequencer..", err.Error())
+			return err
+		}
+		seq := false
+		if utils2.MyAdress == sequencerPort {
+			log.Println("I'm the sequencer of MulticastGroup", groupInfo.MulticastId)
+			seq = true
+		} else {
+			log.Println("The sequencer nodes is at port", sequencerPort)
+		}
+		multicasting.Seq.MulticastId = groupInfo.MulticastId
+		multicasting.Seq.SeqConn = *seqCon
+		multicasting.Seq.Conns = multicasting.Cnn
+		multicasting.Seq.B = seq
+		multicasting.Seq.SeqPort = sequencerPort
+	}
+	if groupInfo.MulticastType.String() == "TODMULTICAST" {
+		log.Println("STARTING TOD COMMUNICATION")
+	}
+	if groupInfo.MulticastType.String() == "COMULTICAST" {
+		log.Println("STARTING CO COMMUNICATION")
+	}
 	return nil
 }
 
@@ -199,7 +236,7 @@ func StatusChange(groupInfo *protoregistry.MGroup, multicastGroup *MulticastGrou
 
 	for groupInfo.Status == status {
 		time.Sleep(time.Second * 5)
-		groupInfo, err = registryClient.GetStatus(context.Background(), &protoregistry.MulticastId{MulticastId: groupInfo.MulticastId})
+		groupInfo, err = RegClient.GetStatus(context.Background(), &protoregistry.MulticastId{MulticastId: groupInfo.MulticastId})
 		if err != nil {
 			return nil, err
 		}
