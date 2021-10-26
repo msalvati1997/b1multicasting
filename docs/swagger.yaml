@@ -53,6 +53,12 @@ definitions:
       multicast_type:
         type: string
     type: object
+  multicastapp.Response:
+    properties:
+      h:
+        additionalProperties: true
+        type: object
+    type: object
   utils.DelivererNode:
     properties:
       nodeId:
@@ -87,12 +93,16 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
             items:
               $ref: '#/definitions/utils.Delivery'
             type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/multicastapp.Response'
       summary: Get Deliver-Message queue
       tags:
       - deliver
@@ -104,10 +114,14 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
             $ref: '#/definitions/multicastapp.MulticastInfo'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/multicastapp.Response'
       summary: Get Multicast Group
       tags:
       - groups
@@ -129,6 +143,10 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/multicastapp.MulticastInfo'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/multicastapp.Response'
       summary: Create Multicast Group
       tags:
       - groups
@@ -146,10 +164,14 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
             $ref: '#/definitions/multicastapp.MulticastInfo'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/multicastapp.Response'
       summary: Get Multicast Group by id
       tags:
       - groups
@@ -166,10 +188,14 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
             $ref: '#/definitions/multicastapp.MulticastInfo'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/multicastapp.Response'
       summary: Start multicast by id
       tags:
       - groups
@@ -187,12 +213,16 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
             items:
               $ref: '#/definitions/multicastapp.Message'
             type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/multicastapp.Response'
       summary: Get Message of Group by id
       tags:
       - messaging
@@ -215,10 +245,14 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
             $ref: '#/definitions/multicastapp.Message'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/multicastapp.Response'
       summary: Multicast a message to a group G
       tags:
       - messaging

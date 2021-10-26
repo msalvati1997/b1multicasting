@@ -31,13 +31,19 @@
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/utils.Delivery"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.Response"
                         }
                     }
                 }
@@ -57,10 +63,16 @@
                 ],
                 "summary": "Get Multicast Group",
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/multicastapp.MulticastInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.Response"
                         }
                     }
                 }
@@ -94,6 +106,12 @@
                         "schema": {
                             "$ref": "#/definitions/multicastapp.MulticastInfo"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.Response"
+                        }
                     }
                 }
             }
@@ -121,10 +139,16 @@
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/multicastapp.MulticastInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.Response"
                         }
                     }
                 }
@@ -151,10 +175,16 @@
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/multicastapp.MulticastInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.Response"
                         }
                     }
                 }
@@ -183,13 +213,19 @@
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/multicastapp.Message"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.Response"
                         }
                     }
                 }
@@ -225,10 +261,16 @@
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/multicastapp.Message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.Response"
                         }
                     }
                 }
@@ -315,6 +357,15 @@
                 },
                 "multicast_type": {
                     "type": "string"
+                }
+            }
+        },
+        "multicastapp.Response": {
+            "type": "object",
+            "properties": {
+                "h": {
+                    "type": "object",
+                    "additionalProperties": true
                 }
             }
         },

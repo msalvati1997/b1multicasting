@@ -29,9 +29,8 @@ var (
 // @Tags groups
 // @Accept  json
 // @Produce  json
-// @Success 201 {object} MulticastInfo
-//     Responses:
-//       201: body:PositionResponseBody
+// @Success 200 {object} MulticastInfo
+// @Failure 500 {object} Response
 // @Router /groups [get]
 func GetGroups(g *gin.Context) {
 
@@ -57,6 +56,7 @@ func GetGroups(g *gin.Context) {
 // @Produce  json
 // @Param request body MulticastReq true "Specify the id and type of new multicast group"
 // @Success 201 {object} MulticastInfo
+// @Failure 500 {object} Response
 // @Router /groups [post]
 // CreateGroup initializes a new multicast group or join in an group.
 func CreateGroup(ctx *gin.Context) {
@@ -134,7 +134,8 @@ func CreateGroup(ctx *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param multicastId path string true "Multicast group id group"
-// @Success 201 {object} MulticastInfo
+// @Success 200 {object} MulticastInfo
+// @Failure 500 {object} Response
 // @Router /groups/{mId} [get]
 // GetGroupById retrives group info by an id.
 func GetGroupById(ctx *gin.Context) {
@@ -163,7 +164,8 @@ func GetGroupById(ctx *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param multicastId path string true "Multicast group id group"
-// @Success 201 {object} MulticastInfo
+// @Success 200 {object} MulticastInfo
+// @Failure 500 {object} Response
 // @Router /groups/{mId} [put]
 // StartGroup starting multicast group
 func StartGroup(ctx *gin.Context) {
@@ -240,7 +242,8 @@ func StartGroup(ctx *gin.Context) {
 // @Produce  json
 // @Param multicastId path string true "Multicast group id group"
 // @Param message body Message true "Message to multicast"
-// @Success 201 {object} Message
+// @Success 200 {object} Message
+// @Failure 500 {object} Response
 // @Router /messaging/{mId} [POST]
 // MulticastMessage Multicast a message to a group mId
 func MulticastMessage(ctx *gin.Context) {
@@ -307,7 +310,8 @@ func MulticastMessage(ctx *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Param multicastId path string true "Multicast group id group"
-// @Success 201 {object} []Message
+// @Success 200 {object} []Message
+// @Failure 500 {object} Response
 // @Router /messaging/{mId} [get]
 // GetGroupById retrieve group msg by an id
 func RetrieveMessages(ctx *gin.Context) {
@@ -325,7 +329,8 @@ func RetrieveMessages(ctx *gin.Context) {
 // @Tags deliver
 // @Produce  json
 // @Param multicastId path string true "Multicast group id group"
-// @Success 201 {object} []utils.Delivery
+// @Success 200 {object} []utils.Delivery
+// @Failure 500 {object} Response
 // @Router /deliver/{mId} [get]
 // RetrieveDeliverQueue retrieve deliver message queue
 func RetrieveDeliverQueue(c *gin.Context) {
@@ -349,4 +354,8 @@ func response(c *gin.Context, data interface{}, err error) {
 	} else {
 		c.IndentedJSON(statusCode, gin.H{"data": data})
 	}
+}
+
+type Response struct {
+	H map[string]interface{}
 }

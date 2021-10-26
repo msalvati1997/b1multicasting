@@ -45,13 +45,19 @@ var doc = `{
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/utils.Delivery"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.Response"
                         }
                     }
                 }
@@ -71,10 +77,16 @@ var doc = `{
                 ],
                 "summary": "Get Multicast Group",
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/multicastapp.MulticastInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.Response"
                         }
                     }
                 }
@@ -108,6 +120,12 @@ var doc = `{
                         "schema": {
                             "$ref": "#/definitions/multicastapp.MulticastInfo"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.Response"
+                        }
                     }
                 }
             }
@@ -135,10 +153,16 @@ var doc = `{
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/multicastapp.MulticastInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.Response"
                         }
                     }
                 }
@@ -165,10 +189,16 @@ var doc = `{
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/multicastapp.MulticastInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.Response"
                         }
                     }
                 }
@@ -197,13 +227,19 @@ var doc = `{
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/multicastapp.Message"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.Response"
                         }
                     }
                 }
@@ -239,10 +275,16 @@ var doc = `{
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/multicastapp.Message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.Response"
                         }
                     }
                 }
@@ -329,6 +371,15 @@ var doc = `{
                 },
                 "multicast_type": {
                     "type": "string"
+                }
+            }
+        },
+        "multicastapp.Response": {
+            "type": "object",
+            "properties": {
+                "h": {
+                    "type": "object",
+                    "additionalProperties": true
                 }
             }
         },
