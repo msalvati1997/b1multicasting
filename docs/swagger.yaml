@@ -180,7 +180,7 @@ paths:
             type: array
       summary: Get Message of Group by id
       tags:
-      - groups
+      - messaging
     post:
       consumes:
       - application/json
@@ -193,7 +193,7 @@ paths:
         type: string
       - description: Message to multicast
         in: body
-        name: post
+        name: message
         required: true
         schema:
           $ref: '#/definitions/multicastapp.Message'

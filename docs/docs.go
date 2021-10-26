@@ -173,7 +173,7 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "groups"
+                    "messaging"
                 ],
                 "summary": "Get Message of Group by id",
                 "parameters": [
@@ -219,7 +219,7 @@ var doc = `{
                     },
                     {
                         "description": "Message to multicast",
-                        "name": "post",
+                        "name": "message",
                         "in": "body",
                         "required": true,
                         "schema": {
