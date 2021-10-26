@@ -20,7 +20,7 @@ Run ```docker-compose up``` to build the application's containers image.
 | /deliver/{mId} | GET | Get Deliver-Message queue of Group by id |
 | /groups | GET | Get Multicast Groups information |
 | /groups | POST | Create Multicast Group |
-|  /groups/{mId} | GET | Multicast group id group |
+|  /groups/{mId} | GET | Get information about a group|
 |  /groups/{mId} | DELETE | Delete an existing group |
 |  /messaging/{mId} | GET | Get messages of a group |
 |  /messaging/{mId} | POST | Multicast a message to a group  |
