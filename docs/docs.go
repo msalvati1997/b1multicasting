@@ -132,7 +132,7 @@ var doc = `{
         },
         "/groups/{mId}": {
             "get": {
-                "description": "Delete an existing group",
+                "description": "Get Multicast GroupInfo by id",
                 "consumes": [
                     "application/json"
                 ],
@@ -142,7 +142,7 @@ var doc = `{
                 "tags": [
                     "groups"
                 ],
-                "summary": "Delete an existing group",
+                "summary": "Get Multicast GroupInfo by id",
                 "parameters": [
                     {
                         "type": "string",
@@ -179,6 +179,42 @@ var doc = `{
                     "groups"
                 ],
                 "summary": "Start multicast group by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Multicast group id group",
+                        "name": "mId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.MulticastInfo"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete an existing group",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Delete an existing group",
                 "parameters": [
                     {
                         "type": "string",

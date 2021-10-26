@@ -6,7 +6,6 @@ definitions:
         additionalProperties:
           type: string
         type: object
-        example : { "type": "TOCMULTICAST", "GroupId": "0"}
       Payload:
         items:
           type: integer
@@ -16,13 +15,10 @@ definitions:
     properties:
       address:
         type: string
-        example : 127.0.0.0:90
       member_id:
         type: string
-        enum: [0,1,2,3]
       ready:
         type: boolean
-        example : true
     type: object
   multicastapp.Message:
     properties:
@@ -30,7 +26,6 @@ definitions:
         additionalProperties:
           type: string
         type: object
-        example : {  "type": "TOCMULTICAST", "GroupId": "0"}
       Payload:
         items:
           type: integer
@@ -42,43 +37,32 @@ definitions:
         additionalProperties:
           $ref: '#/definitions/multicastapp.Member'
         type: object
-        example : { "members": {
-          "member1": {"address": "127.0.0.01:90", "member_id": 0, "ready": true  },
-          "member2": {"address": "127.0.0.02:90", "member_id": 1, "ready": true  },
-          "member3": {"address": "127.0.0.03:90", "member_id": 2, "ready": true  },
-          "member4": {"address": "127.0.0.04:90", "member_id": 3, "ready": true  }}}
       multicast_id:
         type: string
-        example : MYGROUP
       multicast_type:
         type: string
-        example : BMULTICAST
       received_messages:
         type: integer
-        example: 5
       status:
         type: string
-        example: OPEN
     type: object
   multicastapp.MulticastReq:
     properties:
       multicast_id:
         type: string
-        example : BASICGROUP
       multicast_type:
         type: string
-        enum: [BMULTICAST,TOCMULTICAST,TODMULTICAST,COMULTICAST]
     type: object
   multicastapp.Response:
     properties:
-      data:
+      h:
+        additionalProperties: true
         type: object
     type: object
   utils.DelivererNode:
     properties:
       nodeId:
         type: string
-        example : 127.0.0.1:90
     type: object
   utils.Delivery:
     properties:
@@ -100,13 +84,13 @@ paths:
     get:
       description: Get Deliver-Message queue of Group by id
       parameters:
-        - description: Multicast group id group
-          in: path
-          name: mId
-          required: true
-          type: string
+      - description: Multicast group id group
+        in: path
+        name: mId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -120,14 +104,14 @@ paths:
             $ref: '#/definitions/multicastapp.Response'
       summary: Get Deliver-Message queue
       tags:
-        - deliver
+      - deliver
   /groups:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Get Multicast Groups
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -139,20 +123,20 @@ paths:
             $ref: '#/definitions/multicastapp.Response'
       summary: Get Multicast Groups
       tags:
-        - groups
+      - groups
     post:
       consumes:
-        - application/json
+      - application/json
       description: Create Multicast Group
       parameters:
-        - description: Specify the id and type of new multicast group
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: '#/definitions/multicastapp.MulticastReq'
+      - description: Specify the id and type of new multicast group
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/multicastapp.MulticastReq'
       produces:
-        - application/json
+      - application/json
       responses:
         "201":
           description: Created
@@ -164,20 +148,20 @@ paths:
             $ref: '#/definitions/multicastapp.Response'
       summary: Create Multicast Group or join in an existing group
       tags:
-        - groups
+      - groups
   /groups/{mId}:
-    get:
+    delete:
       consumes:
-        - application/json
+      - application/json
       description: Delete an existing group
       parameters:
-        - description: Multicast group id group
-          in: path
-          name: mId
-          required: true
-          type: string
+      - description: Multicast group id group
+        in: path
+        name: mId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -189,19 +173,43 @@ paths:
             $ref: '#/definitions/multicastapp.Response'
       summary: Delete an existing group
       tags:
-        - groups
+      - groups
+    get:
+      consumes:
+      - application/json
+      description: Get Multicast GroupInfo by id
+      parameters:
+      - description: Multicast group id group
+        in: path
+        name: mId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/multicastapp.MulticastInfo'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/multicastapp.Response'
+      summary: Get Multicast GroupInfo by id
+      tags:
+      - groups
     put:
       consumes:
-        - application/json
+      - application/json
       description: Start multicast group by id
       parameters:
-        - description: Multicast group id group
-          in: path
-          name: mId
-          required: true
-          type: string
+      - description: Multicast group id group
+        in: path
+        name: mId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -213,20 +221,20 @@ paths:
             $ref: '#/definitions/multicastapp.Response'
       summary: Start multicast group by id
       tags:
-        - groups
+      - groups
   /messaging/{mId}:
     get:
       consumes:
-        - application/json
+      - application/json
       description: Get Messages of a Group
       parameters:
-        - description: Multicast group id group
-          in: path
-          name: mId
-          required: true
-          type: string
+      - description: Multicast group id group
+        in: path
+        name: mId
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -240,25 +248,25 @@ paths:
             $ref: '#/definitions/multicastapp.Response'
       summary: Get Messages of a Group
       tags:
-        - messaging
+      - messaging
     post:
       consumes:
-        - application/json
+      - application/json
       description: Multicast a message to a group mId
       parameters:
-        - description: Multicast group id group
-          in: path
-          name: mId
-          required: true
-          type: string
-        - description: Message to multicast
-          in: body
-          name: message
-          required: true
-          schema:
-            $ref: '#/definitions/multicastapp.Message'
+      - description: Multicast group id group
+        in: path
+        name: mId
+        required: true
+        type: string
+      - description: Message to multicast
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/multicastapp.Message'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
@@ -270,5 +278,5 @@ paths:
             $ref: '#/definitions/multicastapp.Response'
       summary: Multicast a message to a group mId
       tags:
-        - messaging
+      - messaging
 swagger: "2.0"

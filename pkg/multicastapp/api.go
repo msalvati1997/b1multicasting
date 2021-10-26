@@ -169,7 +169,7 @@ func GetGroupById(ctx *gin.Context) {
 // @Param mId path string true "Multicast group id group"
 // @Success 200 {object} MulticastInfo
 // @Failure 500 {object} Response
-// @Router /groups/{mId} [get]
+// @Router /groups/{mId} [delete]
 // GetGroupById  Delete an existing group
 func DeleteGroup(ctx *gin.Context) {
 
