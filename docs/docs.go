@@ -39,7 +39,7 @@ var doc = `{
                     {
                         "type": "string",
                         "description": "Multicast group id group",
-                        "name": "multicastId",
+                        "name": "mId",
                         "in": "path",
                         "required": true
                     }
@@ -65,7 +65,7 @@ var doc = `{
         },
         "/groups": {
             "get": {
-                "description": "Get Multicast Group",
+                "description": "Get Multicast Groups",
                 "consumes": [
                     "application/json"
                 ],
@@ -75,7 +75,7 @@ var doc = `{
                 "tags": [
                     "groups"
                 ],
-                "summary": "Get Multicast Group",
+                "summary": "Get Multicast Groups",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -102,7 +102,7 @@ var doc = `{
                 "tags": [
                     "groups"
                 ],
-                "summary": "Create Multicast Group",
+                "summary": "Create Multicast Group or join in an existing group",
                 "parameters": [
                     {
                         "description": "Specify the id and type of new multicast group",
@@ -132,7 +132,7 @@ var doc = `{
         },
         "/groups/{mId}": {
             "get": {
-                "description": "Get Multicast Group by id",
+                "description": "Get Multicast GroupInfo by id",
                 "consumes": [
                     "application/json"
                 ],
@@ -142,12 +142,12 @@ var doc = `{
                 "tags": [
                     "groups"
                 ],
-                "summary": "Get Multicast Group by id",
+                "summary": "Get Multicast GroupInfo by id",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Multicast group id group",
-                        "name": "multicastId",
+                        "name": "mId",
                         "in": "path",
                         "required": true
                     }
@@ -168,7 +168,7 @@ var doc = `{
                 }
             },
             "put": {
-                "description": "Start multicast by id",
+                "description": "Start multicast group by id",
                 "consumes": [
                     "application/json"
                 ],
@@ -178,12 +178,12 @@ var doc = `{
                 "tags": [
                     "groups"
                 ],
-                "summary": "Start multicast by id",
+                "summary": "Start multicast group by id",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Multicast group id group",
-                        "name": "multicastId",
+                        "name": "mId",
                         "in": "path",
                         "required": true
                     }
@@ -206,7 +206,7 @@ var doc = `{
         },
         "/messaging/{mId}": {
             "get": {
-                "description": "Get Message of Group by id",
+                "description": "Get Messages of a Group",
                 "consumes": [
                     "application/json"
                 ],
@@ -216,12 +216,12 @@ var doc = `{
                 "tags": [
                     "messaging"
                 ],
-                "summary": "Get Message of Group by id",
+                "summary": "Get Messages of a Group",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Multicast group id group",
-                        "name": "multicastId",
+                        "name": "mId",
                         "in": "path",
                         "required": true
                     }
@@ -245,7 +245,7 @@ var doc = `{
                 }
             },
             "post": {
-                "description": "Multicast a message to a group G",
+                "description": "Multicast a message to a group mId",
                 "consumes": [
                     "application/json"
                 ],
@@ -255,12 +255,12 @@ var doc = `{
                 "tags": [
                     "messaging"
                 ],
-                "summary": "Multicast a message to a group G",
+                "summary": "Multicast a message to a group mId",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Multicast group id group",
-                        "name": "multicastId",
+                        "name": "mId",
                         "in": "path",
                         "required": true
                     },
@@ -420,7 +420,7 @@ type swaggerInfo struct {
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
 	Version:     "1.0",
-	Host:        "localhost:8080",
+	Host:        "",
 	BasePath:    "/multicast/v1",
 	Schemes:     []string{},
 	Title:       "MULTICAST API",

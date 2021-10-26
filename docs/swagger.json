@@ -8,7 +8,6 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:8080",
     "basePath": "/multicast/v1",
     "paths": {
         "/deliver/{mId}": {
@@ -25,7 +24,7 @@
                     {
                         "type": "string",
                         "description": "Multicast group id group",
-                        "name": "multicastId",
+                        "name": "mId",
                         "in": "path",
                         "required": true
                     }
@@ -51,7 +50,7 @@
         },
         "/groups": {
             "get": {
-                "description": "Get Multicast Group",
+                "description": "Get Multicast Groups",
                 "consumes": [
                     "application/json"
                 ],
@@ -61,7 +60,7 @@
                 "tags": [
                     "groups"
                 ],
-                "summary": "Get Multicast Group",
+                "summary": "Get Multicast Groups",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -88,7 +87,7 @@
                 "tags": [
                     "groups"
                 ],
-                "summary": "Create Multicast Group",
+                "summary": "Create Multicast Group or join in an existing group",
                 "parameters": [
                     {
                         "description": "Specify the id and type of new multicast group",
@@ -118,7 +117,7 @@
         },
         "/groups/{mId}": {
             "get": {
-                "description": "Get Multicast Group by id",
+                "description": "Get Multicast GroupInfo by id",
                 "consumes": [
                     "application/json"
                 ],
@@ -128,12 +127,12 @@
                 "tags": [
                     "groups"
                 ],
-                "summary": "Get Multicast Group by id",
+                "summary": "Get Multicast GroupInfo by id",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Multicast group id group",
-                        "name": "multicastId",
+                        "name": "mId",
                         "in": "path",
                         "required": true
                     }
@@ -154,7 +153,7 @@
                 }
             },
             "put": {
-                "description": "Start multicast by id",
+                "description": "Start multicast group by id",
                 "consumes": [
                     "application/json"
                 ],
@@ -164,12 +163,12 @@
                 "tags": [
                     "groups"
                 ],
-                "summary": "Start multicast by id",
+                "summary": "Start multicast group by id",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Multicast group id group",
-                        "name": "multicastId",
+                        "name": "mId",
                         "in": "path",
                         "required": true
                     }
@@ -192,7 +191,7 @@
         },
         "/messaging/{mId}": {
             "get": {
-                "description": "Get Message of Group by id",
+                "description": "Get Messages of a Group",
                 "consumes": [
                     "application/json"
                 ],
@@ -202,12 +201,12 @@
                 "tags": [
                     "messaging"
                 ],
-                "summary": "Get Message of Group by id",
+                "summary": "Get Messages of a Group",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Multicast group id group",
-                        "name": "multicastId",
+                        "name": "mId",
                         "in": "path",
                         "required": true
                     }
@@ -231,7 +230,7 @@
                 }
             },
             "post": {
-                "description": "Multicast a message to a group G",
+                "description": "Multicast a message to a group mId",
                 "consumes": [
                     "application/json"
                 ],
@@ -241,12 +240,12 @@
                 "tags": [
                     "messaging"
                 ],
-                "summary": "Multicast a message to a group G",
+                "summary": "Multicast a message to a group mId",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Multicast group id group",
-                        "name": "multicastId",
+                        "name": "mId",
                         "in": "path",
                         "required": true
                     },

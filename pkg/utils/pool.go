@@ -47,7 +47,6 @@ func ProcessMessage(msgChan chan basic.Message) {
 				data.MessageHeader["TIME"] = currentTime.Format("2006-01-02 15:04:05")
 				data.MessageHeader["i"] = utils.GenerateUID()
 				data.MessageHeader["s"] = strconv.FormatUint(utils.Clock.Tock(), 10)
-				data.MessageHeader["ProcessId"] = utils.MystringId
 				err := multicasting.Cnn.TODMulticast(data.MessageHeader["GroupId"], data)
 				if err != nil {
 					go func() {
@@ -75,6 +74,8 @@ func ProcessMessage(msgChan chan basic.Message) {
 					M:         data,
 				})
 				log.Println("Message correctly DELIVERED ", string((Del.DelivererNodes[len(Del.DelivererNodes)-1].M).Payload))
+				log.Println("My vector after update")
+				utils.PrintVector(utils.Vectorclock)
 				if err != nil {
 					go func() {
 						time.Sleep(time.Second * 5)

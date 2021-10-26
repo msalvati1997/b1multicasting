@@ -24,8 +24,8 @@ var (
 // @Paths Information
 
 // GetGroups godoc
-// @Summary Get Multicast Group
-// @Description Get Multicast Group
+// @Summary Get Multicast Groups
+// @Description Get Multicast Groups
 // @Tags groups
 // @Accept  json
 // @Produce  json
@@ -49,7 +49,7 @@ func GetGroups(g *gin.Context) {
 }
 
 // CreateGroup godoc
-// @Summary Create Multicast Group
+// @Summary Create Multicast Group or join in an existing group
 // @Description Create Multicast Group
 // @Tags groups
 // @Accept  json
@@ -58,7 +58,6 @@ func GetGroups(g *gin.Context) {
 // @Success 201 {object} MulticastInfo
 // @Failure 500 {object} Response
 // @Router /groups [post]
-// CreateGroup initializes a new multicast group or join in an group.
 func CreateGroup(ctx *gin.Context) {
 	context_, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
@@ -128,12 +127,12 @@ func CreateGroup(ctx *gin.Context) {
 }
 
 // GetGroupById godoc
-// @Summary Get Multicast Group by id
-// @Description Get Multicast Group by id
+// @Summary Get Multicast GroupInfo by id
+// @Description Get Multicast GroupInfo by id
 // @Tags groups
 // @Accept  json
 // @Produce  json
-// @Param multicastId path string true "Multicast group id group"
+// @Param mId path string true "Multicast group id group"
 // @Success 200 {object} MulticastInfo
 // @Failure 500 {object} Response
 // @Router /groups/{mId} [get]
@@ -158,16 +157,15 @@ func GetGroupById(ctx *gin.Context) {
 }
 
 // StartGroup godoc
-// @Summary Start multicast by id
-// @Description Start multicast by id
+// @Summary Start multicast group by id
+// @Description Start multicast group by id
 // @Tags groups
 // @Accept  json
 // @Produce  json
-// @Param multicastId path string true "Multicast group id group"
+// @Param mId path string true "Multicast group id group"
 // @Success 200 {object} MulticastInfo
 // @Failure 500 {object} Response
 // @Router /groups/{mId} [put]
-// StartGroup starting multicast group
 func StartGroup(ctx *gin.Context) {
 
 	mId := ctx.Param("mId")
@@ -226,7 +224,7 @@ func StartGroup(ctx *gin.Context) {
 		go utils2.TODDeliver()
 	}
 	if groupInfo.MulticastType.String() == "COMULTICAST" {
-		utils.Vectorclock = utils.NewVectorClock(len(groupInfo.Members))
+		utils.Vectorclock = utils.NewVectorClock(len(multicasting.Cnn.Conns))
 		log.Println("STARTING CO COMMUNICATION")
 		go utils2.CODeliver()
 	}
@@ -235,17 +233,16 @@ func StartGroup(ctx *gin.Context) {
 }
 
 // MulticastMessage godoc
-// @Summary Multicast a message to a group G
-// @Description Multicast a message to a group G
+// @Summary Multicast a message to a group mId
+// @Description Multicast a message to a group mId
 // @Tags messaging
 // @Accept  json
 // @Produce  json
-// @Param multicastId path string true "Multicast group id group"
+// @Param mId path string true "Multicast group id group"
 // @Param message body Message true "Message to multicast"
 // @Success 200 {object} Message
 // @Failure 500 {object} Response
 // @Router /messaging/{mId} [POST]
-// MulticastMessage Multicast a message to a group mId
 func MulticastMessage(ctx *gin.Context) {
 	mId := ctx.Param("mId")
 	var req Message
@@ -304,12 +301,12 @@ func MulticastMessage(ctx *gin.Context) {
 }
 
 // RetrieveMessages godoc
-// @Summary Get Message of Group by id
-// @Description Get Message of Group by id
+// @Summary Get Messages of a Group
+// @Description Get Messages of a Group
 // @Tags messaging
 // @Accept  json
 // @Produce  json
-// @Param multicastId path string true "Multicast group id group"
+// @Param mId path string true "Multicast group id group"
 // @Success 200 {object} []Message
 // @Failure 500 {object} Response
 // @Router /messaging/{mId} [get]
@@ -328,20 +325,14 @@ func RetrieveMessages(ctx *gin.Context) {
 // @Description Get Deliver-Message queue of Group by id
 // @Tags deliver
 // @Produce  json
-// @Param multicastId path string true "Multicast group id group"
+// @Param mId path string true "Multicast group id group"
 // @Success 200 {object} []utils.Delivery
 // @Failure 500 {object} Response
 // @Router /deliver/{mId} [get]
 // RetrieveDeliverQueue retrieve deliver message queue
 func RetrieveDeliverQueue(c *gin.Context) {
-	var delqueue []utils2.Delivery
-	delqueue = make([]utils2.Delivery, 0, 100)
-	for i := 0; i < len(utils2.Del.DelivererNodes); i++ {
-		if utils2.Del.DelivererNodes[i].Status == true {
-			delqueue = append(delqueue, *utils2.Del.DelivererNodes[i])
-		}
-	}
-	response(c, delqueue, nil)
+
+	response(c, utils2.Del.DelivererNodes, nil)
 }
 
 func response(c *gin.Context, data interface{}, err error) {

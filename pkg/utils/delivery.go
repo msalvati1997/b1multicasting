@@ -31,7 +31,7 @@ var (
 
 func init() {
 	Del = Deliverers{
-		DelivererNodes: make([]*Delivery, 100),
+		DelivererNodes: make([]*Delivery, 0, 100),
 	}
 }
 func (node *DelivererNode) BDeliver(message basic.Message) {
@@ -202,7 +202,7 @@ func CODeliver() {
 			delnode := COqueue.Q[0].Msg.MessageHeader["delnode"]
 			node := DelivererNode{NodeId: delnode}
 			//wait until Vj[j]=Vi[j]+1 and Vj[k]<=Vi[k] (k!=i)
-			if (utils.Vectorclock.TockV(pid)+1 == itsvector.TockV(pid) && CheckOtherVectors(utils.Vectorclock, itsvector, pid)) || utils.Myid == pid {
+			if utils.Vectorclock.TockV(pid)+1 == itsvector.TockV(pid) && CheckOtherVectors(utils.Vectorclock, itsvector, pid) {
 				Del.DelivererNodes = append(Del.DelivererNodes, &Delivery{
 					Deliverer: node,
 					Status:    true,

@@ -1,6 +1,7 @@
 package basic
 
 import (
+	utils2 "github.com/msalvati1997/b1multicasting/internal/utils"
 	"github.com/msalvati1997/b1multicasting/pkg/basic"
 	"github.com/msalvati1997/b1multicasting/pkg/basic/proto"
 	"github.com/msalvati1997/b1multicasting/pkg/multicastapp"
@@ -85,9 +86,8 @@ func (s *Server) SendMessage(ctx context.Context, in *proto.RequestMessage) (*pr
 		msg := basic.NewMessage(in.MessageHeader, in.Payload)
 		node := utils.DelivererNode{NodeId: id}
 		msg.MessageHeader["delnode"] = id
-		n, _ := strconv.Atoi(id)
-		myn, _ := strconv.Atoi(in.MessageHeader["ProcessId"])
-		if n != myn { //il processo ha già deliverato il messaggio che ha inviato in multicast
+		sender, _ := strconv.Atoi(in.MessageHeader["ProcessId"])
+		if sender != utils2.Myid { //il processo ha già deliverato il messaggio che ha inviato in multicast
 			node.BDeliverCO(msg)
 		}
 	}
