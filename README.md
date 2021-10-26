@@ -14,6 +14,7 @@ Run ```docker-compose up``` to build the application's containers image.
 - CO  : casually ordered with vector clock
 
 # MULTICAST API
+- Basepath of api : multicast/v1
 
 | PATH | METHOD | SUMMARY | 
 | ---- | ---------- | -------- |
@@ -25,6 +26,7 @@ Run ```docker-compose up``` to build the application's containers image.
 |  /messaging/{mId} | GET | Get messages of a group |
 |  /messaging/{mId} | POST | Multicast a message to a group  |
 
+See the swagger's documentation for more details at : multicast/v1/swagger/index.html
 ### Testing
 The project comes with a test suite located under the test directory (pkg/multicasting/test). Each test configures a set of processes with different numbers of messages to send.
 
