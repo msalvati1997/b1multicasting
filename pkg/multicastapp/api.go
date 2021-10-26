@@ -21,7 +21,7 @@ var (
 	timeout = time.Second
 )
 
-// @BasePath /multicast/v1
+// @Paths Information
 
 // GetGroups godoc
 // @Summary Get Multicast Group
@@ -49,17 +49,13 @@ func GetGroups(g *gin.Context) {
 	response(g, groups, nil)
 }
 
-// @BasePath /multicast/v1
-
 // CreateGroup godoc
 // @Summary Create Multicast Group
 // @Description Create Multicast Group
 // @Tags groups
 // @Accept  json
 // @Produce  json
-// @Params  MulticastReq
-//       description :
-//            id of multicast and type
+// @Params multicastReq post body MulticastReq "id of multicast and type"
 // @Success 201 {object} MulticastInfo
 // @Router /groups [post]
 // CreateGroup initializes a new multicast group or join in an group.
@@ -131,16 +127,13 @@ func CreateGroup(ctx *gin.Context) {
 	response(ctx, group.Group, nil)
 }
 
-// @BasePath /multicast/v1
-
 // GetGroupById godoc
 // @Summary Get Multicast Group by id
 // @Description Get Multicast Group by id
 // @Tags groups
 // @Accept  json
 // @Produce  json
-// @Params MulticastId
-//       Description : id of multicast
+// @Param multicastId path string true "Multicast group id group"
 // @Success 201 {object} MulticastInfo
 // @Router /groups/:mId [get]
 // GetGroupById retrives group info by an id.
@@ -163,14 +156,13 @@ func GetGroupById(ctx *gin.Context) {
 	response(ctx, group.Group, nil)
 }
 
-// @BasePath /multicast/v1
-
 // StartGroup godoc
 // @Summary Start multicast by id
 // @Description Start multicast by id
 // @Tags groups
 // @Accept  json
 // @Produce  json
+// @Param multicastId path string true "Multicast group id group"
 // @Success 201 {object} MulticastInfo
 // @Router /groups/:mId [put]
 // StartGroup starting multicast group
@@ -240,14 +232,14 @@ func StartGroup(ctx *gin.Context) {
 	response(ctx, group.Group, nil)
 }
 
-// @BasePath /multicast/v1
-
 // MulticastMessage godoc
 // @Summary Multicast a message to a group G
 // @Description Multicast a message to a group G
 // @Tags messaging
 // @Accept  json
 // @Produce  json
+// @Param multicastId path string true "Multicast group id group"
+// @Param post body Message true "Message to multicast"
 // @Success 201 {object} Message
 // @Router /messaging/:mId [POST]
 // MulticastMessage Multicast a message to a group mId
@@ -314,8 +306,7 @@ func MulticastMessage(ctx *gin.Context) {
 // @Tags groups
 // @Accept  json
 // @Produce  json
-// @Params Message
-//       Description : id of multicast
+// @Param multicastId path string true "Multicast group id group"
 // @Success 201 {object} []Message
 // @Router /messaging/:mId [get]
 // GetGroupById retrieve group msg by an id
@@ -328,27 +319,13 @@ func RetrieveMessages(ctx *gin.Context) {
 	response(ctx, group.Messages, nil)
 }
 
-func response(c *gin.Context, data interface{}, err error) {
-	statusCode := http.StatusOK
-	var errorMessage string
-	if err != nil {
-		errorMessage = strings.Title(err.Error())
-		statusCode = http.StatusInternalServerError
-		c.IndentedJSON(statusCode, gin.H{"data": data, "error": errorMessage})
-	} else {
-		c.IndentedJSON(statusCode, gin.H{"data": data})
-	}
-}
-
 // RetrieveDeliverQueue godoc
 // @Summary Get Deliver-Message queue
-// @Description Get Deliver-Message of Group by id
-// @Tags groups
-// @Accept  json
+// @Description Get Deliver-Message queue of Group by id
+// @Tags deliver
 // @Produce  json
-// @Params Message
-//       Description : id of multicast
-// @Success 201 {object} []Message
+// @Param multicastId path string true "Multicast group id group"
+// @Success 201 {object} []utils.Delivery
 // @Router /deliver/:mId [get]
 // RetrieveDeliverQueue retrieve deliver message queue
 func RetrieveDeliverQueue(c *gin.Context) {
@@ -360,4 +337,16 @@ func RetrieveDeliverQueue(c *gin.Context) {
 		}
 	}
 	response(c, delqueue, nil)
+}
+
+func response(c *gin.Context, data interface{}, err error) {
+	statusCode := http.StatusOK
+	var errorMessage string
+	if err != nil {
+		errorMessage = strings.Title(err.Error())
+		statusCode = http.StatusInternalServerError
+		c.IndentedJSON(statusCode, gin.H{"data": data, "error": errorMessage})
+	} else {
+		c.IndentedJSON(statusCode, gin.H{"data": data})
+	}
 }

@@ -1,4 +1,15 @@
 definitions:
+  basic.Message:
+    properties:
+      MessageHeader:
+        additionalProperties:
+          type: string
+        type: object
+      Payload:
+        items:
+          type: integer
+        type: array
+    type: object
   multicastapp.Member:
     properties:
       address:
@@ -34,6 +45,20 @@ definitions:
       status:
         type: string
     type: object
+  utils.DelivererNode:
+    properties:
+      nodeId:
+        type: string
+    type: object
+  utils.Delivery:
+    properties:
+      deliverer:
+        $ref: '#/definitions/utils.DelivererNode'
+      m:
+        $ref: '#/definitions/basic.Message'
+      status:
+        type: boolean
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -44,9 +69,13 @@ info:
 paths:
   /deliver/:mId:
     get:
-      consumes:
-      - application/json
-      description: Get Deliver-Message of Group by id
+      description: Get Deliver-Message queue of Group by id
+      parameters:
+      - description: Multicast group id group
+        in: path
+        name: multicastId
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -54,11 +83,11 @@ paths:
           description: Created
           schema:
             items:
-              $ref: '#/definitions/multicastapp.Message'
+              $ref: '#/definitions/utils.Delivery'
             type: array
       summary: Get Deliver-Message queue
       tags:
-      - groups
+      - deliver
   /groups:
     get:
       consumes:
@@ -93,6 +122,12 @@ paths:
       consumes:
       - application/json
       description: Get Multicast Group by id
+      parameters:
+      - description: Multicast group id group
+        in: path
+        name: multicastId
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -107,6 +142,12 @@ paths:
       consumes:
       - application/json
       description: Start multicast by id
+      parameters:
+      - description: Multicast group id group
+        in: path
+        name: multicastId
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -122,6 +163,12 @@ paths:
       consumes:
       - application/json
       description: Get Message of Group by id
+      parameters:
+      - description: Multicast group id group
+        in: path
+        name: multicastId
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -138,6 +185,18 @@ paths:
       consumes:
       - application/json
       description: Multicast a message to a group G
+      parameters:
+      - description: Multicast group id group
+        in: path
+        name: multicastId
+        required: true
+        type: string
+      - description: Message to multicast
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/multicastapp.Message'
       produces:
       - application/json
       responses:

@@ -124,7 +124,7 @@ func (r routes) addMessaging(rg *gin.RouterGroup) {
 
 func (r routes) addSwagger(rg *gin.RouterGroup) {
 	groups := rg.Group("/swagger")
-	groups.GET("/", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	groups.GET("/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }
 
 func (r routes) addDeliver(rg *gin.RouterGroup) {

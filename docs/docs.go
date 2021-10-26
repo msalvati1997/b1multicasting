@@ -27,24 +27,30 @@ var doc = `{
     "paths": {
         "/deliver/:mId": {
             "get": {
-                "description": "Get Deliver-Message of Group by id",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Get Deliver-Message queue of Group by id",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "groups"
+                    "deliver"
                 ],
                 "summary": "Get Deliver-Message queue",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Multicast group id group",
+                        "name": "multicastId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "Created",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/multicastapp.Message"
+                                "$ref": "#/definitions/utils.Delivery"
                             }
                         }
                     }
@@ -108,6 +114,15 @@ var doc = `{
                     "groups"
                 ],
                 "summary": "Get Multicast Group by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Multicast group id group",
+                        "name": "multicastId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -129,6 +144,15 @@ var doc = `{
                     "groups"
                 ],
                 "summary": "Start multicast by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Multicast group id group",
+                        "name": "multicastId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -152,6 +176,15 @@ var doc = `{
                     "groups"
                 ],
                 "summary": "Get Message of Group by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Multicast group id group",
+                        "name": "multicastId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -176,6 +209,24 @@ var doc = `{
                     "messaging"
                 ],
                 "summary": "Multicast a message to a group G",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Multicast group id group",
+                        "name": "multicastId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Message to multicast",
+                        "name": "post",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.Message"
+                        }
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -188,6 +239,23 @@ var doc = `{
         }
     },
     "definitions": {
+        "basic.Message": {
+            "type": "object",
+            "properties": {
+                "MessageHeader": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "Payload": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
         "multicastapp.Member": {
             "type": "object",
             "properties": {
@@ -239,6 +307,28 @@ var doc = `{
                 },
                 "status": {
                     "type": "string"
+                }
+            }
+        },
+        "utils.DelivererNode": {
+            "type": "object",
+            "properties": {
+                "nodeId": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.Delivery": {
+            "type": "object",
+            "properties": {
+                "deliverer": {
+                    "$ref": "#/definitions/utils.DelivererNode"
+                },
+                "m": {
+                    "$ref": "#/definitions/basic.Message"
+                },
+                "status": {
+                    "type": "boolean"
                 }
             }
         }
