@@ -150,10 +150,9 @@ func CheckOtherVectors(vectorclock utils.VectorClock, itsvector utils.VectorCloc
 func TODDeliver() {
 	for {
 		if len(Q.Q) > 0 {
-
+			Q.Mu.Lock()
 			SortingQueue()
 			SortingACKQueue()
-			Q.Mu.Lock()
 			id := Q.Q[0].Msg.MessageHeader["i"]
 			position, _ := GetMessagePosition(id)
 			delnode := Q.Q[0].Msg.MessageHeader["delnode"]
@@ -195,7 +194,6 @@ func TODDeliver() {
 func CODeliver() {
 	for {
 		if len(COqueue.Q) > 0 {
-			PrintCOQueue()
 			msg := COqueue.Q[0].Msg
 			itsvector := COqueue.Q[0].Vector
 			id := msg.MessageHeader["ProcessId"]

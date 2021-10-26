@@ -4,26 +4,53 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/msalvati1997/b1multicasting/pkg/multicastapp"
+	"github.com/msalvati1997/b1multicasting/pkg/multicasting/test"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 )
 
 func Test_create_a_group(t *testing.T) {
-	CREATEORJOIN_GROUP("8080", "COMULTICAST", "MYGROUP")
-	CREATEORJOIN_GROUP("8081", "COMULTICAST", "MYGROUP")
-	CREATEORJOIN_GROUP("8082", "COMULTICAST", "MYGROUP")
-	CREATEORJOIN_GROUP("8083", "COMULTICAST", "MYGROUP")
+	CREATEORJOIN_GROUP("8080", "COMULTICAST", "COMULTICASTGROUP")
+	CREATEORJOIN_GROUP("8081", "COMULTICAST", "COMULTICASTGROUP")
+	CREATEORJOIN_GROUP("8082", "COMULTICAST", "COMULTICASTGROUP")
+	CREATEORJOIN_GROUP("8083", "COMULTICAST", "COMULTICASTGROUP")
+	////////////////////////////////////////////////////////////////////////////
+	CREATEORJOIN_GROUP("8080", "TOCMULTICAST", "TOCMULTICASTGROUP")
+	CREATEORJOIN_GROUP("8081", "TOCMULTICAST", "TOCMULTICASTGROUP")
+	CREATEORJOIN_GROUP("8082", "TOCMULTICAST", "TOCMULTICASTGROUP")
+	CREATEORJOIN_GROUP("8083", "TOCMULTICAST", "TOCMULTICASTGROUP")
+	//////////////////////////////////////////////////////////////////////////////
+	CREATEORJOIN_GROUP("8080", "TODMULTICAST", "TODMULTICASTGROUP")
+	CREATEORJOIN_GROUP("8081", "TODMULTICAST", "TODMULTICASTGROUP")
+	CREATEORJOIN_GROUP("8082", "TODMULTICAST", "TODMULTICASTGROUP")
+	CREATEORJOIN_GROUP("8083", "TODMULTICAST", "TODMULTICASTGROUP")
+	//////////////////////////////////////////////////////////////////////////////
+	CREATEORJOIN_GROUP("8080", "BMULTICAST", "BMULTICASTGROUP")
+	CREATEORJOIN_GROUP("8081", "BMULTICAST", "BMULTICASTGROUP")
+	CREATEORJOIN_GROUP("8082", "BMULTICAST", "BMULTICASTGROUP")
+	CREATEORJOIN_GROUP("8083", "BMULTICAST", "BMULTICASTGROUP")
 }
 
 func Test_start_group(t *testing.T) {
-	STARTGROUPTEST("8080", "MYGROUP")
-	GETGROUPTEST("8080", "MYGROUP")
+	STARTGROUPTEST("8080", "COMULTICASTGROUP")
+	time.Sleep(2 * time.Second)
+	STARTGROUPTEST("8081", "TOCMULTICASTGROUP")
+	time.Sleep(2 * time.Second)
+	STARTGROUPTEST("8082", "TODMULTICASTGROUP")
+	time.Sleep(2 * time.Second)
+	STARTGROUPTEST("8080", "BMULTICASTGROUP")
 }
 
 func Test_send_message(t *testing.T) {
-	SENDMESSAGETEST("8081", "PROVA", "MYGROUP")
+	SENDMESSAGETEST("8081", "COMULTICASTGROUP")
+	SENDMESSAGETEST("8082", "TOCMULTICASTGROUP")
+	SENDMESSAGETEST("8081", "BMULTICASTGROUP")
+	SENDMESSAGETEST("8083", "TODMULTICASTGROUP")
+	SENDMESSAGETEST("8081", "TODMULTICASTGROUP")
+	SENDMESSAGETEST("8085", "TOCMULTICASTGROUP")
 }
 
 func Test_get_message(t *testing.T) {
@@ -164,10 +191,10 @@ type Message struct {
 	Payload []byte
 }
 
-func SENDMESSAGETEST(host string, message string, group string) {
+func SENDMESSAGETEST(host string, group string) {
 	url := "http://localhost:" + host + "/multicast/v1/messaging/" + group
 	method := "POST"
-	m := []byte(message)
+	m := []byte(test.RandomString(16))
 	obj := Message{m}
 	json, _ := json.Marshal(obj)
 	reader := strings.NewReader(string(json))
