@@ -14,6 +14,12 @@ type DelivererNode struct {
 	NodeId string
 }
 
+var (
+	G1 = false
+	G2 = false
+	G3 = false
+)
+
 type Delivery struct {
 	Deliverer DelivererNode
 	Status    bool
@@ -55,11 +61,14 @@ func (node *DelivererNode) BDeliverSeq(message basic.Message) {
 	message.MessageHeader["order"] = "true"
 	message.MessageHeader["type"] = "TOC2"
 	msg := basic.NewMessage(message.MessageHeader, message.Payload)
-	err := multicasting.Seq.Conns.BMulticast(multicasting.Seq.MulticastId, msg)
 	multicasting.Seq.Sg = multicasting.Seq.Sg + 1 //update Sg = Sg+1
-	if err != nil {
-		return
-	}
+	log.Println("updating seq to ", multicasting.Seq.Sg)
+	go func() {
+		err := multicasting.Seq.Conns.BMulticast(multicasting.Seq.MulticastId, msg)
+		if err != nil {
+			return
+		}
+	}()
 }
 
 //On B-deliver(<m,i>) place <m,i> in HoldBackQueue q
@@ -88,7 +97,7 @@ func (node *DelivererNode) BDeliverTOD(message basic.Message) {
 	utils.Clock.Leap(uint64(max))
 	utils.Clock.Tick()
 	utils.MuClock.Unlock()
-	AppendMessageComplete(message, id, cl)
+	AppendMessageComplete(&QTOD, message, id, cl)
 	//Il processo ricevente invia in multicast un messaggio di Ack
 	m := make(map[string]string)
 	m["type"] = "ACK"
@@ -118,15 +127,15 @@ func (node *DelivererNode) BDeliverCO(msg basic.Message) {
 
 func (node *DelivererNode) TOCDeliver(msg basic.Message) {
 	log.Println("TOCDELIVER of message ", string(msg.Payload), "with seq ", msg.MessageHeader["s"])
-	Q.Mu.Lock()
+	QTOC.Mu.Lock()
 	seq := msg.MessageHeader["s"]
 	s, _ := strconv.Atoi(seq)
-	Q.Q = append(Q.Q, multicasting.SeqMessage{
+	QTOC.Q = append(QTOC.Q, multicasting.SeqMessage{
 		Msg:  msg,
 		I:    msg.MessageHeader["i"],
 		Nseq: s,
 	})
-	Q.Mu.Unlock()
+	QTOC.Mu.Unlock()
 	//var wg sync.WaitGroup
 	//	wg.Add(1)
 	//go InsertOrder(message, message.MessageHeader["s"], &wg)
@@ -148,19 +157,20 @@ func CheckOtherVectors(vectorclock utils.VectorClock, itsvector utils.VectorCloc
 }
 
 func TODDeliver() {
+	log.Println("START DELIVERING THREAD")
 	for {
-		if len(Q.Q) > 0 {
-			Q.Mu.Lock()
-			SortingQueue()
+		if len(QTOD.Q) > 0 {
+			QTOD.Mu.Lock()
+			SortingQueue(&QTOD)
 			SortingACKQueue()
-			id := Q.Q[0].Msg.MessageHeader["i"]
-			position, _ := GetMessagePosition(id)
-			delnode := Q.Q[0].Msg.MessageHeader["delnode"]
+			id := QTOD.Q[0].Msg.MessageHeader["i"]
+			position, _ := GetMessagePosition(&QTOD, id)
+			delnode := QTOD.Q[0].Msg.MessageHeader["delnode"]
 			node := DelivererNode{NodeId: delnode}
-			msg := Q.Q[0].Msg
-			Q.Mu.Unlock()
+			msg := QTOD.Q[0].Msg
+			QTOD.Mu.Unlock()
 			if (position == 0 && IsInACKQueue(id) == multicasting.GetNumbersOfClients()) && CheckOtherClocks(id) { //è in testa alla coda e tutti gli ack relativi a quel messaggio sono stati ricevuti
-				Q.Mu.Lock()
+				QTOD.Mu.Lock()
 				Del.M.Lock()
 				ACKQueue.Mu.Lock()
 				Del.DelivererNodes = append(Del.DelivererNodes, &Delivery{
@@ -168,22 +178,11 @@ func TODDeliver() {
 					Status:    true,
 					M:         msg,
 				})
-				PrintQueue()
-				var wg sync.WaitGroup
 				//removing from hold back queue
-				go func(w *sync.WaitGroup) {
-					wg.Add(1)
-					for i := 0; i < len(Q.Q); i++ {
-						if Q.Q[i].I == id {
-							Q.Q = append(Q.Q[:i], Q.Q[i+1:]...)
-						}
-					}
-					DeleteAckFromId(id)
-					defer w.Done()
-				}(&wg)
-				wg.Wait()
+				QTOD.Q = append(QTOD.Q[:0], QTOD.Q[1:]...)
+				DeleteAckFromId(id)
 				log.Println("Message correctly DELIVERED ", string((Del.DelivererNodes[len(Del.DelivererNodes)-1].M).Payload))
-				Q.Mu.Unlock()
+				QTOD.Mu.Unlock()
 				Del.M.Unlock()
 				ACKQueue.Mu.Unlock()
 			}
@@ -192,14 +191,17 @@ func TODDeliver() {
 }
 
 func CODeliver() {
+	log.Println("START DELIVERING THREAD")
 	for {
 		if len(COqueue.Q) > 0 {
+			COqueue.Mu.Lock()
 			msg := COqueue.Q[0].Msg
 			itsvector := COqueue.Q[0].Vector
 			id := msg.MessageHeader["ProcessId"]
 			pid, _ := strconv.Atoi(id)
 			delnode := COqueue.Q[0].Msg.MessageHeader["delnode"]
 			node := DelivererNode{NodeId: delnode}
+			COqueue.Mu.Unlock()
 			//wait until Vj[j]=Vi[j]+1 and Vj[k]<=Vi[k] (k!=i)
 			if utils.Vectorclock.TockV(pid)+1 == itsvector.TockV(pid) && CheckOtherVectors(utils.Vectorclock, itsvector, pid) {
 				Del.DelivererNodes = append(Del.DelivererNodes, &Delivery{
@@ -209,7 +211,6 @@ func CODeliver() {
 				})
 				log.Println("Message correctly DELIVERED ", string((Del.DelivererNodes[len(Del.DelivererNodes)-1].M).Payload))
 				//removing from hold back queue
-				//COqueue = append(COqueue[:0], COqueue[1:]...)
 				RemoveMessageFromQueue(msg, utils.Vectorclock)
 				if pid != utils.Myid {
 					utils.Vectorclock.TickV(pid)
@@ -227,40 +228,36 @@ func CODeliver() {
 //On B-deliver(m_order=<'order',i'>) wait until <m,i> in holdbackqueue and S=rg
 //TO-Deliver m , Rg=S+1
 func TOCDeliver() {
+	log.Println("START DELIVERING THREAD")
 	for {
-		if len(Q.Q) > 0 {
-			for i := 0; i < len(Q.Q); i++ {
-				if Q.Q[i].Msg.MessageHeader["type"] == "TOC2" {
-					seq := Q.Q[i].Nseq
-					if seq == multicasting.Rg {
-						Q.Mu.Lock()
-						Del.M.Lock()
-						id := Q.Q[i].Msg.MessageHeader["i"]
-						delnode := Q.Q[i].Msg.MessageHeader["delnode"]
-						node := DelivererNode{NodeId: delnode}
-						msg := Q.Q[i].Msg
-						Del.DelivererNodes = append(Del.DelivererNodes, &Delivery{
-							Deliverer: node,
-							Status:    true,
-							M:         msg,
-						})
-						log.Println("Message correctly DELIVERED ", string((Del.DelivererNodes[len(Del.DelivererNodes)-1].M).Payload))
-						//removing from hold back queue
-						var wg sync.WaitGroup
-						go func(w *sync.WaitGroup) {
-							wg.Add(1)
-							for p := 0; p < len(Q.Q); p++ {
-								if Q.Q[p].I == id {
-									Q.Q = append(Q.Q[:p], Q.Q[p+1:]...)
-								}
+		if len(QTOC.Q) > 0 {
+			for _, value := range QTOC.Q {
+				if value.Nseq == multicasting.Rg {
+					Del.M.Lock()
+					id := value.Msg.MessageHeader["i"]
+					delnode := value.Msg.MessageHeader["delnode"]
+					node := DelivererNode{NodeId: delnode}
+					msg := value.Msg
+					Del.DelivererNodes = append(Del.DelivererNodes, &Delivery{
+						Deliverer: node,
+						Status:    true,
+						M:         msg,
+					})
+					log.Println("Message correctly DELIVERED ", string((Del.DelivererNodes[len(Del.DelivererNodes)-1].M).Payload))
+					//removing from hold back queue
+					var wg sync.WaitGroup
+					go func(w *sync.WaitGroup) {
+						wg.Add(1)
+						for p := 0; p < len(QTOC.Q); p++ {
+							if QTOC.Q[p].I == id {
+								QTOC.Q = append(QTOC.Q[:p], QTOC.Q[p+1:]...)
 							}
-							defer w.Done()
-						}(&wg)
-						wg.Wait()
-						multicasting.UpdateRg(seq)
-						Q.Mu.Unlock()
-						Del.M.Unlock()
-					}
+						}
+						defer w.Done()
+					}(&wg)
+					wg.Wait()
+					multicasting.UpdateRg(value.Nseq)
+					Del.M.Unlock()
 				}
 			}
 		}

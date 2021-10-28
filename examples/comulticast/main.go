@@ -18,7 +18,7 @@ import (
 func main() {
 	port := flag.String("port", ":8080", "port number of the server")
 	membersPort := flag.String("membersPort", ":8081,:8082", "ports of the member of the multicast group")
-	multicasterId := flag.String("multicastId", "MulticasterId", "id of the multicaster id")
+	multicasterId := flag.String("multicastId", "MulticastId", "id of the multicast group")
 	delay := flag.Int("delay", 0, "delay of sending operation")
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
 	flag.Parse()

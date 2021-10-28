@@ -162,7 +162,7 @@ func main() {
 		}
 		if multicastType.Number() == 1 {
 			log.Println("STARTING TOC COMMUNICATION")
-			sequencerPort := multicasting.SelectingSequencer(members)
+			sequencerPort := multicasting.SelectingSequencer(members, false)
 			seqCon, err := Connections.GetGrpcClient(sequencerPort)
 			if err != nil {
 				log.Println("Error in find connection with sequencer..", err.Error())

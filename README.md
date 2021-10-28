@@ -19,6 +19,7 @@ Run ```docker-compose up``` to build the application's containers image.
 | PATH | METHOD | SUMMARY | 
 | ---- | ---------- | -------- |
 | /deliver/{mId} | GET | Get Deliver-Message queue of Group by id |
+| /deliver/| GET | Get Deliver-Message queue in general |
 | /groups | GET | Get Multicast Groups information |
 | /groups | POST | Create Multicast Group |
 |  /groups/{mId} | GET | Get information about a group|

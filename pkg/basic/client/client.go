@@ -24,13 +24,12 @@ type GrpcClient struct {
 
 //method to connect to grpcServer
 func Connect(address string, delay int) (*GrpcClient, error) {
-	log.Println("Connecting with server ", address)
 	cc, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
 	}
-	log.Println("connection state ====> ", cc.GetState(), "connected client ", cc.Target())
+	//log.Println("connection state ====> ", cc.GetState(), "connected client ", cc.Target())
 
 	cl := new(Client)
 	cl.Client = proto.NewEndToEndServiceClient(cc)
@@ -44,6 +43,7 @@ func Connect(address string, delay int) (*GrpcClient, error) {
 //method to send message to GrpcServer
 func (c *GrpcClient) Send(id string, message basic.Message, ch *chan bool) error {
 	var w sync.WaitGroup
+	log.Println("Sending message to ", c.GetTarget())
 
 	if c.Client == nil {
 		panic("Closed Connection")

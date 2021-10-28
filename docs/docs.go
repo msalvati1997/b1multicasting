@@ -25,6 +25,35 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/deliver/": {
+            "get": {
+                "description": "Get Deliver-Message queue of Group by id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deliver"
+                ],
+                "summary": "Get Deliver-Message queue",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/utils.Delivery"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/multicastapp.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/deliver/{mId}": {
             "get": {
                 "description": "Get Deliver-Message queue of Group by id",

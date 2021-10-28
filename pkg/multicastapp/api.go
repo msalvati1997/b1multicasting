@@ -22,13 +22,6 @@ var (
 	timeout = time.Second
 )
 
-func init() {
-	utils.Vectorclock = utils.NewVectorClock(4)
-	go utils2.CODeliver()
-	go utils2.TODDeliver()
-	go utils2.TOCDeliver()
-}
-
 // @Paths Information
 
 // GetGroups godoc
@@ -221,7 +214,7 @@ func StartGroup(ctx *gin.Context) {
 		response(ctx, ok, errors.New("The groups doesn't exist"))
 	}
 
-	_, err := RegClient.StartGroup(context.Background(), &protoregistry.RequestData{
+	info, err := RegClient.StartGroup(context.Background(), &protoregistry.RequestData{
 		MulticastId: group.Group.MulticastId,
 		MId:         group.clientId})
 
@@ -230,7 +223,7 @@ func StartGroup(ctx *gin.Context) {
 		return
 	}
 
-	response(ctx, group, nil)
+	response(ctx, info, nil)
 }
 
 // MulticastMessage godoc
@@ -326,14 +319,42 @@ func RetrieveMessages(ctx *gin.Context) {
 // @Description Get Deliver-Message queue of Group by id
 // @Tags deliver
 // @Produce  json
-// @Param mId path string true "Multicast group id group"
 // @Success 200 {object} []utils.Delivery
 // @Failure 500 {object} Response
-// @Router /deliver/{mId} [get]
+// @Router /deliver/ [get]
 // RetrieveDeliverQueue retrieve deliver message queue
 func RetrieveDeliverQueue(c *gin.Context) {
 
 	response(c, utils2.Del.DelivererNodes, nil)
+}
+
+// RetrieveDeliverQueueOfAGroup of a specific group godoc
+// @Summary Get Deliver-Message queue
+// @Description Get Deliver-Message queue of Group by id
+// @Tags deliver
+// @Produce  json
+// @Param mId path string true "Multicast group id group"
+// @Success 200 {object} []utils.Delivery
+// @Failure 500 {object} Response
+// @Router /deliver/{mId} [get]
+// RetrieveDeliverQueueOfAGroup retrieve deliver message queue of a specific group
+func RetrieveDeliverQueueOfAGroup(ctx *gin.Context) {
+
+	mId := ctx.Param("mId")
+	_, ok := MulticastGroups[mId]
+	if !ok {
+		response(ctx, ok, errors.New("The groups "+mId+" doesn't exist"))
+	}
+	var groupDeliver []utils2.Delivery
+	for i := 0; i < len(utils2.Del.DelivererNodes); i++ {
+		if utils2.Del.DelivererNodes[i].M.MessageHeader["GroupId"] == mId {
+			groupDeliver = append(groupDeliver, *utils2.Del.DelivererNodes[i])
+		}
+	}
+	if len(groupDeliver) == 0 {
+		response(ctx, gin.H{"GroupInfo": "There aren't delivered message from this group"}, nil)
+	}
+	response(ctx, groupDeliver, nil)
 }
 
 func response(c *gin.Context, data interface{}, err error) {

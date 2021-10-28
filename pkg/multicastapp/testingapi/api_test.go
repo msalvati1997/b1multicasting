@@ -6,51 +6,64 @@ import (
 	"github.com/msalvati1997/b1multicasting/pkg/multicastapp"
 	"github.com/msalvati1997/b1multicasting/pkg/multicasting/test"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
 	"testing"
-	"time"
 )
 
+//PHASE 1 : creation of groups
 func Test_create_a_group(t *testing.T) {
 	CREATEORJOIN_GROUP("8080", "COMULTICAST", "COMULTICASTGROUP")
 	CREATEORJOIN_GROUP("8081", "COMULTICAST", "COMULTICASTGROUP")
 	CREATEORJOIN_GROUP("8082", "COMULTICAST", "COMULTICASTGROUP")
 	CREATEORJOIN_GROUP("8083", "COMULTICAST", "COMULTICASTGROUP")
+	//	time.Sleep(5 * time.Second)
 	////////////////////////////////////////////////////////////////////////////
-	CREATEORJOIN_GROUP("8080", "TOCMULTICAST", "TOCMULTICASTGROUP")
-	CREATEORJOIN_GROUP("8081", "TOCMULTICAST", "TOCMULTICASTGROUP")
-	CREATEORJOIN_GROUP("8082", "TOCMULTICAST", "TOCMULTICASTGROUP")
-	CREATEORJOIN_GROUP("8083", "TOCMULTICAST", "TOCMULTICASTGROUP")
+	//CREATEORJOIN_GROUP("8081", "TOCMULTICAST", "TOCMULTICASTGROUP")
+	//CREATEORJOIN_GROUP("8080", "TOCMULTICAST", "TOCMULTICASTGROUP")
+	//CREATEORJOIN_GROUP("8082", "TOCMULTICAST", "TOCMULTICASTGROUP")
+	//CREATEORJOIN_GROUP("8083", "TOCMULTICAST", "TOCMULTICASTGROUP")
+	//	time.Sleep(5 * time.Second)
 	//////////////////////////////////////////////////////////////////////////////
-	CREATEORJOIN_GROUP("8080", "TODMULTICAST", "TODMULTICASTGROUP")
-	CREATEORJOIN_GROUP("8081", "TODMULTICAST", "TODMULTICASTGROUP")
-	CREATEORJOIN_GROUP("8082", "TODMULTICAST", "TODMULTICASTGROUP")
-	CREATEORJOIN_GROUP("8083", "TODMULTICAST", "TODMULTICASTGROUP")
-	//////////////////////////////////////////////////////////////////////////////
-	CREATEORJOIN_GROUP("8080", "BMULTICAST", "BMULTICASTGROUP")
-	CREATEORJOIN_GROUP("8081", "BMULTICAST", "BMULTICASTGROUP")
-	CREATEORJOIN_GROUP("8082", "BMULTICAST", "BMULTICASTGROUP")
-	CREATEORJOIN_GROUP("8083", "BMULTICAST", "BMULTICASTGROUP")
+	//CREATEORJOIN_GROUP("8080", "TODMULTICAST", "TODMULTICASTGROUP")
+	//time.Sleep(5 * time.Second)
+	//CREATEORJOIN_GROUP("8081", "TODMULTICAST", "TODMULTICASTGROUP")
+	//time.Sleep(5 * time.Second)
+	//CREATEORJOIN_GROUP("8082", "TODMULTICAST", "TODMULTICASTGROUP")
+	//time.Sleep(5 * time.Second)
+	//CREATEORJOIN_GROUP("8083", "TODMULTICAST", "TODMULTICASTGROUP")
+	//time.Sleep(5 * time.Second)
+	//	time.Sleep(5 * time.Second)
 }
 
+//PHASE 2 : One of the member start group
 func Test_start_group(t *testing.T) {
-	STARTGROUPTEST("8080", "COMULTICASTGROUP")
-	time.Sleep(2 * time.Second)
-	STARTGROUPTEST("8081", "TOCMULTICASTGROUP")
-	time.Sleep(2 * time.Second)
-	STARTGROUPTEST("8082", "TODMULTICASTGROUP")
-	time.Sleep(2 * time.Second)
-	STARTGROUPTEST("8080", "BMULTICASTGROUP")
+
+	//STARTGROUPTEST("8082", "TOCMULTICASTGROUP")
+	//time.Sleep(10 * time.Second)
+	//	STARTGROUPTEST("8082", "TOCMULTICASTGROUP")
+	//	time.Sleep(5 * time.Second)
+	STARTGROUPTEST("8083", "COMULTICASTGROUP")
 }
 
+// PHASE 3 : start messaging
 func Test_send_message(t *testing.T) {
-	SENDMESSAGETEST("8081", "COMULTICASTGROUP")
-	SENDMESSAGETEST("8082", "TOCMULTICASTGROUP")
-	SENDMESSAGETEST("8081", "BMULTICASTGROUP")
-	SENDMESSAGETEST("8083", "TODMULTICASTGROUP")
-	SENDMESSAGETEST("8081", "TODMULTICASTGROUP")
-	SENDMESSAGETEST("8085", "TOCMULTICASTGROUP")
+	SENDMESSAGETEST("8083", "COMULTICASTGROUP")
+	//	time.Sleep(3 * time.Second)
+	//	SENDMESSAGETEST("8080", "TOCMULTICASTGROUP")
+	//time.Sleep(10 * time.Second)
+	//	SENDMESSAGETEST("8081", "TOCMULTICASTGROUP")
+	//time.Sleep(10 * time.Second)
+	//SENDMESSAGETEST("8080", "TOCMULTICASTGROUP")
+	//time.Sleep(10 * time.Second)
+	//	SENDMESSAGETEST("8081", "BMULTICASTGROUP")
+	//	time.Sleep(3 * time.Second)
+	//	SENDMESSAGETEST("8083", "TODMULTICASTGROUP")
+	//	time.Sleep(3 * time.Second)
+	//SENDMESSAGETEST("8081", "TOCMULTICASTGROUP")
+	//	time.Sleep(3 * time.Second)
+	//	SENDMESSAGETEST("8085", "TOCMULTICASTGROUP")
 }
 
 func Test_get_message(t *testing.T) {
@@ -276,4 +289,11 @@ func GETDELIVERMESSAGESTEST(host string, group string) {
 		return
 	}
 	fmt.Println(string(body))
+}
+
+func Test_selector(t *testing.T) {
+	ex1 := "192.168.96.3:90"
+	splitted_strings := strings.Split(strings.Split(ex1, ":")[0], ".")
+	log.Println(splitted_strings)
+	log.Println(splitted_strings[len(splitted_strings)-1])
 }

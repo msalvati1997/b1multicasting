@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"flag"
-	"github.com/msalvati1997/b1multicasting/internal/utils"
 	"github.com/msalvati1997/b1multicasting/pkg/basic"
 	server "github.com/msalvati1997/b1multicasting/pkg/basic/server"
 	"github.com/msalvati1997/b1multicasting/pkg/multicasting"
@@ -16,7 +15,7 @@ import (
 func main() {
 	port := flag.String("port", ":8080", "port number of the server")
 	membersPort := flag.String("membersPort", ":8081,:8082", "ports of the member of the multicast group")
-	multicasterId := flag.String("multicastId", "MulticasterId", "id of the multicaster id")
+	multicasterId := flag.String("multicastId", "MulticastId", "id of the multicast group")
 	delay := flag.Int("delay", 0, "delay of sending operation")
 	flag.Parse()
 	go func() {
@@ -37,7 +36,7 @@ func main() {
 	log.Println("Input : ")
 	//selection of the sequencer
 	//the sequencer is one of the nodes partecipating in multicasting
-	sequencerPort := multicasting.SelectingSequencer(member)
+	sequencerPort := multicasting.SelectingSequencer(member, false)
 	seqCon, err := Connections.GetGrpcClient(sequencerPort)
 	if err != nil {
 		log.Println("Error in find connection with sequencer..", err.Error())
@@ -64,7 +63,6 @@ func main() {
 		for scanner.Scan() {
 			text := scanner.Bytes()
 			msg := basic.NewMessage(make(map[string]string), text)
-			msg.MessageHeader["i"] = utils.GenerateUID()
 			msg.MessageHeader["type"] = "TOC"
 			msg.MessageHeader["GroupId"] = *multicasterId
 			//Sender attaches the unique id to the message and sends <m,i> to the sequencer as well as to the group

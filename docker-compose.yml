@@ -19,7 +19,7 @@ services:
       - APP=true
       - REGISTRY_ADDR=registry:90
       - NUM_THREADS=2
-      - DELAY=2
+      - DELAY=1
       - VERBOSE=true
       - ID=0
     ports:

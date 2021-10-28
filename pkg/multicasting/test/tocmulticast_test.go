@@ -58,7 +58,7 @@ func Test_onetomany_toc(T1 *testing.T) {
 	}
 	member := make([]string, 0, 3)
 	member = append(append(append(member, "0"), "1"), "2")
-	sequencerPort := multicasting.SelectingSequencer(member)
+	sequencerPort := multicasting.SelectingSequencer(member, false)
 	log.Println("The sequencer is ", sequencerPort)
 	seqCon, err := connections.GetGrpcClient(sequencerPort)
 	if err != nil {
@@ -125,7 +125,7 @@ func Test_manytomany_toc(T2 *testing.T) {
 	if err != nil {
 		T2.Failed()
 	}
-	sequencerPort := multicasting.SelectingSequencer(member_toc)
+	sequencerPort := multicasting.SelectingSequencer(member_toc, false)
 	log.Println("The sequencer is ", sequencerPort)
 	if err != nil {
 		log.Println("Error in find connection with sequencer..", err.Error())
