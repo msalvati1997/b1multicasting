@@ -100,11 +100,16 @@ func (s *Server) SendMessage(ctx context.Context, in *proto.RequestMessage) (*pr
 		if err != nil {
 			log.Println("Error in closing group")
 		}
-		multicastapp.MulticastGroups[groupInfo.MulticastId].Group.Status = string(protoregistry.Status_CLOSED)
+		multicastapp.MulticastGroups[groupInfo.MulticastId].Group.Status = protoregistry.Status_CLOSED.String()
 		for key, _ := range multicastapp.MulticastGroups[groupInfo.MulticastId].Group.Members {
 			member1 := multicastapp.MulticastGroups[groupInfo.MulticastId].Group.Members[key]
 			member1.Ready = false
 			multicastapp.MulticastGroups[groupInfo.MulticastId].Group.Members[key] = member1
+		}
+		for i := 0; i < len(utils.Del.DelivererNodes); i++ {
+			if utils.Del.DelivererNodes[i].M.MessageHeader["GroupId"] == in.MessageHeader["MulticastId"] {
+				utils.Del.DelivererNodes = append(utils.Del.DelivererNodes[:i], utils.Del.DelivererNodes[i+1:]...)
+			}
 		}
 	}
 	return &proto.ResponseMessage{}, nil

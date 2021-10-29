@@ -7,6 +7,8 @@ services:
     container_name: registry
     environment:
       - REGISTRY=true
+    image:
+      martinasalvati/b1_multicasting
     ports:
       - '90'
 
@@ -22,6 +24,8 @@ services:
       - DELAY=1
       - VERBOSE=true
       - ID=0
+    image:
+      martinasalvati/b1_multicasting
     ports:
       - 8080:80
 
@@ -36,6 +40,8 @@ services:
       - DELAY=1
       - VERBOSE=true
       - ID=1
+    image:
+      martinasalvati/b1_multicasting
     ports:
       - 8081:80
 
@@ -50,6 +56,8 @@ services:
       - DELAY=1
       - VERBOSE=true
       - ID=2
+    image:
+      martinasalvati/b1_multicasting
     ports:
       - 8082:80
 
@@ -64,5 +72,7 @@ services:
       - DELAY=1
       - VERBOSE=true
       - ID=3
+    image:
+      martinasalvati/b1_multicasting
     ports:
       - 8083:80

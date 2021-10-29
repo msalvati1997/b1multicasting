@@ -341,7 +341,7 @@ func RetrieveDeliverQueue(c *gin.Context) {
 func RetrieveDeliverQueueOfAGroup(ctx *gin.Context) {
 
 	mId := ctx.Param("mId")
-	_, ok := MulticastGroups[mId]
+	group, ok := MulticastGroups[mId]
 	if !ok {
 		response(ctx, ok, errors.New("The groups "+mId+" doesn't exist"))
 	}
@@ -351,10 +351,15 @@ func RetrieveDeliverQueueOfAGroup(ctx *gin.Context) {
 			groupDeliver = append(groupDeliver, *utils2.Del.DelivererNodes[i])
 		}
 	}
-	if len(groupDeliver) == 0 {
+	if len(groupDeliver) == 0 && group.Group.Status == protoregistry.Status_ACTIVE.String() {
 		response(ctx, gin.H{"GroupInfo": "There aren't delivered message from this group"}, nil)
 	}
-	response(ctx, groupDeliver, nil)
+	if len(groupDeliver) == 0 && group.Group.Status == protoregistry.Status_CLOSED.String() {
+		response(ctx, gin.H{"GroupInfo": "The group is closed"}, nil)
+	}
+	if len(groupDeliver) != 0 {
+		response(ctx, groupDeliver, nil)
+	}
 }
 
 func response(c *gin.Context, data interface{}, err error) {

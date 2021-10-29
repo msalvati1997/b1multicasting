@@ -10,3 +10,5 @@ build:
 	docker-compose up
 test:
 	go test -v ./pkg/multicasting/test
+test-api:
+	go test -v ./pkg/multicastapp/testingapi
