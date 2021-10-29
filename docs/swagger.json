@@ -363,10 +363,12 @@
             "type": "object",
             "properties": {
                 "address": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "127.0.0.0.4:90"
                 },
                 "member_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "0"
                 },
                 "ready": {
                     "type": "boolean"
@@ -380,7 +382,8 @@
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
-                    }
+                    },
+                    "example":  { "type": "TOCMULTICAST", "GroupId": "FAMILY_GROUP"}
                 },
                 "Payload": {
                     "type": "array",
@@ -400,16 +403,20 @@
                     }
                 },
                 "multicast_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "FAMILY_GROUP"
                 },
                 "multicast_type": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": ["BMULTICAST","TOCMULTICAST","TODMULTICAST","COMULTICAST"]
                 },
                 "received_messages": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 4
                 },
                 "status": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": ["OPENING","STARTING","ACTIVE","CLOSING","CLOSED"]
                 }
             }
         },
@@ -417,10 +424,12 @@
             "type": "object",
             "properties": {
                 "multicast_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "FAMILYGROUP"
                 },
                 "multicast_type": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": ["BMULTICAST","TOCMULTICAST","TODMULTICAST","COMULTICAST"]
                 }
             }
         },
@@ -429,15 +438,18 @@
             "properties": {
                 "h": {
                     "type": "object",
-                    "additionalProperties": true
-                }
+                    "additionalProperties": true,
+                    "example": {
+                        "data": { "Error" : "The group isn't ready"}
+                }}
             }
         },
         "utils.DelivererNode": {
             "type": "object",
             "properties": {
                 "nodeId": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "127.0.0.0.4:90"
                 }
             }
         },

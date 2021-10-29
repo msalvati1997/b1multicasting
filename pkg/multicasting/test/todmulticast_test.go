@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	NMESSAGE_TOD = 20
+	NMESSAGE_TOD = 5
 	member_tod   = []string{"0", "1", "2"}
 )
 
