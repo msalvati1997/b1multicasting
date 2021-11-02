@@ -9,6 +9,7 @@ import (
 	"sync"
 )
 
+//queue that keeps messages with their vector clocks attached to them at the time they were sent
 var (
 	COqueue COQueue
 )

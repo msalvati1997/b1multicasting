@@ -31,6 +31,8 @@ func init() {
 	MulticastGroups = make(map[string]*MulticastGroup)
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////MODEL FOR API/////////////////////////////////////////
 // MulticastGroup manages the metadata associated with a group in which the node is registered
 type MulticastGroup struct {
 	clientId  string
@@ -79,6 +81,7 @@ type routes struct {
 	router *gin.Engine
 }
 
+//Starts RESTful application
 func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl uint, debug bool) error {
 	GrpcPort = grpcP
 	Delay = dl
@@ -114,6 +117,7 @@ func Run(grpcP, restPort uint, registryAddr, relativePath string, numThreads, dl
 	return err
 }
 
+//////////////////////////Definitions of route groups //////////////////////////
 func (r routes) addGroups(rg *gin.RouterGroup) {
 	groups := rg.Group("/groups")
 	groups.GET("/", GetGroups)
@@ -140,19 +144,20 @@ func (r routes) addDeliver(rg *gin.RouterGroup) {
 	groups.GET("/", RetrieveDeliverQueue)
 }
 
+//Initialization of the group
 func InitGroup(info *protoregistry.MGroup, group *MulticastGroup) {
 	// Waiting that the group is ready
 	log.Println("Waiting for the group to be ready")
 
 	update(info, group)
-	groupInfo, err := StatusChange(info, group, protoregistry.Status_OPENING)
+	groupInfo, err := ChangeStatus(info, group, protoregistry.Status_OPENING)
 	if err != nil {
 		return
 	}
 
 	log.Println("Group ready, initializing multicast")
 	// Initializing  data structures
-	err = initialiazeGroupCommunication(info, group)
+	err = initGroupCommunication(info, group)
 
 	if err != nil {
 		return
@@ -181,7 +186,7 @@ func InitGroup(info *protoregistry.MGroup, group *MulticastGroup) {
 	}
 	// Waiting tha all other nodes are ready
 	update(groupInfo, group)
-	groupInfo, _ = StatusChange(groupInfo, group, protoregistry.Status_STARTING)
+	groupInfo, _ = ChangeStatus(groupInfo, group, protoregistry.Status_STARTING)
 
 	if err != nil {
 		return
@@ -191,7 +196,8 @@ func InitGroup(info *protoregistry.MGroup, group *MulticastGroup) {
 
 }
 
-func initialiazeGroupCommunication(groupInfo *protoregistry.MGroup, group *MulticastGroup) error {
+//Start communication
+func initGroupCommunication(groupInfo *protoregistry.MGroup, group *MulticastGroup) error {
 
 	var members []string
 
@@ -233,7 +239,8 @@ func initialiazeGroupCommunication(groupInfo *protoregistry.MGroup, group *Multi
 	return nil
 }
 
-func StatusChange(groupInfo *protoregistry.MGroup, multicastGroup *MulticastGroup, status protoregistry.Status) (*protoregistry.MGroup, error) {
+//Change status of the member
+func ChangeStatus(groupInfo *protoregistry.MGroup, multicastGroup *MulticastGroup, status protoregistry.Status) (*protoregistry.MGroup, error) {
 	var err error
 
 	for groupInfo.Status == status {
@@ -252,6 +259,7 @@ func StatusChange(groupInfo *protoregistry.MGroup, multicastGroup *MulticastGrou
 	return groupInfo, nil
 }
 
+//update status of member
 func update(groupInfo *protoregistry.MGroup, multicastGroup *MulticastGroup) {
 	multicastGroup.groupMu.Lock()
 	defer multicastGroup.groupMu.Unlock()

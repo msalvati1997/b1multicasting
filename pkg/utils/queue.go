@@ -9,6 +9,7 @@ import (
 	"sync"
 )
 
+//local queue that keeps received messages with their timestampts
 type Queue struct {
 	Q  []multicasting.SeqMessage
 	Mu sync.Mutex

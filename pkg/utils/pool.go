@@ -20,6 +20,7 @@ type Pool struct {
 	connections *multicasting.Conns
 }
 
+//processing messages from threads
 func ProcessMessage(msgChan chan basic.Message) {
 
 	for {
@@ -101,6 +102,7 @@ func ProcessMessage(msgChan chan basic.Message) {
 	}
 }
 
+//initialization of thread pool
 func (p *Pool) Initialize(nthreads int) {
 
 	p.MessageCh = make(chan basic.Message, 50)

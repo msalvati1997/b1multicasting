@@ -36,8 +36,8 @@ func (c *Conns) TODMulticast(g string, m basic.Message) error {
 	return nil
 }
 
-//Invia i messaggi di ack ai processi del relativo messaggio m
-//salva in una coda i messaggi di ack relativo al messagio..può effettuare la deliver solo quando tutti hanno ricevuto il messaggio
+//Send ack messages to the processes of its message m
+//saves in a queue the messages of ack related to the message.. can deliver only when everyone has received the message
 func (c *Conns) ACKMulticast(g string, m basic.Message) error {
 
 	ch := make(chan bool, len(c.Conns))
@@ -56,10 +56,9 @@ func (c *Conns) ACKMulticast(g string, m basic.Message) error {
 	defer wg.Wait()
 	//check if the message correctly arrived to the nodes
 	for i := 0; i < len(c.Conns); i++ {
-		r := <-ch //lettura del canale
+		r := <-ch
 		if r != true {
 			log.Println("Message not arrived to nodes ", c.Conns[i].GetTarget())
-			//prova a rinviarlo
 		} else {
 			log.Println("Message correctly sent to ", c.Conns[i].GetTarget())
 		}

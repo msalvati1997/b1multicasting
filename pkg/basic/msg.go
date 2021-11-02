@@ -9,7 +9,7 @@ type Message struct {
 
 func NewMessage(header map[string]string, bytes []byte) Message {
 	return Message{
-		header, //reset Header of the message
+		header,
 		bytes,
 	}
 }

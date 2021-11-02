@@ -24,6 +24,7 @@ Run ```docker-compose up``` to build the application's containers image.
 | /groups | POST | Create Multicast Group |
 |  /groups/{mId} | GET | Get information about a group|
 |  /groups/{mId} | DELETE | Delete an existing group |
+|  /groups/{mId} | PUT | Start a multicast group |
 |  /messaging/{mId} | GET | Get messages of a group |
 |  /messaging/{mId} | POST | Multicast a message to a group  |
 

@@ -1,5 +1,6 @@
 package utils
 
+//Local queue that keeps received acks
 import (
 	"errors"
 	"github.com/msalvati1997/b1multicasting/pkg/basic"
@@ -41,10 +42,6 @@ func IsInACKQueue_(ac *ACKQ, id string) int {
 			p = p + 1
 		}
 	}
-	//if p==3 {
-	//	log.Println("Number of ack : ", p)
-	//	}
-	//	PrintACKQueue()
 	return p
 }
 
@@ -111,7 +108,7 @@ func DeleteAckFromId_(A *ACKQ, id string, wg *sync.WaitGroup) bool {
 	return true
 }
 
-//controlla dagli ack ricevuti se gli altri processi non abbiano un valore di timestamp minore di quello relativo al messaggio con id
+//checks from received acks if other member do not have a timestamp value lower than that for the message with id
 func CheckOtherClocks(id string) bool {
 	SortingACKQueue()
 	i, err := GetPosition(id)

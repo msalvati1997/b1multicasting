@@ -33,6 +33,7 @@ func init() {
 	Seq.Sg = 0
 }
 
+//Pseudo-random function that permits to select a sequencer from members
 func SelectingSequencer(member []string, b bool) string {
 	index := 0
 	sort.Strings(member)

@@ -6,6 +6,7 @@ import (
 	"log"
 )
 
+//Connecting to the registry server
 func Connect(address string) (protoregistry.RegistryClient, error) {
 
 	log.Println("Connecting to registry server ", address)

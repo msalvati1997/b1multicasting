@@ -1,5 +1,6 @@
 package utils
 
+//delivery implements deliver logic for each algorithm
 import (
 	"github.com/msalvati1997/b1multicasting/internal/utils"
 	"github.com/msalvati1997/b1multicasting/pkg/basic"

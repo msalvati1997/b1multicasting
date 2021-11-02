@@ -21,12 +21,13 @@ func init() {
 	Cnn.Conns = make([]*client.GrpcClient, 0, 100)
 }
 
-func Connections(ports []string, delay int) (*Conns, error) {
+//method that permits multiple grpc connections from addresses
+func Connections(addresses []string, delay int) (*Conns, error) {
 
-	clients := make([]*client.GrpcClient, len(ports))
-	for i := 0; i < len(ports); i++ {
-		log.Println("Connecting with", ports[i])
-		conn, err := client.Connect(ports[i], delay)
+	clients := make([]*client.GrpcClient, len(addresses))
+	for i := 0; i < len(addresses); i++ {
+		log.Println("Connecting with", addresses[i])
+		conn, err := client.Connect(addresses[i], delay)
 		if err != nil {
 			log.Println("Error in connecting Clients ", err.Error())
 			return nil, err

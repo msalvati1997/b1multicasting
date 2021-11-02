@@ -12,7 +12,7 @@ func (seq *Sequencer) TOCMulticast2(g string, m basic.Message) error {
 	for i := 0; i < len(seq.Conns.Conns); i++ {
 		index := i
 		go func() {
-			//invio al sequencer <m,i>
+			//sends to  sequencer <m,i>
 			if seq.Conns.Conns[index].GetTarget() == seq.SeqPort {
 				msg := basic.Message{
 					MessageHeader: make(map[string]string),
@@ -38,7 +38,7 @@ func (seq *Sequencer) TOCMulticast2(g string, m basic.Message) error {
 				msg.MessageHeader["i"] = m.MessageHeader["i"]
 				msg.MessageHeader["type"] = m.MessageHeader["type"]
 				msg.MessageHeader["GroupId"] = m.MessageHeader["GroupId"]
-				//invio agli altri membri <m,i>
+				//sends to other members
 				log.Println("Sending to member")
 				err := seq.Conns.Conns[index].Send(g, msg, &ch) //one to one send operation
 				if err != nil {
@@ -49,10 +49,9 @@ func (seq *Sequencer) TOCMulticast2(g string, m basic.Message) error {
 	}
 	//check if the message correctly arrived to the nodes
 	for i := 0; i < len(seq.Conns.Conns); i++ {
-		r := <-ch //lettura del canale
+		r := <-ch
 		if r != true {
 			log.Println("Message not arrived to nodes ", seq.Conns.Conns[i].GetTarget())
-			//prova a rinviarlo
 		} else {
 			log.Println("Message correctly sent to ", seq.Conns.Conns[i].GetTarget())
 		}
@@ -73,10 +72,9 @@ func (seq *Sequencer) TOCMulticast(g string, m basic.Message) error {
 		}
 	}()
 	//check if the message correctly arrived to the sequencer
-	r := <-ch //lettura del canale
+	r := <-ch
 	if r != true {
 		log.Println("Message not arrived to nodes ", seq.SeqConn.GetTarget())
-		//prova a rinviarlo
 	} else {
 		log.Println("Message correctly sent to sequencer", seq.SeqConn.GetTarget())
 	}

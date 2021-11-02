@@ -33,7 +33,7 @@ func init() {
 	groups = make(map[string]*Mgroup)
 }
 
-// Registration registers the calling node to a multicast group
+// Registration of the node in a specific group
 func (s *RegistryServer) Register(ctx context.Context, in *protoregistry.Rinfo) (*protoregistry.Ranswer, error) {
 	timeout := time.Second
 	c, cancel := context.WithTimeout(ctx, timeout)
@@ -92,8 +92,6 @@ func (s *RegistryServer) Register(ctx context.Context, in *protoregistry.Rinfo) 
 }
 
 // Start enables multicast in the group.
-// All processes belonging to the group can initializes the necessary structure and
-// then they must communicate they are ready using Ready function.
 func (s *RegistryServer) StartGroup(ctx context.Context, in *protoregistry.RequestData) (*protoregistry.MGroup, error) {
 	_, ok := peer.FromContext(ctx)
 	if !ok {
@@ -110,21 +108,20 @@ func (s *RegistryServer) StartGroup(ctx context.Context, in *protoregistry.Reque
 	}
 	mGroup.mu.Lock()
 	defer mGroup.mu.Unlock()
-	// Checking if the group can be started
+
 	if mGroup.groupInfo.Status != protoregistry.Status_OPENING {
 		return nil, status.Errorf(codes.Canceled, "Cannot start group")
 	}
-	// Checking if the process belong to the group
+
 	if _, ok = mGroup.groupInfo.Members[clientId]; !ok {
 		return nil, status.Errorf(codes.PermissionDenied, "Not registered to the group")
 	}
-	// Updating group status
+
 	mGroup.groupInfo.Status = protoregistry.Status_STARTING
 	return mGroup.groupInfo, nil
 }
 
-// Ready stats that the calling node has correctly initialized the required structures for multicast.
-// Nodes can multicast messages when all members have called the Ready function
+//Method that changes status of a member. The member is ready for communication.
 func (s *RegistryServer) Ready(ctx context.Context, in *protoregistry.RequestData) (*protoregistry.MGroup, error) {
 
 	_, ok := peer.FromContext(ctx)
@@ -136,7 +133,6 @@ func (s *RegistryServer) Ready(ctx context.Context, in *protoregistry.RequestDat
 	Mugroups.RLock()
 	defer Mugroups.RUnlock()
 
-	// Checking if the group exists
 	mGroup, ok := groups[multicastId]
 	if !ok {
 		return nil, status.Errorf(codes.NotFound, "Group not found")
@@ -145,14 +141,12 @@ func (s *RegistryServer) Ready(ctx context.Context, in *protoregistry.RequestDat
 	mGroup.mu.Lock()
 	defer mGroup.mu.Unlock()
 
-	// Checking if the group is in the correct status
 	if mGroup.groupInfo.Status != protoregistry.Status_STARTING {
 		return nil, status.Errorf(codes.Canceled, "Cannot start group")
 	}
 
 	var member *protoregistry.MemberInfo
 
-	// Checking if the process belongs to the group
 	if member, ok = mGroup.groupInfo.Members[clientId]; !ok {
 		return nil, status.Errorf(codes.PermissionDenied, "Not registered to the group")
 	}
@@ -163,7 +157,6 @@ func (s *RegistryServer) Ready(ctx context.Context, in *protoregistry.RequestDat
 	}
 
 	if mGroup.groupInfo.ReadyMembers == uint64(len(mGroup.groupInfo.Members)) {
-		// All members are ready, they can multicast messages
 		mGroup.groupInfo.Status = protoregistry.Status_ACTIVE
 	}
 	return mGroup.groupInfo, nil
@@ -184,7 +177,6 @@ func (s *RegistryServer) CloseGroup(ctx context.Context, in *protoregistry.Reque
 	Mugroups.RLock()
 	defer Mugroups.RUnlock()
 
-	// Checking if the group exists
 	mGroup, ok := groups[multicastId]
 
 	if !ok {
@@ -194,12 +186,10 @@ func (s *RegistryServer) CloseGroup(ctx context.Context, in *protoregistry.Reque
 	mGroup.mu.Lock()
 	defer mGroup.mu.Unlock()
 
-	// Checking if the group can be closed
 	if mGroup.groupInfo.Status != protoregistry.Status_ACTIVE && mGroup.groupInfo.Status != protoregistry.Status_CLOSING {
 		return nil, status.Errorf(codes.Canceled, "Cannot closed group")
 	}
 
-	// Checking if the node belongs to the group
 	member, ok := mGroup.groupInfo.Members[clientId]
 
 	if !ok {
@@ -212,7 +202,6 @@ func (s *RegistryServer) CloseGroup(ctx context.Context, in *protoregistry.Reque
 		member.Ready = false
 		mGroup.groupInfo.ReadyMembers--
 		if mGroup.groupInfo.ReadyMembers == 0 {
-			// Closing definitely the group when all members have called CloseGroup function
 			mGroup.groupInfo.Status = protoregistry.Status_CLOSED
 			log.Println("Group  closed")
 		}

@@ -1,4 +1,4 @@
-# Basic Makefile for Golang project
+#  Makefile for Multicast project
 
 all:    ## clean, format, build and unit test
 	make clean
